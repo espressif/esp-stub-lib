@@ -13,3 +13,9 @@ DEFAULT:
      */
 
   espressif_copyright: '{years} Espressif Systems (Shanghai) CO LTD'
+
+ignore:
+  perform_check: false
+  include:
+    - src/*/ld/*.ld
+    - example/ld/*.ld
