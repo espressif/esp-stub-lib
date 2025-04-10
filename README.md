@@ -4,10 +4,31 @@
 
 This project is experimental and not yet ready for production use.
 
+## Supported Targets
 
-# How To Use
+- ESP8266
+- ESP32
+- ESP32-S2
+- ESP32-S3
+- ESP32-C2
+- ESP32-C3
+- ESP32-C5
+- ESP32-C6
+- ESP32-C61
+- ESP32-H2
+- ESP32-P4
 
-TODO
+## How to use
+
+The library provides a simple interface for creating stubs that can be loaded onto ESP chips.
+
+A complete example project is provided in the [example](example/) directory. It demonstrates:
+- Basic stub implementation
+- Flash operations
+- Target-specific configurations
+- Build system integration
+
+See the [example README](example/README.md) for build instructions.
 
 ## Contributing
 
