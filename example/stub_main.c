@@ -22,11 +22,24 @@ struct stub_cmd_handler {
     int (*handler)(va_list ap);
 };
 
+#ifdef STUB_LOG_ENABLED
+#define STUB_LOG_INIT(uart_num, baudrate) stub_lib_log_init(uart_num, baudrate)
+#define STUB_LOG(fmt, ...) stub_lib_log_printf(fmt, ##__VA_ARGS__)
+#else
+#define STUB_LOG_INIT(uart_num, baudrate)
+#define STUB_LOG(fmt, ...)
+#endif
+
 static  __attribute__((unused)) int handle_test1(va_list ap)
 {
     (void)ap;
 
-    STUB_LIB_LOG("test1\n");
+    STUB_LOG("stub command test:%d\n", 1);
+    STUB_LOG("stub command test:%d\n", -1);
+    STUB_LOG("stub command test:0x%x\n", 0x4080393C);
+    STUB_LOG("stub command test:%s\n", "test");
+    STUB_LOG("stub command test:%c\n", 'A');
+    STUB_LOG("stub command test:%l\n", 10); // not supported
 
     return 0;
 }
@@ -35,7 +48,7 @@ static  __attribute__((unused)) int handle_test2(va_list ap)
 {
     (void)ap;
 
-    STUB_LIB_LOG("test2\n");
+    STUB_LOG("test2\n");
 
     return 0;
 }
@@ -71,14 +84,14 @@ int stub_main(int cmd, ...)
 
     va_start(ap, cmd);
 
-    stub_lib_log_init(0, 115200);
+    STUB_LOG_INIT(0, 115200);
 
     stub_lib_flash_init(&flash_state);
 
     const struct stub_cmd_handler *handler = cmd_handlers;
     while (handler->handler) {
         if (handler->cmd == cmd) {
-            STUB_LIB_LOG("Executing command: %s\n", handler->name);
+            STUB_LOG("Executing command: %s\n", handler->name);
             ret = handler->handler(ap);
             break;
         }
@@ -86,7 +99,7 @@ int stub_main(int cmd, ...)
     }
 
     if (!handler->handler) {
-        STUB_LIB_LOG("Unknown command!\n");
+        STUB_LOG("Unknown command!\n");
     }
 
     va_end(ap);

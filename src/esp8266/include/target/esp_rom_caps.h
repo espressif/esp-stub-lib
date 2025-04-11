@@ -6,7 +6,4 @@
 
 #pragma once
 
-#include <stdint.h>
-
-void stub_lib_log_init(uint8_t uart_num, uint32_t baudrate);
-void stub_lib_log_printf(const char *fmt, ...);
+#define ESP_ROM_HAS_VPRINTF_FUNC            (1) // ROM has ets_vprintf
