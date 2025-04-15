@@ -22,14 +22,6 @@ struct stub_cmd_handler {
     int (*handler)(va_list ap);
 };
 
-#ifdef STUB_LOG_ENABLED
-#define STUB_LOG_INIT() stub_lib_log_init(STUB_LIB_LOG_DEST_UART)
-#define STUB_LOG(fmt, ...) stub_lib_log_printf(fmt, ##__VA_ARGS__)
-#else
-#define STUB_LOG_INIT()
-#define STUB_LOG(fmt, ...)
-#endif
-
 static  __attribute__((unused)) int handle_test1(va_list ap)
 {
     (void)ap;

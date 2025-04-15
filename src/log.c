@@ -5,6 +5,8 @@
  */
 #include <log.h>
 
+#if defined(STUB_LOG_ENABLED)
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -18,30 +20,27 @@ extern void ets_printf(const char *fmt, ...);
 extern void ets_install_putc1(void (*p)(char c));
 extern void ets_install_putc2(void (*p)(char c));
 
-static enum stub_lib_log_destination s_log_dest = STUB_LIB_LOG_DEST_BUF;
-
-static struct stub_lib_log_buf g_stub_lib_log_buf;
-
-static void log_buf_write(char c)
+#if defined(STUB_LIB_LOG_BUF)
+struct stub_lib_log_buf g_stub_lib_log_buf;
+static void stub_lib_log_buf_write_internal(char c)
 {
     g_stub_lib_log_buf.buf[g_stub_lib_log_buf.count] = c;
     g_stub_lib_log_buf.count = (g_stub_lib_log_buf.count + 1) & (STUB_LIB_LOG_BUF_SIZE - 1);
 }
+#endif // defined(STUB_LIB_LOG_BUF)
 
-void stub_lib_log_init(enum stub_lib_log_destination dest)
+void stub_lib_log_init()
 {
-    if (dest == STUB_LIB_LOG_DEST_UART) {
-        stub_target_uart_init(0, 115200);
-        //fixme: call ets_install_putc1(0)/putc2(0) here?
-        ets_install_uart_printf();
-        s_log_dest = STUB_LIB_LOG_DEST_UART;
-    } else if (dest == STUB_LIB_LOG_DEST_BUF) {
-        ets_install_putc1(log_buf_write);
-        ets_install_putc2(NULL);
-        s_log_dest = STUB_LIB_LOG_DEST_BUF;
-    } else {
-        s_log_dest = STUB_LIB_LOG_DEST_NONE;
-    }
+#if defined(STUB_LIB_LOG_UART)
+    stub_target_uart_init(0, 115200);
+    //fixme: call ets_install_putc1(0)/putc2(0) here?
+    ets_install_uart_printf();
+#elif defined(STUB_LIB_LOG_BUF)
+    ets_install_putc1(stub_lib_log_buf_write_internal);
+    ets_install_putc2(NULL);
+#else
+#error "STUB_LIB_LOG_X destination should be defined"
+#endif
 }
 
 // This function is designed to avoid implementing vprintf() to reduce code size.
@@ -99,3 +98,5 @@ void stub_lib_log_printf(const char *fmt, ...)
     }
     va_end(args);
 }
+
+#endif // defined(STUB_LOG_ENABLED)

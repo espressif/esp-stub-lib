@@ -22,7 +22,6 @@ target_include_directories(${ESP_STUB_LIB}
     PRIVATE include/esp-stub-lib
 )
 
-message("DBG ESP_STUB_LIB: ${ESP_STUB_LIB}, STUB_COMPILE_DEFS: ${STUB_COMPILE_DEFS}")
 # STUB_COMPILE_DEFS is optional definitions coming from the parent CMakeLists.txt
 target_compile_definitions(${ESP_STUB_LIB} PRIVATE ${STUB_COMPILE_DEFS})
 

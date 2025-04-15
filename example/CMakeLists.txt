@@ -51,5 +51,6 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 get_filename_component(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR}/.. ABSOLUTE)
+set(STUB_COMPILE_DEFS "STUB_LOG_ENABLED;STUB_LIB_LOG_BUF")
 add_subdirectory(${PROJECT_ROOT} esp-stub-lib)
 target_link_libraries(${PROJECT_NAME} PRIVATE esp-stub-lib)
