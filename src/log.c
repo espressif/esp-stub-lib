@@ -3,8 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
+#include <log.h>
+
 #include <stdint.h>
 #include <stdarg.h>
+#include <stddef.h>
 
 #include <target/esp_rom_caps.h>
 #include <target/uart.h>
@@ -12,11 +15,33 @@
 // These functions are defined in the ROM
 extern void ets_install_uart_printf(void);
 extern void ets_printf(const char *fmt, ...);
+extern void ets_install_putc1(void (*p)(char c));
+extern void ets_install_putc2(void (*p)(char c));
 
-void stub_lib_log_init(uint8_t uart_num, uint32_t baudrate)
+static enum stub_lib_log_destination s_log_dest = STUB_LIB_LOG_DEST_BUF;
+
+static struct stub_lib_log_buf g_stub_lib_log_buf;
+
+static void log_buf_write(char c)
 {
-    stub_target_uart_init(uart_num, baudrate);
-    ets_install_uart_printf();
+    g_stub_lib_log_buf.buf[g_stub_lib_log_buf.count] = c;
+    g_stub_lib_log_buf.count = (g_stub_lib_log_buf.count + 1) & (STUB_LIB_LOG_BUF_SIZE - 1);
+}
+
+void stub_lib_log_init(enum stub_lib_log_destination dest)
+{
+    if (dest == STUB_LIB_LOG_DEST_UART) {
+        stub_target_uart_init(0, 115200);
+        //fixme: call ets_install_putc1(0)/putc2(0) here?
+        ets_install_uart_printf();
+        s_log_dest = STUB_LIB_LOG_DEST_UART;
+    } else if (dest == STUB_LIB_LOG_DEST_BUF) {
+        ets_install_putc1(log_buf_write);
+        ets_install_putc2(NULL);
+        s_log_dest = STUB_LIB_LOG_DEST_BUF;
+    } else {
+        s_log_dest = STUB_LIB_LOG_DEST_NONE;
+    }
 }
 
 // This function is designed to avoid implementing vprintf() to reduce code size.
