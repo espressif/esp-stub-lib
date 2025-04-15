@@ -22,14 +22,6 @@ struct stub_cmd_handler {
     int (*handler)(va_list ap);
 };
 
-#ifdef STUB_LOG_ENABLED
-#define STUB_LOG_INIT(uart_num, baudrate) stub_lib_log_init(uart_num, baudrate)
-#define STUB_LOG(fmt, ...) stub_lib_log_printf(fmt, ##__VA_ARGS__)
-#else
-#define STUB_LOG_INIT(uart_num, baudrate)
-#define STUB_LOG(fmt, ...)
-#endif
-
 static  __attribute__((unused)) int handle_test1(va_list ap)
 {
     (void)ap;
@@ -40,6 +32,14 @@ static  __attribute__((unused)) int handle_test1(va_list ap)
     STUB_LOG("stub command test:%s\n", "test");
     STUB_LOG("stub command test:%c\n", 'A');
     STUB_LOG("stub command test:%l\n", 10); // not supported
+
+    STUB_LOGE("stub command test\n");
+    STUB_LOGW("stub command test\n");
+    STUB_LOGI("stub command test\n");
+    STUB_LOGD("stub command test\n");
+    STUB_LOGV("stub command test\n");
+    STUB_LOG_TRACE();
+    STUB_LOG_TRACEF("foo:%u\n", 0x2A);
 
     return 0;
 }
@@ -84,7 +84,7 @@ int stub_main(int cmd, ...)
 
     va_start(ap, cmd);
 
-    STUB_LOG_INIT(0, 115200);
+    STUB_LOG_INIT();
 
     stub_lib_flash_init(&flash_state);
 
