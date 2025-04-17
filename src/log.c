@@ -3,8 +3,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
+#include <log.h>
+
+#if defined(STUB_LOG_ENABLED)
+
 #include <stdint.h>
 #include <stdarg.h>
+#include <stddef.h>
 
 #include <target/esp_rom_caps.h>
 #include <target/uart.h>
@@ -12,11 +17,30 @@
 // These functions are defined in the ROM
 extern void ets_install_uart_printf(void);
 extern void ets_printf(const char *fmt, ...);
+extern void ets_install_putc1(void (*p)(char c));
+extern void ets_install_putc2(void (*p)(char c));
 
-void stub_lib_log_init(uint8_t uart_num, uint32_t baudrate)
+#if defined(STUB_LIB_LOG_BUF)
+struct stub_lib_log_buf g_stub_lib_log_buf;
+static void stub_lib_log_buf_write_internal(char c)
 {
-    stub_target_uart_init(uart_num, baudrate);
+    g_stub_lib_log_buf.buf[g_stub_lib_log_buf.count] = c;
+    g_stub_lib_log_buf.count = (g_stub_lib_log_buf.count + 1) & (STUB_LIB_LOG_BUF_SIZE - 1);
+}
+#endif // defined(STUB_LIB_LOG_BUF)
+
+void stub_lib_log_init()
+{
+#if defined(STUB_LIB_LOG_UART)
+    stub_target_uart_init(0, 115200);
+    //fixme: call ets_install_putc1(0)/putc2(0) here?
     ets_install_uart_printf();
+#elif defined(STUB_LIB_LOG_BUF)
+    ets_install_putc1(stub_lib_log_buf_write_internal);
+    ets_install_putc2(NULL);
+#else
+#error "STUB_LIB_LOG_X destination should be defined"
+#endif
 }
 
 // This function is designed to avoid implementing vprintf() to reduce code size.
@@ -74,3 +98,5 @@ void stub_lib_log_printf(const char *fmt, ...)
     }
     va_end(args);
 }
+
+#endif // defined(STUB_LOG_ENABLED)
