@@ -7,14 +7,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <rtc_clk.h>
 #include <reg_base.h>
 
 // These functions are defined in the ROM
 extern void uartAttach(void);
 void Uart_Init(uint8_t uart_no, uint32_t clock);
-extern void ets_install_putc1(void (*p)(char c));
-extern void ets_install_putc2(void (*p)(char c));
 extern uint32_t ets_get_detected_xtal_freq(void);
 
 #define RTC_STORE5 (DR_REG_RTCCNTL_BASE + 0xb4)
@@ -61,7 +58,4 @@ void stub_target_uart_init(uint8_t uart_num, uint32_t baudrate)
     (void)baudrate;
     uartAttach();
     Uart_Init(uart_num, ets_get_detected_xtal_freq_patch());
-
-    ets_install_putc1(NULL);
-    ets_install_putc2(NULL);
 }

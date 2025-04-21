@@ -1,6 +1,5 @@
 set(srcs
     src/uart.c
-    src/rtc_clk.c
     src/flash.c
 )
 
