@@ -70,7 +70,7 @@ void stub_lib_log_printf(const char *fmt, ...)
             break;
         default:
             buf[0] = '%';
-            buf[1] = *fmt ? *fmt++ : '\0';
+            buf[1] = *fmt;
             buf[2] = '\0';
             ets_printf("%s", buf);
             break;
