@@ -3,10 +3,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
-#include <log.h>
-
 #include <stdint.h>
 #include <stddef.h>
+
+#include "log.h"
 
 extern void ets_printf(const char *fmt, ...);
 extern void ets_install_putc1(void (*p)(char c));
