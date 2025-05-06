@@ -91,6 +91,10 @@ int stub_main(int cmd, ...)
 
     stub_lib_flash_init(&flash_state);
 
+    stub_lib_flash_info_t info;
+    stub_lib_flash_get_info(&info);
+    stub_lib_flash_info_print(&info);
+
     const struct stub_cmd_handler *handler = cmd_handlers;
     while (handler->handler) {
         if (handler->cmd == cmd) {
