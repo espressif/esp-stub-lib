@@ -1,9 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 /* ROM function interface esp32c2.rom.ld for esp32c2
  *
  *

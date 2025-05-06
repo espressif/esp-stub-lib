@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <string.h>
 
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/flash.h>
@@ -48,7 +49,9 @@ static  __attribute__((unused)) int handle_test2(va_list ap)
 {
     (void)ap;
 
-    STUB_LOG("test2\n");
+    char buf[10];
+    strcpy(buf, "test2\n");
+    STUB_LOG(buf);
 
     return 0;
 }
