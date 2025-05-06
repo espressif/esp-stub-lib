@@ -10,6 +10,8 @@ if(NOT ESP_TARGET_LIB)
     set(ESP_TARGET_LIB ${ESP_TARGET})
 endif()
 
+set(ESP_STUB_LIB_IMPL_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
+
 set(srcs
     src/flash.c
 )
@@ -34,10 +36,12 @@ target_include_directories(${ESP_STUB_LIB}
     INTERFACE include
     PRIVATE include/esp-stub-lib
 )
+# Public within the library
 include_directories(include)
+include_directories(include/esp-stub-lib)
 
 # STUB_COMPILE_DEFS is optional definitions coming from the parent CMakeLists.txt
-target_compile_definitions(${ESP_STUB_LIB} PRIVATE ${STUB_COMPILE_DEFS})
+add_compile_definitions(${STUB_COMPILE_DEFS})
 
 add_subdirectory(src/${ESP_TARGET} ${ESP_TARGET_LIB})
 

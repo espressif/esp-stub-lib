@@ -6,5 +6,4 @@
 
 #pragma once
 
-void stub_target_flash_init(void *state);
-void stub_target_flash_deinit(const void *state);
+#include <common/rom_impl_flash_config1.h>

@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <target/uart.h>
+#include <common/uart.h>
 #include "soc/reg_base.h"
 
 // These functions are defined in the ROM

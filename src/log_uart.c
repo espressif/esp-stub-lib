@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <target/uart.h>
+#include <common/uart.h>
 
 extern void ets_install_putc1(void (*p)(char c));
 extern void ets_install_putc2(void (*p)(char c));
