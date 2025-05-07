@@ -38,7 +38,7 @@ if(${ESP_TARGET} STREQUAL "esp8266")
     target_link_options(${PROJECT_NAME} PRIVATE -Wl,--entry=stub_main_esp8266)
 endif()
 
-set(STUB_COMPILE_DEFS "STUB_LOG_ENABLED")
+set(STUB_COMPILE_DEFS "STUB_LOG_ENABLED;STUB_LIB_LOG_UART")
 target_compile_definitions(${PROJECT_NAME} PRIVATE asm=__asm__ ${STUB_COMPILE_DEFS})
 
 set(MAP_FILE ${CMAKE_CURRENT_BINARY_DIR}/${APP_NAME}.map)

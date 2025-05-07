@@ -3,8 +3,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
-#include <log.h>
-
 #include <stdint.h>
 #include <stddef.h>
 
