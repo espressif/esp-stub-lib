@@ -6,8 +6,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
-#include <reg_base.h>
+#include <target/uart.h>
+#include "soc/reg_base.h"
 
 // These functions are defined in the ROM
 extern void uartAttach(void);

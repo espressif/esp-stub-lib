@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include "flash.h"
+#include <target/flash.h>
 
 void stub_target_flash_init(void *state)
 {
