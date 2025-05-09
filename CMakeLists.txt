@@ -34,7 +34,9 @@ target_include_directories(${ESP_STUB_LIB}
     INTERFACE include
     PRIVATE include/esp-stub-lib
 )
+# Public within the library
 include_directories(include)
+include_directories(include/esp-stub-lib)
 
 # STUB_COMPILE_DEFS is optional definitions coming from the parent CMakeLists.txt
 target_compile_definitions(${ESP_STUB_LIB} PRIVATE ${STUB_COMPILE_DEFS})
