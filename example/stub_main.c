@@ -42,6 +42,10 @@ static  __attribute__((unused)) int handle_test1(va_list ap)
     STUB_LOG_TRACE();
     STUB_LOG_TRACEF("foo:%u\n", 0x2A);
 
+    // test the compiler runtime that placed in ROM
+    extern int32_t __bswapsi2(int32_t x);
+    (void)__bswapsi2(0x77AAFF33);
+
     return 0;
 }
 
