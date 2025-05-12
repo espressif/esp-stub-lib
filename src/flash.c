@@ -27,8 +27,8 @@ static uint32_t device_id_to_flash_size(uint32_t device_id)
     // TODO: remove dev tracing
     STUB_LOG_TRACEF("device_id: 0x%x\n", device_id);
 
-    device_id = device_id & 0xff;
-    switch (device_id) {
+    const uint32_t id = device_id & 0xff;
+    switch (id) {
     case 0x12:
         return 256 * 1024;
     case 0x13:
@@ -42,12 +42,12 @@ static uint32_t device_id_to_flash_size(uint32_t device_id)
     case 0x20:
     case 0x21:
     case 0x22:
-        return (device_id + 1 - 0x14) * 1024 * 1024;
+        return (id + 1 - 0x14) * 1024 * 1024;
     case 0x39:
         return 32 * 1024 * 1024;
     }
 
-    STUB_LOGE("Unknown device_id! %x", device_id);
+    STUB_LOGE("Unknown device_id! 0x%x", device_id);
     return 0;
 }
 
