@@ -12,3 +12,7 @@ enum esp_stub_cmd {
     ESP_STUB_CMD_TEST2 = 0x01,
     ESP_STUB_CMD_FLASH_MAX_ID = 0x01,
 };
+
+// Stub return codes
+#define ESP_STUB_OK         0
+#define ESP_STUB_FAIL       -1
