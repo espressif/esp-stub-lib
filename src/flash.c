@@ -57,6 +57,7 @@ void stub_lib_flash_init(void **state)
     // TODO: check if we don't need the first initialization?
     // how we can check - only via EXTMEM_ICACHE_ENABLE?
     stub_target_flash_init(state);
+    // TODO: check if we should use "flash_id" instead of "device_id" (see the IDF's bootloader_flash and the esptool's legacy stub)
     const uint32_t device_id = stub_target_flash_device_id();
     const uint32_t flash_size = device_id_to_flash_size(device_id);
     STUB_LOG_TRACEF("Flash size: %d MB\n", flash_size / (1024 * 1024));
