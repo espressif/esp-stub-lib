@@ -29,20 +29,18 @@ static uint32_t device_id_to_flash_size(uint32_t device_id)
 
     const uint32_t id = device_id & 0xff;
     switch (id) {
-    case 0x12:
-        return 256 * 1024;
+    case 0x12:  // 256 KB
     case 0x13:
-        return 512 * 1024;
-    case 0x14:
+    case 0x14:  // 1 MB
     case 0x15:
     case 0x16:
     case 0x17:
     case 0x18:
-    case 0x19:
-    case 0x20:
-    case 0x21:
-    case 0x22:
-        return (id + 1 - 0x14) * 1024 * 1024;
+    case 0x19:  // 32 MB
+    case 0x1A:  // 64 MB
+    case 0x1B:  // 128 MB
+    case 0x1C:  // 256 MB
+        return 1 << id;
     case 0x39:
         return 32 * 1024 * 1024;
     }
