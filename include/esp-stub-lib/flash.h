@@ -18,6 +18,7 @@ typedef struct stub_flash_info {
     uint32_t encrypted;
 } stub_lib_flash_info_t;
 
+// TODO: error codes
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -25,6 +26,7 @@ extern "C" {
 void stub_lib_flash_init(void **state);
 void stub_lib_flash_deinit(const void *state);
 void stub_lib_flash_get_info(stub_lib_flash_info_t *info);
+void stub_lib_flash_info_print(const stub_lib_flash_info_t *info);
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt);
 int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
