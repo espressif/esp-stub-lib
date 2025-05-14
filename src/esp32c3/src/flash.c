@@ -52,9 +52,8 @@ void stub_target_flash_init(void *state)
 {
     (void)state;
     STUB_LOG_TRACE();
-    uint32_t spiconfig = ets_efuse_get_spiconfig();
-    // TODO: strap reg
-    esp_rom_spiflash_attach(spiconfig, false);
+    const uint32_t AUTO_EFUSE_OR_DEFAULT_CONFIG_SPI = 0;
+    esp_rom_spiflash_attach(AUTO_EFUSE_OR_DEFAULT_CONFIG_SPI, false);
 }
 
 void stub_target_flash_deinit(const void *state)

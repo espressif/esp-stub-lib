@@ -122,6 +122,13 @@ void stub_target_flash_init(void *state)
         spiconfig = 1;    /* HSPI flash mode */
     }
 
+    /* 0x1c bits are:
+            0x04 bit - print control
+            0x08 bit - flash boot (SPI boot)
+            0x10 bit - HSPI boot?
+
+    */
+
     // TODO: do we need legacy arg = !ETS_IS_FAST_FLASH_BOOT() ?
     esp_rom_spiflash_attach(spiconfig, false);
 }

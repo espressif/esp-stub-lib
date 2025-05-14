@@ -51,7 +51,8 @@ void stub_target_flash_init(void *state)
 {
     (void)state;
     STUB_LOG_TRACE();
-    spi_flash_attach(0, false);
+    const uint32_t NO_CONFIG_SPI = 0;
+    spi_flash_attach(NO_CONFIG_SPI, false);
 }
 
 void stub_target_flash_deinit(const void *state)
