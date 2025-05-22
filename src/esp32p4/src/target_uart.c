@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <common/uart.h>
+#include <common/target_uart.h>
 
 // These functions are defined in the ROM
 extern void uartAttach(void *rxBuffer);

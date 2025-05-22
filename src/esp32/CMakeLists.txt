@@ -1,5 +1,5 @@
 set(srcs
-    src/uart.c
+    src/target_uart.c
     src/target_flash.c
 )
 

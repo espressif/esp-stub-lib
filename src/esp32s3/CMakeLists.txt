@@ -1,5 +1,5 @@
 set(srcs
-    src/uart.c
+    src/target_uart.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

@@ -5,7 +5,7 @@
  */
 
 #include <stdint.h>
-#include <common/uart.h>
+#include <common/target_uart.h>
 
 void stub_target_uart_init(uint8_t uart_num, uint32_t baudrate)
 {
