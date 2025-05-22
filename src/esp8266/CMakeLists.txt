@@ -1,6 +1,6 @@
 set(srcs
-    src/uart.c
-    src/flash.c
+    src/target_uart.c
+    src/target_flash.c
     src/rom-patched.c
 )
 
