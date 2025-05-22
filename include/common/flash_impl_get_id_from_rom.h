@@ -14,7 +14,7 @@
 #include <target/soc_impl.h>
 
 /**
-  * @brief Sets the correct device_id in the flash config from SPI_MEM_FLASH_RDID in ROM code
+  * @brief Sets the correct flash_id in the flash config from SPI_MEM_FLASH_RDID in ROM code
   *
   */
 extern void esp_rom_spi_flash_update_id(void);
@@ -36,20 +36,20 @@ __attribute__((always_inline)) inline static
 uint32_t flash_impl_get_id_from_rom(void)
 {
     esp_rom_spi_flash_update_id();
-    return stub_target_rom_get_flash_config()->device_id;
+    return stub_target_rom_get_flash_config()->flash_id;
 }
 
 uint32_t stub_target_flash_get_flash_id(void)
 {
     // TODO: remove dev tracing
-    STUB_LOG_TRACEF("Uninit ROM's flash_id: 0x%x\n", stub_target_rom_get_flash_config()->device_id);
+    STUB_LOG_TRACEF("Uninit ROM's flash_id: 0x%x\n", stub_target_rom_get_flash_config()->flash_id);
 
     // TODO: it's just for development. remove this option then
     uint32_t rdid = flash_impl_get_id_from_rdid_reg();
     (void)rdid;
-    STUB_LOG_TRACEF("Device ID: 0x%x (from SPI RDID)\n", rdid);
+    STUB_LOG_TRACEF("Flash ID: 0x%x (from SPI RDID)\n", rdid);
 
     uint32_t id = flash_impl_get_id_from_rom();
-    STUB_LOG_TRACEF("Device ID: 0x%x (from ROM code)\n", stub_target_rom_get_flash_config()->device_id);
+    STUB_LOG_TRACEF("Flash ID: 0x%x (from ROM code)\n", stub_target_rom_get_flash_config()->flash_id);
     return id;
 }

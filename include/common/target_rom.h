@@ -15,7 +15,7 @@
 #define STUB_FLASH_STATUS_MASK          0xFFFF
 
 typedef struct esp_rom_spiflash_chip {
-    uint32_t device_id;
+    uint32_t flash_id;
     uint32_t chip_size;    // chip size in bytes
     uint32_t block_size;
     uint32_t sector_size;
@@ -23,7 +23,7 @@ typedef struct esp_rom_spiflash_chip {
     uint32_t status_mask;
 } esp_rom_spiflash_chip_t;
 
-extern int esp_rom_spiflash_config_param(uint32_t device_id, uint32_t chip_size,
+extern int esp_rom_spiflash_config_param(uint32_t flash_id, uint32_t chip_size,
                                          uint32_t block_size, uint32_t sector_size,
                                          uint32_t page_size, uint32_t status_mask);
 

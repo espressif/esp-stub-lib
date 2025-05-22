@@ -148,8 +148,8 @@ void stub_target_flash_init(void)
 uint32_t stub_target_flash_get_flash_id(void)
 {
     // TODO: remove dev tracing
-    STUB_LOG_TRACEF("Uninit g_rom_flashchip.device_id: 0x%x\n", g_rom_flashchip.device_id);
+    STUB_LOG_TRACEF("Uninit g_rom_flashchip.flash_id: 0x%x\n", g_rom_flashchip.flash_id);
     uint32_t id = get_id_from_rdid_cmd();
-    STUB_LOG_TRACEF("Device ID: 0x%x (from SPI RDID)\n", id);
+    STUB_LOG_TRACEF("Flash ID: 0x%x (from SPI RDID)\n", id);
     return id;
 }
