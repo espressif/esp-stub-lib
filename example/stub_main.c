@@ -11,6 +11,7 @@
 
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/flash.h>
+#include <esp-stub-lib/err.h>
 
 #include "stub_main.h"
 
@@ -82,7 +83,8 @@ int stub_main(int cmd, ...)
 {
     va_list ap;
     void *flash_state = NULL;
-    int ret = -1;
+    int ret = ESP_STUB_FAIL;
+    stub_lib_err_t rc = STUB_LIB_FAIL;
 
     /* zero bss */
     for (uint32_t *p = &_bss_start; p < &_bss_end; p++) {
@@ -93,22 +95,32 @@ int stub_main(int cmd, ...)
 
     STUB_LOG_INIT();
 
-    stub_lib_flash_init(&flash_state);
+    rc = stub_lib_flash_init(&flash_state);
+    if (rc != STUB_LIB_OK) {
+        return ESP_STUB_FAIL;
+    }
+
+    STUB_LOGI("Command: 0x%x\n", cmd);
 
     const struct stub_cmd_handler *handler = cmd_handlers;
     while (handler->handler) {
         if (handler->cmd == cmd) {
-            STUB_LOG("Executing command: %s\n", handler->name);
+            STUB_LOGI("Executing command: %s\n", handler->name);
             ret = handler->handler(ap);
+            if (ret != ESP_STUB_OK) {
+                STUB_LOGE("Command %s (0x%x) failed\n", handler->name, handler->cmd);
+                goto flash_va_end;
+            }
             break;
         }
         handler++;
     }
 
     if (!handler->handler) {
-        STUB_LOG("Unknown command!\n");
+        STUB_LOGE("Unknown command (0x%x)!\n", cmd);
     }
 
+flash_va_end:
     va_end(ap);
 
     if (flash_state) {
