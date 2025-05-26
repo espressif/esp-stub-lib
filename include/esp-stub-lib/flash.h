@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "err.h"
 
 typedef struct stub_flash_info {
     uint32_t id;
@@ -22,15 +23,15 @@ typedef struct stub_flash_info {
 extern "C" {
 #endif // __cplusplus
 
-void stub_lib_flash_init(void **state);
+stub_lib_err_t stub_lib_flash_init(void **state);
 void stub_lib_flash_deinit(const void *state);
-void stub_lib_flash_get_info(stub_lib_flash_info_t *info);
-int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
-int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt);
-int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
-int stub_lib_flash_erase_sector(uint32_t addr);
-int stub_lib_flash_erase_block(uint32_t addr);
-int stub_lib_flash_erase_chip(void);
+stub_lib_err_t stub_lib_flash_get_info(stub_lib_flash_info_t *info);
+stub_lib_err_t stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
+stub_lib_err_t stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt);
+stub_lib_err_t stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
+stub_lib_err_t stub_lib_flash_erase_sector(uint32_t addr);
+stub_lib_err_t stub_lib_flash_erase_block(uint32_t addr);
+stub_lib_err_t stub_lib_flash_erase_chip(void);
 
 #ifdef __cplusplus
 }
