@@ -345,10 +345,12 @@ PROVIDE ( xthal_window_spill_nw = 0x4000e320 );
 
 PROVIDE ( Te0 = 0x3fffccf0 );
 PROVIDE ( Td0 = 0x3fffd100 );
-PROVIDE ( Td4s = 0x3fffd500);
-PROVIDE ( rcons = 0x3fffd0f0);
+PROVIDE ( Td4s = 0x3fffd500 );
+PROVIDE ( rcons = 0x3fffd0f0 );
 PROVIDE ( UartDev = 0x3fffde10 );
-PROVIDE ( flashchip = 0x3fffc714);
+PROVIDE ( flashchip = 0x3fffc714 );
 
-PROVIDE(SPIFlashModeConfig = 0x40004568);
-PROVIDE(SPIParamCfg = 0x40004c2c);
+PROVIDE ( SPIFlashModeConfig = 0x40004568 );
+PROVIDE ( SPIParamCfg = 0x40004c2c );
+PROVIDE ( esp_rom_spiflash_config_param = SPIParamCfg );
+PROVIDE ( g_rom_flashchip = flashchip );
