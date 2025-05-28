@@ -39,7 +39,7 @@ include_directories(include)
 include_directories(include/esp-stub-lib)
 
 # STUB_COMPILE_DEFS is optional definitions coming from the parent CMakeLists.txt
-target_compile_definitions(${ESP_STUB_LIB} PRIVATE ${STUB_COMPILE_DEFS})
+add_compile_definitions(${STUB_COMPILE_DEFS})
 
 add_subdirectory(src/${ESP_TARGET} ${ESP_TARGET_LIB})
 
