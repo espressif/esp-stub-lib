@@ -12,6 +12,7 @@ endif()
 
 set(srcs
     src/flash.c
+    src/rom_wrappers.c
 )
 
 if(STUB_LOG_ENABLED IN_LIST STUB_COMPILE_DEFS)
