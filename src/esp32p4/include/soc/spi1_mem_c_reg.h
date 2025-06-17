@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include <private/soc_utils.h>
+#include <bit_utils.h>
 #include "reg_base.h"
 
 /** SPI1_MEM_C_CMD_REG register

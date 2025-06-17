@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include <private/soc_utils.h>
+#include <bit_utils.h>
 #include "reg_base.h"
 
 #define REG_SPI_MEM_BASE(i) (DR_REG_MSPI0_BASE + (i) * 0x1000)        // SPIMEM0 and SPIMEM1
