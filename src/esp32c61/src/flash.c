@@ -4,16 +4,26 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
+#include <stdint.h>
+#include <log.h>
 #include <target/flash.h>
+#include <target/impl/flash_init_no_spiconfig.h>
+#include <target/impl/flash_get_id_from_rom.h>
+#include <target/impl/flash_get_config_from_rom.h>
 
-void stub_target_flash_init(void *state)
+void stub_target_flash_init(void)
 {
-    (void)state;
-    // TODO: Implement
+    STUB_LOG_TRACE();
+    flash_impl_init_no_spiconfig();
 }
 
-void stub_target_flash_deinit(const void *state)
+uint32_t stub_target_flash_get_flash_id(void)
 {
-    (void)state;
-    // TODO: Implement
+    STUB_LOG_TRACE();
+    return flash_impl_get_id_from_rom();
+}
+
+const esp_rom_spiflash_chip_t * stub_target_flash_get_config(void)
+{
+    return flash_impl_get_config_from_rom();
 }
