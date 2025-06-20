@@ -17,3 +17,9 @@ void stub_target_flash_deinit(const void *state)
     (void)state;
     // TODO: Implement
 }
+
+uint32_t stub_target_flash_get_flash_id(void)
+{
+    // TODO: Implement
+    return 0;
+}
