@@ -26,6 +26,7 @@ extern "C" {
 stub_lib_err_t stub_lib_flash_init(void **state);
 void stub_lib_flash_deinit(const void *state);
 stub_lib_err_t stub_lib_flash_get_info(stub_lib_flash_info_t *info);
+void stub_lib_flash_info_print(const stub_lib_flash_info_t *info);
 stub_lib_err_t stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
 stub_lib_err_t stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt);
 stub_lib_err_t stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
