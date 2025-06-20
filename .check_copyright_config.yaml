@@ -17,5 +17,5 @@ DEFAULT:
 ignore:
   perform_check: false
   include:
-    - src/*/ld/*.ld
+    - src/target/*/ld/*.ld
     - example/ld/*.ld
