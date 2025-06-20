@@ -6,5 +6,52 @@
 
 #pragma once
 
+#include <stdint.h>
+
+struct esp_rom_spiflash_chip;
+
+/**
+ * @brief Initialize SPI Flash hardware.
+ *
+ * Configure SPI pins, registers, mode, etc.
+ *
+ * @param state Unused.
+ */
 void stub_target_flash_init(void *state);
+
+/**
+ * @brief Not implemented. Intended for restoring the state
+ *
+ * @param state Unused.
+ */
 void stub_target_flash_deinit(const void *state);
+
+/**
+ * @brief Retrieve Flash ID (aka flash device id, aka flash chip id) from internal hw.
+ *
+ * @return Flash ID, that includes manufacture and size information.
+ */
+uint32_t stub_target_flash_get_flash_id(void);
+
+/**
+ * @brief Get a pointer to the internal SPI flash config in ROM.
+ *
+ * @return Always a non-NULL, but the structure may be uninitialized or incorrect.
+ */
+const struct esp_rom_spiflash_chip *stub_target_flash_get_config(void);
+
+/**
+ * @brief Set correct values to the internal SPI flash config in ROM
+ *
+ */
+void stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size);
+
+/**
+ * @brief Infer flash size (in bytes) from Flash ID
+ *
+ * @param flash_id Raw Flash ID value
+ *
+ * @return Flash size in bytes, or:
+ * - 0 if flash_id is unknown
+ */
+uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id);
