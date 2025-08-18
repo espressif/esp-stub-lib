@@ -18,6 +18,12 @@ typedef struct esp_rom_spiflash_chip {
     uint32_t status_mask;
 } esp_rom_spiflash_chip_t;
 
+typedef enum {
+    ESP_ROM_SPIFLASH_RESULT_OK,
+    ESP_ROM_SPIFLASH_RESULT_ERR,
+    ESP_ROM_SPIFLASH_RESULT_TIMEOUT
+} esp_rom_spiflash_result_t;
+
 /**
   * @brief SPI Flash init
   *
@@ -54,3 +60,23 @@ extern void esp_rom_spi_flash_update_id(void);
 extern int esp_rom_spiflash_config_param(uint32_t flash_id, uint32_t chip_size,
                                          uint32_t block_size, uint32_t sector_size,
                                          uint32_t page_size, uint32_t status_mask);
+
+/**
+  * @brief Read data from Flash
+  *
+  * @param src_addr Address to read from. Should be 4 bytes aligned.
+  * @param buffer Destination buffer
+  * @param size Number of bytes to read. Should be 4 bytes aligned.
+  *
+  * @return Result
+  * - ESP_ROM_SPIFLASH_RESULT_OK
+  * - ESP_ROM_SPIFLASH_RESULT_ERR
+  */
+esp_rom_spiflash_result_t esp_rom_spiflash_read(uint32_t src_addr, uint32_t *dest, int32_t len);
+
+/**
+ * @brief Check if Flash is OPI.
+ *
+ * @return true if eFuse indicates an OPI flash is attached.
+ */
+bool ets_efuse_flash_octal_mode(void);

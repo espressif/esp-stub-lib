@@ -60,3 +60,8 @@ void stub_lib_flash_info_print(const stub_lib_flash_info_t *info)
               info->encrypted
              );
 }
+
+int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
+{
+    return stub_target_flash_read_buff(addr, buffer, size);
+}

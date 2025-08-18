@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include <err.h>
+
 #include <target/flash.h>
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
@@ -31,4 +33,13 @@ uint32_t stub_target_flash_get_flash_id(void)
 {
     esp_rom_spi_flash_update_id();
     return stub_target_flash_get_config()->flash_id;
+}
+
+int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
+{
+    (void)addr;
+    (void)buffer;
+    (void)size;
+    // TODO: Implement
+    return STUB_LIB_FAIL;
 }

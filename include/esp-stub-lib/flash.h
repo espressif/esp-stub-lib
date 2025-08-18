@@ -7,7 +7,6 @@
 #pragma once
 
 #include <stdint.h>
-#include "err.h"
 
 typedef struct stub_lib_flash_info {
     uint32_t id;
@@ -51,6 +50,19 @@ void stub_lib_flash_deinit(const void *state);
 void stub_lib_flash_get_info(stub_lib_flash_info_t *info);
 
 void stub_lib_flash_info_print(const stub_lib_flash_info_t *info);
+
+/**
+ * @brief Read data from SPI flash into a buffer.
+ *
+ * @param addr Address to read from. Should be 4 bytes aligned.
+ * @param buffer Destination buffer
+ * @param size Number of bytes to read. Should be 4 bytes aligned.
+ *
+ * @return Result:
+ * - STUB_LIB_OK if success
+ * - STUB_LIB_ERR_FLASH_READ_UNALIGNED
+ * - STUB_LIB_ERR_FLASH_READ_ROM_ERR
+ */
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt);
 int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
