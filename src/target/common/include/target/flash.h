@@ -8,6 +8,8 @@
 
 #include <stdint.h>
 
+#include <stub_lib_err.h>
+
 struct esp_rom_spiflash_chip;
 
 /**
@@ -49,3 +51,19 @@ void stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size);
  * - 0 if flash_id is unknown
  */
 uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id);
+
+/**
+ * @brief Read data.
+ *
+ * Check alignment, call a ROM function.
+ *
+ * @param addr Address to read from. Should be 4 bytes aligned.
+ * @param buffer Destination buffer
+ * @param size Number of bytes to read. Should be 4 bytes aligned.
+ *
+ * @return Result:
+ * - STUB_LIB_OK if success
+ * - STUB_LIB_ERR_FLASH_READ_UNALIGNED
+ * - STUB_LIB_ERR_FLASH_READ_ROM_ERR
+ */
+stub_lib_err_t stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);

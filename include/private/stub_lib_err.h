@@ -14,6 +14,8 @@
     X(STUB_LIB_FAIL,                                (STUB_LIB_ERR_END - 1),         "Generic esp-stub-lib failure") \
     \
     X(STUB_LIB_ERR_FLASH_INIT_UNKNOWN_FLASH_ID,     0x1000,                         "Unknown flash size, unknown flash id") \
+    X(STUB_LIB_ERR_FLASH_READ_UNALIGNED,            0x1001,                         "") \
+    X(STUB_LIB_ERR_FLASH_READ_ROM_ERR,              0x1002,                         "") \
 
 // Only numerical values, used in esp-stub-lib sources
 
