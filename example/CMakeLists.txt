@@ -27,8 +27,10 @@ file(GLOB SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.S")
 
 # Target configuration
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+add_dependencies(${PROJECT_NAME} stub_lib_err_header)
 target_include_directories(${PROJECT_NAME}
     PRIVATE include
+    PRIVATE .
 )
 foreach(script ${LINKER_SCRIPTS})
     target_link_options(${PROJECT_NAME} PRIVATE -T${script})
@@ -54,3 +56,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 get_filename_component(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR}/.. ABSOLUTE)
 add_subdirectory(${PROJECT_ROOT} esp-stub-lib)
 target_link_libraries(${PROJECT_NAME} PRIVATE esp-stub-lib)
+
+add_custom_target(stub_lib_err_header
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${PROJECT_ROOT}/include/private/stub_lib_err.h
+            ${CMAKE_CURRENT_LIST_DIR}/stub_lib_err.h
+    COMMENT "Preparing stub_lib_err.h before building the stub"
+)

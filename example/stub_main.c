@@ -11,7 +11,8 @@
 
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/flash.h>
-#include <esp-stub-lib/err.h>
+
+#include "stub_lib_err.h"
 
 #include "stub_main.h"
 

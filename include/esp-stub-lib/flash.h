@@ -7,7 +7,8 @@
 #pragma once
 
 #include <stdint.h>
-#include "err.h"
+
+#include <stub_lib_err.h>
 
 typedef struct stub_lib_flash_info {
     uint32_t id;

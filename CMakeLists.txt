@@ -39,9 +39,10 @@ target_include_directories(${ESP_STUB_LIB}
     INTERFACE include
     PRIVATE include/esp-stub-lib
 )
-# Public within the library
+# Accessible within stub-lib (including subdirectories target/<chip> and target/common), but not from top-level client code
 include_directories(include)
 include_directories(include/esp-stub-lib)
+include_directories(include/private)
 
 # STUB_COMPILE_DEFS is optional definitions coming from the parent CMakeLists.txt
 add_compile_definitions(${STUB_COMPILE_DEFS})
