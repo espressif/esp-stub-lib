@@ -45,6 +45,6 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
         return 32 * 1024 * 1024;
     }
 
-    STUB_LOGE("Unknown flash_id: 0x%x", flash_id);
+    STUB_LOGE("Unknown flash_id: 0x%x\n", flash_id);
     return 0;
 }
