@@ -46,6 +46,14 @@ extern "C" {
 #define MAX(a, b)               ((a) > (b) ? (a) : (b))
 #endif
 
+#ifndef KB
+#define KB(bytes)               ((bytes) / 1024)
+#endif
+
+#ifndef MB
+#define MB(bytes)               ((bytes) / (1024 * 1024))
+#endif
+
 #ifdef __cplusplus
 }
 #endif

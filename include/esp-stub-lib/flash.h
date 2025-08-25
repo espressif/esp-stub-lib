@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include "err.h"
 
-typedef struct stub_flash_info {
+typedef struct stub_lib_flash_info {
     uint32_t id;
     uint32_t size;
     uint32_t block_size;
@@ -23,9 +23,34 @@ typedef struct stub_flash_info {
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Initialize SPI Flash before any use.
+ *
+ * Configure SPI, Flash ID, flash size, and the internal ROM's config
+ *
+ * @param state Unused
+ *
+ * @return Error code:
+ * - STUB_LIB_OK    - success
+ * - STUB_LIB_ERR_UNKNOWN_FLASH_ID   - can't get size from flash id
+ */
 stub_lib_err_t stub_lib_flash_init(void **state);
+
+/**
+ * @brief Restore flash state at the end of the stub.
+ *
+ * @param state Unused.
+ */
 void stub_lib_flash_deinit(const void *state);
-stub_lib_err_t stub_lib_flash_get_info(stub_lib_flash_info_t *info);
+
+/**
+ * @brief Retrieve SPI Flash information.
+ *
+ * @param[out] info Pointer to receive the result.
+ */
+void stub_lib_flash_get_info(stub_lib_flash_info_t *info);
+
+void stub_lib_flash_info_print(const stub_lib_flash_info_t *info);
 stub_lib_err_t stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
 stub_lib_err_t stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt);
 stub_lib_err_t stub_lib_flash_erase_area(uint32_t addr, uint32_t size);

@@ -8,5 +8,7 @@
 
 typedef int stub_lib_err_t;
 
-#define STUB_LIB_OK         0       // stub_lib_err_t value indicating success (no error)
-#define STUB_LIB_FAIL       -1      // Generic stub_lib_err_t code indicating failure
+#define STUB_LIB_OK                             0       // stub_lib_err_t value indicating success (no error)
+#define STUB_LIB_FAIL                           -1      // Generic stub_lib_err_t code indicating failure
+
+#define STUB_LIB_ERR_UNKNOWN_FLASH_ID           0x1
