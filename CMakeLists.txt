@@ -16,6 +16,7 @@ endif()
 
 set(srcs
     src/flash.c
+    src/slip.c
     src/rom_wrappers.c
 )
 
