@@ -79,12 +79,29 @@ __asm__(
     "j stub_main;");
 #endif
 
+const char *stub_err_str(int ret_code)
+{
+    switch (ret_code) {
+    case ESP_STUB_FAIL:
+        return "Generic error";
+    case ESP_STUB_OK:
+        return "Success";
+
+    case STUB_LIB_FAIL:
+        return "Failure in the lib";
+    case STUB_LIB_ERR_UNKNOWN_FLASH_ID:
+        return "Unknown flash ID";
+
+    default:
+        return "Unknown stub error";
+    }
+}
+
 int stub_main(int cmd, ...)
 {
     va_list ap;
     void *flash_state = NULL;
     int ret = ESP_STUB_FAIL;
-    stub_lib_err_t rc = STUB_LIB_FAIL;
 
     /* zero bss */
     for (uint32_t *p = &_bss_start; p < &_bss_end; p++) {
@@ -95,12 +112,13 @@ int stub_main(int cmd, ...)
 
     STUB_LOG_INIT();
 
-    rc = stub_lib_flash_init(&flash_state);
-    if (rc != STUB_LIB_OK) {
-        return ESP_STUB_FAIL;
-    }
-
     STUB_LOGI("Command: 0x%x\n", cmd);
+
+    int lib_ret = stub_lib_flash_init(&flash_state);
+    if (lib_ret != STUB_LIB_OK) {
+        STUB_LOGE("Flash init failure: (0x%X) %s\n", lib_ret, stub_err_str(lib_ret));
+        return lib_ret;
+    }
 
     const struct stub_cmd_handler *handler = cmd_handlers;
     while (handler->handler) {
@@ -108,7 +126,7 @@ int stub_main(int cmd, ...)
             STUB_LOGI("Executing command: %s\n", handler->name);
             ret = handler->handler(ap);
             if (ret != ESP_STUB_OK) {
-                STUB_LOGE("Command %s (0x%x) failed\n", handler->name, handler->cmd);
+                STUB_LOGE("Command %s (0x%x) failed: (0x%X) %s\n", handler->name, handler->cmd, ret, stub_err_str(ret));
                 goto flash_va_end;
             }
             break;
@@ -118,6 +136,7 @@ int stub_main(int cmd, ...)
 
     if (!handler->handler) {
         STUB_LOGE("Unknown command (0x%x)!\n", cmd);
+        ret = ESP_STUB_ERR_CMD_NOT_SUPPORTED;
     }
 
 flash_va_end:
