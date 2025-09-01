@@ -11,13 +11,12 @@
 #include <target/flash.h>
 #include <private/rom_flash_config.h>
 
-stub_lib_err_t stub_lib_flash_init(void **state)
+int stub_lib_flash_init(void **state)
 {
     stub_target_flash_init(state);
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);
     if (flash_size == 0) {
-        STUB_LOGE("Invalid flash size: 0\n");
         return STUB_LIB_ERR_UNKNOWN_FLASH_ID;
     }
     STUB_LOG_TRACEF("Flash size: %d MB\n", MB(flash_size));
