@@ -2,8 +2,7 @@
 DEFAULT:
   perform_check: true
   allowed_licenses:
-    - Apache-2.0
-    - MIT
+    - Apache-2.0 OR MIT
   license_for_new_files: Apache-2.0 OR MIT
   new_notice_c: |
     /*
