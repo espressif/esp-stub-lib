@@ -2,6 +2,7 @@ set(srcs
     src/uart.c
     src/flash.c
     src/rom-patched.c
+    src/rom-missings.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
