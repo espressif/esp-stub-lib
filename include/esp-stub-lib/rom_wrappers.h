@@ -17,7 +17,7 @@ extern "C" {
  *
  * @param us Number of microseconds to delay.
  */
-void esp_stub_lib_delay_us(uint32_t us);
+void stub_lib_delay_us(uint32_t us);
 
 /**
  * @brief Compute little-endian CRC16 over a byte buffer.
@@ -27,7 +27,7 @@ void esp_stub_lib_delay_us(uint32_t us);
  * @param len Number of bytes to process.
  * @return Updated CRC16 value.
  */
-uint16_t esp_stub_lib_crc16_le(uint16_t crc, const uint8_t *buf, uint32_t len);
+uint16_t stub_lib_crc16_le(uint16_t crc, const uint8_t *buf, uint32_t len);
 
 /**
  * @brief Transmit a single byte over UART.
@@ -35,19 +35,19 @@ uint16_t esp_stub_lib_crc16_le(uint16_t crc, const uint8_t *buf, uint32_t len);
  * @param c Byte to transmit.
  * @return 0 if successful, non-zero if error occurred.
  */
-uint8_t esp_stub_lib_tx_one_char(uint8_t c);
+uint8_t stub_lib_uart_tx_one_char(uint8_t c);
 
 /**
  * @brief Receive a single byte (blocking) from UART.
  *
  * @return Received byte.
  */
-uint8_t esp_stub_lib_rx_one_char(void);
+uint8_t stub_lib_uart_rx_one_char(void);
 
 /**
  * @brief Flush any buffered transmit data.
  */
-void esp_stub_lib_tx_flush(void);
+void stub_lib_uart_tx_flush(void);
 
 #ifdef __cplusplus
 }
