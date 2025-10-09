@@ -354,3 +354,4 @@ PROVIDE ( SPIFlashModeConfig = 0x40004568 );
 PROVIDE ( SPIParamCfg = 0x40004c2c );
 PROVIDE ( esp_rom_spiflash_config_param = SPIParamCfg );
 PROVIDE ( g_rom_flashchip = flashchip );
+PROVIDE ( g_ticks_per_us = 0x3fffc704);

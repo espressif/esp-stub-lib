@@ -5,20 +5,19 @@
  */
 
 #include <stdint.h>
-#include <stddef.h>
+#include <target/uart.h>
 
-// These functions are defined in the ROM
-extern void uartAttach(void *rxBuffer);
-extern void Uart_Init(uint8_t uart_no);
-extern uint32_t ets_clk_get_cpu_freq(void);
-extern void ets_update_cpu_frequency(uint32_t ticks_per_us);
-extern void uart_tx_switch(uint8_t uart_no);
+// ROM functions for targets using common implementation
+extern void esp_rom_uart_attach(void *rxBuffer);
+extern void esp_rom_uart_init(uint8_t uart_no);
 
-void stub_target_uart_init(uint8_t uart_num, uint32_t baudrate)
+void stub_target_rom_uart_attach(void *rxBuffer)
 {
-    (void)baudrate;
-    ets_update_cpu_frequency(ets_clk_get_cpu_freq() / 1000000);
-    uartAttach(NULL);
-    Uart_Init(uart_num);
-    uart_tx_switch(uart_num);
+    esp_rom_uart_attach(rxBuffer);
+}
+
+void stub_target_rom_uart_init(uint8_t uart_no, uint32_t clock)
+{
+    (void)clock;  // Ignore clock parameter for 1-param ROM function
+    esp_rom_uart_init(uart_no);
 }

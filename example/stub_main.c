@@ -14,6 +14,7 @@
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/mem_utils.h>
 #include <esp-stub-lib/security.h>
+#include <esp-stub-lib/uart.h>
 
 #include "stub_main.h"
 
@@ -60,6 +61,24 @@ static void example_security(void)
     } else {
         STUB_LOGI("Security info not supported on this chip\n");
     }
+}
+
+static int __attribute__((unused)) handle_test_uart(void)
+{
+    void *uart_rx_interrupt_handler = NULL;
+    stub_lib_uart_wait_idle(UART_NUM_0);
+
+    stub_lib_uart_init(UART_NUM_0);
+    stub_lib_uart_set_rx_timeout(UART_NUM_0, 10);
+    (void)stub_lib_uart_get_rxfifo_count(UART_NUM_0);
+    (void)stub_lib_uart_get_intr_flags(UART_NUM_0);
+    (void)stub_lib_uart_read_rxfifo_byte(UART_NUM_0);
+    (void)stub_lib_uart_rx_one_char();
+    stub_lib_uart_rominit_intr_attach(UART_NUM_0, 5, uart_rx_interrupt_handler, UART_INTR_RXFIFO_FULL | UART_INTR_RXFIFO_TOUT);
+    stub_lib_uart_tx_one_char('A');
+    stub_lib_uart_tx_flush();
+
+    return 0;
 }
 
 static  __attribute__((unused)) int handle_test1(va_list ap)

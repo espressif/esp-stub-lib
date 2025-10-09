@@ -5,3 +5,6 @@
  */
 
 #pragma once
+
+/*-------------------------- COMMON CAPS ---------------------------------------*/
+#define SOC_UART_HP_NUM             (2)     /*!< HP UART number */

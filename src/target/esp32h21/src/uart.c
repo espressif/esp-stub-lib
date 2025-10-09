@@ -5,10 +5,19 @@
  */
 
 #include <stdint.h>
-#include <stddef.h>
+#include <target/uart.h>
 
-void stub_target_uart_init(uint8_t uart_num, uint32_t baudrate)
+// ROM functions for targets using common implementation
+extern void esp_rom_uart_attach(void *rxBuffer);
+extern void esp_rom_uart_init(uint8_t uart_no);
+
+void stub_target_rom_uart_attach(void *rxBuffer)
 {
-    (void)baudrate;
-    (void)uart_num;
+    esp_rom_uart_attach(rxBuffer);
+}
+
+void stub_target_rom_uart_init(uint8_t uart_no, uint32_t clock)
+{
+    (void)clock;  // Ignore clock parameter for 1-param ROM function
+    esp_rom_uart_init(uart_no);
 }
