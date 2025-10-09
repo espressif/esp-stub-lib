@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#include <private/soc_utils.h>
+#include <soc_utils.h>
 
 #include "soc/reg_base.h"
 

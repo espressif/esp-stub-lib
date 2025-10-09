@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 #include <stdint.h>
-#include "private/soc_utils.h"
+#include <soc_utils.h>
 
 void uart_tx_flush(void)
 {
