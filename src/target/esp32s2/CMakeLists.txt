@@ -1,7 +1,8 @@
 set(srcs
-    src/uart.c
     src/flash.c
+    src/mem_utils.c
     src/trax.c
+    src/uart.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

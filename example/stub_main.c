@@ -12,6 +12,7 @@
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/flash.h>
 #include <esp-stub-lib/err.h>
+#include <esp-stub-lib/mem_utils.h>
 
 #include "stub_main.h"
 
@@ -23,6 +24,18 @@ struct stub_cmd_handler {
     const char *name;
     int (*handler)(va_list ap);
 };
+
+static void example_mem_utils(void)
+{
+    (void)stub_lib_mem_is_irom(0x0);
+    (void)stub_lib_mem_is_drom(0x0);
+    (void)stub_lib_mem_is_iram(0x0);
+    (void)stub_lib_mem_is_dram(0x0);
+    (void)stub_lib_mem_is_rtc_iram_fast(0x0);
+    (void)stub_lib_mem_is_rtc_dram_fast(0x0);
+    (void)stub_lib_mem_is_rtc_slow(0x0);
+    (void)stub_lib_mem_is_tcm(0x0);
+}
 
 static  __attribute__((unused)) int handle_test1(va_list ap)
 {
@@ -46,6 +59,8 @@ static  __attribute__((unused)) int handle_test1(va_list ap)
     // test the compiler runtime that placed in ROM
     extern int32_t __bswapsi2(int32_t x);
     (void)__bswapsi2(0x77AAFF33);
+
+    example_mem_utils();
 
     return 0;
 }
