@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include <private/soc_utils.h>
+#include <target/soc_utils.h>
 #include "reg_base.h"
 
 #ifdef __cplusplus
