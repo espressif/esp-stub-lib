@@ -64,7 +64,7 @@
 #define UART_TX_BRK_IDLE_DONE_INT_RAW_S  13
 /* UART_TX_BRK_DONE_INT_RAW : RO ;bitpos:[12] ;default: 1'b0 ; */
 /*description: This interrupt raw bit turns to high level when transmitter completes
-  sendding  0 after all the datas in transmitter's fifo are send.*/
+  sendding  0 after all the data in transmitter's fifo are send.*/
 #define UART_TX_BRK_DONE_INT_RAW  (BIT(12))
 #define UART_TX_BRK_DONE_INT_RAW_M  (BIT(12))
 #define UART_TX_BRK_DONE_INT_RAW_V  0x1
@@ -189,7 +189,7 @@
 #define UART_TX_DONE_INT_ST_V  0x1
 #define UART_TX_DONE_INT_ST_S  14
 /* UART_TX_BRK_IDLE_DONE_INT_ST : RO ;bitpos:[13] ;default: 1'b0 ; */
-/*description: This is the stauts bit for tx_brk_idle_done_int_raw when tx_brk_idle_done_int_ena
+/*description: This is the status bit for tx_brk_idle_done_int_raw when tx_brk_idle_done_int_ena
  is set to 1.*/
 #define UART_TX_BRK_IDLE_DONE_INT_ST  (BIT(13))
 #define UART_TX_BRK_IDLE_DONE_INT_ST_M  (BIT(13))
@@ -529,7 +529,7 @@
 
 #define UART_AUTOBAUD_REG(i)          (REG_UART_BASE(i) + 0x18)
 /* UART_GLITCH_FILT : R/W ;bitpos:[15:8] ;default: 8'h10 ; */
-/*description: when input pulse width is lower then this value igore this pulse.this
+/*description: when input pulse width is lower then this value ignore this pulse.this
  register is used in autobaud detect process.*/
 #define UART_GLITCH_FILT  0x000000FF
 #define UART_GLITCH_FILT_M  ((UART_GLITCH_FILT_V)<<(UART_GLITCH_FILT_S))
@@ -569,7 +569,7 @@
 #define UART_ST_UTX_OUT_V  0xF
 #define UART_ST_UTX_OUT_S  24
 /* UART_TXFIFO_CNT : RO ;bitpos:[23:16] ;default: 8'b0 ; */
-/*description: (tx_mem_cnt txfifo_cnt) stores the byte num of valid datas in
+/*description: (tx_mem_cnt txfifo_cnt) stores the byte num of valid data in
  transmitter's fifo.tx_mem_cnt stores the 3 most significant bits  txfifo_cnt stores the 8 least significant bits.*/
 #define UART_TXFIFO_CNT  0x000000FF
 #define UART_TXFIFO_CNT_M  ((UART_TXFIFO_CNT_V)<<(UART_TXFIFO_CNT_S))
@@ -601,7 +601,7 @@
 #define UART_ST_URX_OUT_V  0xF
 #define UART_ST_URX_OUT_S  8
 /* UART_RXFIFO_CNT : RO ;bitpos:[7:0] ;default: 8'b0 ; */
-/*description: (rx_mem_cnt rxfifo_cnt) stores the byte num of valid datas in
+/*description: (rx_mem_cnt rxfifo_cnt) stores the byte num of valid data in
  receiver's fifo. rx_mem_cnt register stores the 3 most significant bits  rxfifo_cnt stores the 8 least significant bits.*/
 #define UART_RXFIFO_CNT  0x000000FF
 #define UART_RXFIFO_CNT_M  ((UART_RXFIFO_CNT_V)<<(UART_RXFIFO_CNT_S))
@@ -726,7 +726,7 @@
 #define UART_IRDA_DPLX_V  0x1
 #define UART_IRDA_DPLX_S  9
 /* UART_TXD_BRK : R/W ;bitpos:[8] ;default: 1'b0 ; */
-/*description: Set this bit to enbale transmitter to  send 0 when the process
+/*description: Set this bit to enable transmitter to  send 0 when the process
  of sending data is done.*/
 #define UART_TXD_BRK  (BIT(8))
 #define UART_TXD_BRK_M  (BIT(8))
@@ -753,7 +753,7 @@
 #define UART_STOP_BIT_NUM_V  0x3
 #define UART_STOP_BIT_NUM_S  4
 /* UART_BIT_NUM : R/W ;bitpos:[3:2] ;default: 2'd3 ; */
-/*description: This registe is used to set the length of data:  0:5bits 1:6bits 2:7bits 3:8bits*/
+/*description: This register is used to set the length of data:  0:5bits 1:6bits 2:7bits 3:8bits*/
 #define UART_BIT_NUM  0x00000003
 #define UART_BIT_NUM_M  ((UART_BIT_NUM_V)<<(UART_BIT_NUM_S))
 #define UART_BIT_NUM_V  0x3
@@ -773,7 +773,7 @@
 
 #define UART_CONF1_REG(i)          (REG_UART_BASE(i) + 0x24)
 /* UART_RX_TOUT_EN : R/W ;bitpos:[31] ;default: 1'b0 ; */
-/*description: This is the enble bit for uart receiver's timeout function.*/
+/*description: This is the enable bit for uart receiver's timeout function.*/
 #define UART_RX_TOUT_EN  (BIT(31))
 #define UART_RX_TOUT_EN_M  (BIT(31))
 #define UART_RX_TOUT_EN_V  0x1
@@ -825,7 +825,7 @@
 
 #define UART_HIGHPULSE_REG(i)          (REG_UART_BASE(i) + 0x2C)
 /* UART_HIGHPULSE_MIN_CNT : RO ;bitpos:[19:0] ;default: 20'hFFFFF ; */
-/*description: This register stores  the value of the maxinum duration time
+/*description: This register stores  the value of the maximum duration time
  for the high level pulse. it is used in baudrate-detect process.*/
 #define UART_HIGHPULSE_MIN_CNT  0x000FFFFF
 #define UART_HIGHPULSE_MIN_CNT_M  ((UART_HIGHPULSE_MIN_CNT_V)<<(UART_HIGHPULSE_MIN_CNT_S))
@@ -1006,7 +1006,7 @@
 #define UART_AT_CMD_GAPTOUT_REG(i)          (REG_UART_BASE(i) + 0x50)
 /* UART_RX_GAP_TOUT : R/W ;bitpos:[23:0] ;default: 24'h1e00 ; */
 /*description: This register is used to configure the duration time between
- the at_cmd chars. when the duration time is less than this register value it will not take the datas as continous at_cmd chars.*/
+ the at_cmd chars. when the duration time is less than this register value it will not take the data as continuous at_cmd chars.*/
 #define UART_RX_GAP_TOUT  0x00FFFFFF
 #define UART_RX_GAP_TOUT_M  ((UART_RX_GAP_TOUT_V)<<(UART_RX_GAP_TOUT_S))
 #define UART_RX_GAP_TOUT_V  0xFFFFFF
@@ -1014,7 +1014,7 @@
 
 #define UART_AT_CMD_CHAR_REG(i)          (REG_UART_BASE(i) + 0x54)
 /* UART_CHAR_NUM : R/W ;bitpos:[15:8] ;default: 8'h3 ; */
-/*description: This register is used to configure the num of continous at_cmd
+/*description: This register is used to configure the num of continuous at_cmd
  chars received by receiver.*/
 #define UART_CHAR_NUM  0x000000FF
 #define UART_CHAR_NUM_M  ((UART_CHAR_NUM_V)<<(UART_CHAR_NUM_S))
@@ -1029,37 +1029,37 @@
 
 #define UART_MEM_CONF_REG(i)          (REG_UART_BASE(i) + 0x58)
 /* UART_TX_MEM_EMPTY_THRHD : R/W ;bitpos:[30:28] ;default: 3'h0 ; */
-/*description: refer to txfifo_empty_thrhd 's describtion.*/
+/*description: refer to txfifo_empty_thrhd 's description.*/
 #define UART_TX_MEM_EMPTY_THRHD  0x00000007
 #define UART_TX_MEM_EMPTY_THRHD_M  ((UART_TX_MEM_EMPTY_THRHD_V)<<(UART_TX_MEM_EMPTY_THRHD_S))
 #define UART_TX_MEM_EMPTY_THRHD_V  0x7
 #define UART_TX_MEM_EMPTY_THRHD_S  28
 /* UART_RX_MEM_FULL_THRHD : R/W ;bitpos:[27:25] ;default: 3'h0 ; */
-/*description: refer to the rxfifo_full_thrhd's describtion.*/
+/*description: refer to the rxfifo_full_thrhd's description.*/
 #define UART_RX_MEM_FULL_THRHD  0x00000007
 #define UART_RX_MEM_FULL_THRHD_M  ((UART_RX_MEM_FULL_THRHD_V)<<(UART_RX_MEM_FULL_THRHD_S))
 #define UART_RX_MEM_FULL_THRHD_V  0x7
 #define UART_RX_MEM_FULL_THRHD_S  25
 /* UART_XOFF_THRESHOLD_H2 : R/W ;bitpos:[24:23] ;default: 2'h0 ; */
-/*description: refer to the uart_xoff_threshold's describtion.*/
+/*description: refer to the uart_xoff_threshold's description.*/
 #define UART_XOFF_THRESHOLD_H2  0x00000003
 #define UART_XOFF_THRESHOLD_H2_M  ((UART_XOFF_THRESHOLD_H2_V)<<(UART_XOFF_THRESHOLD_H2_S))
 #define UART_XOFF_THRESHOLD_H2_V  0x3
 #define UART_XOFF_THRESHOLD_H2_S  23
 /* UART_XON_THRESHOLD_H2 : R/W ;bitpos:[22:21] ;default: 2'h0 ; */
-/*description: refer to the uart_xon_threshold's describtion.*/
+/*description: refer to the uart_xon_threshold's description.*/
 #define UART_XON_THRESHOLD_H2  0x00000003
 #define UART_XON_THRESHOLD_H2_M  ((UART_XON_THRESHOLD_H2_V)<<(UART_XON_THRESHOLD_H2_S))
 #define UART_XON_THRESHOLD_H2_V  0x3
 #define UART_XON_THRESHOLD_H2_S  21
 /* UART_RX_TOUT_THRHD_H3 : R/W ;bitpos:[20:18] ;default: 3'h0 ; */
-/*description: refer to the rx_tout_thrhd's describtion.*/
+/*description: refer to the rx_tout_thrhd's description.*/
 #define UART_RX_TOUT_THRHD_H3  0x00000007
 #define UART_RX_TOUT_THRHD_H3_M  ((UART_RX_TOUT_THRHD_H3_V)<<(UART_RX_TOUT_THRHD_H3_S))
 #define UART_RX_TOUT_THRHD_H3_V  0x7
 #define UART_RX_TOUT_THRHD_H3_S  18
 /* UART_RX_FLOW_THRHD_H3 : R/W ;bitpos:[17:15] ;default: 3'h0 ; */
-/*description: refer to the rx_flow_thrhd's describtion.*/
+/*description: refer to the rx_flow_thrhd's description.*/
 #define UART_RX_FLOW_THRHD_H3  0x00000007
 #define UART_RX_FLOW_THRHD_H3_M  ((UART_RX_FLOW_THRHD_H3_V)<<(UART_RX_FLOW_THRHD_H3_S))
 #define UART_RX_FLOW_THRHD_H3_V  0x7
@@ -1117,13 +1117,13 @@
 
 #define UART_MEM_CNT_STATUS_REG(i)          (REG_UART_BASE(i) + 0x64)
 /* UART_TX_MEM_CNT : RO ;bitpos:[5:3] ;default: 3'b0 ; */
-/*description: refer to the txfifo_cnt's describtion.*/
+/*description: refer to the txfifo_cnt's description.*/
 #define UART_TX_MEM_CNT  0x00000007
 #define UART_TX_MEM_CNT_M  ((UART_TX_MEM_CNT_V)<<(UART_TX_MEM_CNT_S))
 #define UART_TX_MEM_CNT_V  0x7
 #define UART_TX_MEM_CNT_S  3
 /* UART_RX_MEM_CNT : RO ;bitpos:[2:0] ;default: 3'b0 ; */
-/*description: refer to the rxfifo_cnt's describtion.*/
+/*description: refer to the rxfifo_cnt's description.*/
 #define UART_RX_MEM_CNT  0x00000007
 #define UART_RX_MEM_CNT_M  ((UART_RX_MEM_CNT_V)<<(UART_RX_MEM_CNT_S))
 #define UART_RX_MEM_CNT_V  0x7
