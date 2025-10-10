@@ -13,6 +13,7 @@
 #include <esp-stub-lib/flash.h>
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/mem_utils.h>
+#include <esp-stub-lib/test_drv.h>
 
 #include "stub_main.h"
 
@@ -134,6 +135,11 @@ int stub_main(int cmd, ...)
         STUB_LOGE("Flash init failure: (0x%X) %s\n", lib_ret, stub_err_str(lib_ret));
         return lib_ret;
     }
+
+    stub_lib_test_drv_init();
+    stub_lib_test_drv_set(147);
+    stub_lib_test_drv_get();
+    stub_lib_test_drv_whoami();
 
     const struct stub_cmd_handler *handler = cmd_handlers;
     while (handler->handler) {
