@@ -9,7 +9,6 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <esp-stub-lib/core.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/flash.h>
 #include <esp-stub-lib/err.h>
@@ -137,14 +136,10 @@ int stub_main(int cmd, ...)
         return lib_ret;
     }
 
-    struct stub_target *target = stub_lib_new_target("esp32");
-    if (!target) {
-        return ESP_STUB_FAIL;
-    }
-    STUB_LOGD("Target created: %s\n", target->target_name);
-    stub_lib_test_drv_init(target);
-    stub_lib_test_drv_set(target, 147);
-    stub_lib_test_drv_whoami(target);
+    stub_lib_test_drv_init();
+    stub_lib_test_drv_set(147);
+    stub_lib_test_drv_get();
+    stub_lib_test_drv_whoami();
 
     const struct stub_cmd_handler *handler = cmd_handlers;
     while (handler->handler) {

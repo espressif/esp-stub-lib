@@ -6,16 +6,15 @@
 
 #pragma once
 
-#include <esp-stub-lib/core.h>
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-struct stub_test_drv_ops {
-    int (*init)(void);
-    int (*set)(int value);
-    int (*get)(void);
-    void (*whoami)(void);
-};
+int stub_lib_test_drv_init(void);
+int stub_lib_test_drv_set(int value);
+int stub_lib_test_drv_get(void);
+void stub_lib_test_drv_whoami(void);
 
-int stub_lib_test_drv_init(struct stub_target *target);
-int stub_lib_test_drv_set(struct stub_target *target, int value);
-int stub_lib_test_drv_get(struct stub_target *target);
-void stub_lib_test_drv_whoami(struct stub_target *target);
+#ifdef __cplusplus
+}
+#endif // __cplusplus

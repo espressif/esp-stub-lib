@@ -15,7 +15,6 @@ else()
 endif()
 
 set(srcs
-    src/core/core.c
     src/flash.c
     src/mem_utils.c
     src/rom_wrappers.c
