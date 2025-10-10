@@ -1,5 +1,6 @@
 set(common_srcs
     src/flash.c
+    src/test_drv.c
 )
 
 add_library(${ESP_COMMON_LIB} STATIC ${common_srcs})

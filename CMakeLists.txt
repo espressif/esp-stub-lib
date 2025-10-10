@@ -15,9 +15,11 @@ else()
 endif()
 
 set(srcs
+    src/core/core.c
     src/flash.c
     src/mem_utils.c
     src/rom_wrappers.c
+    src/test_drv.c
 )
 
 if(STUB_LOG_ENABLED IN_LIST STUB_COMPILE_DEFS)
