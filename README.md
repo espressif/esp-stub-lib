@@ -16,6 +16,7 @@ This project is experimental and not yet ready for production use.
 - ESP32-C6
 - ESP32-C61
 - ESP32-H2
+- ESP32-H4
 - ESP32-P4
 
 ## How to use
@@ -29,6 +30,58 @@ A complete example project is provided in the [example](example/) directory. It 
 - Build system integration
 
 See the [example README](example/README.md) for build instructions.
+
+## Project Structure
+
+The library uses a three-layer architecture to eliminate circular dependencies and maximize code reuse:
+
+```
+esp-stub-lib/
+├── src/                          # Entry point - main stub library code
+│   ├── flash.c
+│   ├── mem_utils.c
+│   └── ...
+│
+└── src/target/
+    ├── base/                     # Interface layer (headers only)
+    │   └── include/
+    │       ├── target/           # Public API headers (mem_utils.h, uart.h, etc.)
+    │       └── private/          # Internal headers (rom_flash.h, etc.)
+    │
+    ├── common/                   # Generic implementations
+    │   ├── src/                  # Weak functions using SOC_* macros
+    │   │   ├── mem_utils.c       # Default implementations
+    │   │   ├── uart.c
+    │   │   └── flash.c
+    │   └── CMakeLists.txt
+    │
+    └── esp32*/                   # Target-specific implementations
+        ├── include/
+        │   └── soc/
+        │       └── soc.h         # SOC_* macro definitions
+        ├── src/
+        │   ├── mem_utils.c       # Strong overrides (optional)
+        │   ├── uart.c
+        │   └── ...
+        └── CMakeLists.txt
+```
+
+**Dependency Flow:**
+```
+Entry Point (src/)
+    ↓
+Common (generic implementations with weak functions)
+    ↓
+Target (overridden weak functions for target-specific implementations)
+    ↓
+Base (interface headers only - serves both common and target)
+```
+
+**Layer Purposes:**
+- **base/**: Defines interfaces - shared by both common and target layers
+- **common/**: Provides reusable weak implementations that work across targets
+- **target/esp32***: Target-specific constants (`soc.h`) and strong function overrides when needed
+- **src/**: Main entry point that uses the layered implementation
 
 ## Contributing
 

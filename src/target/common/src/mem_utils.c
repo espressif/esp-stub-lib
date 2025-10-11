@@ -3,6 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -30,25 +31,25 @@ bool stub_target_mem_is_dram(uintptr_t addr)
     return addr >= SOC_DRAM_LOW && addr < SOC_DRAM_HIGH;
 }
 
-bool stub_target_mem_is_rtc_iram_fast(uintptr_t addr)
+bool __attribute__((weak)) stub_target_mem_is_rtc_iram_fast(uintptr_t addr)
 {
     (void)addr;
     return false;
 }
 
-bool stub_target_mem_is_rtc_dram_fast(uintptr_t addr)
+bool __attribute__((weak)) stub_target_mem_is_rtc_dram_fast(uintptr_t addr)
 {
     (void)addr;
     return false;
 }
 
-bool stub_target_mem_is_rtc_slow(uintptr_t addr)
+bool __attribute__((weak)) stub_target_mem_is_rtc_slow(uintptr_t addr)
 {
     (void)addr;
     return false;
 }
 
-bool stub_target_mem_is_tcm(uintptr_t addr)
+bool __attribute__((weak)) stub_target_mem_is_tcm(uintptr_t addr)
 {
     (void)addr;
     return false;

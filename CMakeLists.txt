@@ -7,11 +7,13 @@ if(NOT ESP_STUB_LIB)
 endif()
 
 if(NOT STUB_COMMAND)
-    set(ESP_TARGET_LIB ${ESP_TARGET})
+    set(ESP_BASE_LIB base)
     set(ESP_COMMON_LIB common)
+    set(ESP_TARGET_LIB ${ESP_TARGET})
 else()
-    set(ESP_TARGET_LIB ${ESP_TARGET}-${STUB_COMMAND})
+    set(ESP_BASE_LIB base-${STUB_COMMAND})
     set(ESP_COMMON_LIB common-${STUB_COMMAND})
+    set(ESP_TARGET_LIB ${ESP_TARGET}-${STUB_COMMAND})
 endif()
 
 set(srcs
@@ -47,8 +49,20 @@ include_directories(include/esp-stub-lib)
 # STUB_COMPILE_DEFS is optional definitions coming from the parent CMakeLists.txt
 add_compile_definitions(${STUB_COMPILE_DEFS})
 
+# Three-layer architecture:
+# - entry: Main stub code (src/)
+# - common: Generic implementations using base headers + target's soc.h  + (weak functions)
+# - target: Target-specific code + soc.h + overrides (weak functions)
+# - base: Interface headers (target/*.h, private/*.h) - serves to common and target
+#
+# Dependency flow: entry → common → target
+#                            ↓         ↓
+#                           base      base
+
+add_subdirectory(src/target/base ${ESP_BASE_LIB})
 add_subdirectory(src/target/${ESP_TARGET} ${ESP_TARGET_LIB})
 add_subdirectory(src/target/common ${ESP_COMMON_LIB})
-target_link_libraries(${ESP_TARGET_LIB} PRIVATE ${ESP_COMMON_LIB})
 
-target_link_libraries(${ESP_STUB_LIB} PUBLIC ${ESP_TARGET_LIB} ${ESP_COMMON_LIB})
+target_link_libraries(${ESP_TARGET_LIB} PUBLIC ${ESP_BASE_LIB})
+target_link_libraries(${ESP_COMMON_LIB} PUBLIC ${ESP_BASE_LIB} ${ESP_TARGET_LIB})
+target_link_libraries(${ESP_STUB_LIB} PUBLIC ${ESP_COMMON_LIB})
