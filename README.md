@@ -37,16 +37,22 @@ The library uses a three-layer architecture to eliminate circular dependencies a
 
 ```
 esp-stub-lib/
-├── src/                          # Entry point - main stub library code
+├── include/esp-stub-lib/         # Public API - used by library clients
+│   ├── flash.h                   # (stub_lib_flash_init, stub_lib_flash_read, etc.)
+│   ├── log.h
+│   ├── mem_utils.h
+│   └── ...
+│
+├── src/                          # Implementation layer
 │   ├── flash.c
 │   ├── mem_utils.c
 │   └── ...
 │
-└── src/target/
+└── src/target/                   # Internal abstraction layers
     ├── base/                     # Interface layer (headers only)
     │   └── include/
-    │       ├── target/           # Public API headers (mem_utils.h, uart.h, etc.)
-    │       └── private/          # Internal headers (rom_flash.h, etc.)
+    │       ├── target/           # Internal API between common/target layers
+    │       └── private/          # Internal ROM/hardware details
     │
     ├── common/                   # Generic implementations
     │   ├── src/                  # Weak functions using SOC_* macros
@@ -68,7 +74,9 @@ esp-stub-lib/
 
 **Dependency Flow:**
 ```
-Entry Point (src/)
+Public API (include/esp-stub-lib/)  ← Library clients use this
+    ↓
+Implementation (src/)
     ↓
 Common (generic implementations with weak functions)
     ↓
@@ -78,10 +86,15 @@ Base (interface headers only - serves both common and target)
 ```
 
 **Layer Purposes:**
-- **base/**: Defines interfaces - shared by both common and target layers
+- **include/esp-stub-lib/**: Public API for library clients (e.g., `stub_lib_flash_init()`)
+- **src/**: Implementation layer that uses the target abstraction below
+- **base/**: Internal interface layer - shared by both common and target implementations
+  - `target/`: Internal API between common/target layers (e.g., `stub_target_flash_init()`)
+  - `private/`: Internal headers to be used from target implementations. (e.g., `esp_rom_spiflash_read()`)
 - **common/**: Provides reusable weak implementations that work across targets
 - **target/esp32***: Target-specific constants (`soc.h`) and strong function overrides when needed
-- **src/**: Main entry point that uses the layered implementation
+
+> **Note**: Library clients should only include headers from `include/esp-stub-lib/`. The `src/target/base/` folder (both `target/` and `private/`) contains internal implementation details used by the library itself.
 
 ## Contributing
 

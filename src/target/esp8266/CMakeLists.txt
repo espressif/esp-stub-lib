@@ -1,5 +1,4 @@
 set(srcs
-    src/mem_utils.c
     src/rom-missings.c
     src/rom-patched.c
 )

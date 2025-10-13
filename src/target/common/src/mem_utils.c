@@ -10,6 +10,7 @@
 #include <target/mem_utils.h>
 
 #include <soc/soc.h>
+#include <soc/soc_caps.h>
 
 bool stub_target_mem_is_irom(uintptr_t addr)
 {
@@ -31,26 +32,42 @@ bool stub_target_mem_is_dram(uintptr_t addr)
     return addr >= SOC_DRAM_LOW && addr < SOC_DRAM_HIGH;
 }
 
-bool __attribute__((weak)) stub_target_mem_is_rtc_iram_fast(uintptr_t addr)
+bool stub_target_mem_is_rtc_iram_fast(uintptr_t addr)
 {
+#if defined(SOC_RTC_FAST_MEM_SUPPORTED) && SOC_RTC_FAST_MEM_SUPPORTED
+    return addr >= SOC_RTC_IRAM_LOW && addr < SOC_RTC_IRAM_HIGH;
+#else
     (void)addr;
     return false;
+#endif
 }
 
-bool __attribute__((weak)) stub_target_mem_is_rtc_dram_fast(uintptr_t addr)
+bool stub_target_mem_is_rtc_dram_fast(uintptr_t addr)
 {
+#if defined(SOC_RTC_FAST_MEM_SUPPORTED) && SOC_RTC_FAST_MEM_SUPPORTED
+    return addr >= SOC_RTC_DRAM_LOW && addr < SOC_RTC_DRAM_HIGH;
+#else
     (void)addr;
     return false;
+#endif
 }
 
-bool __attribute__((weak)) stub_target_mem_is_rtc_slow(uintptr_t addr)
+bool stub_target_mem_is_rtc_slow(uintptr_t addr)
 {
+#if defined(SOC_RTC_SLOW_MEM_SUPPORTED) && SOC_RTC_SLOW_MEM_SUPPORTED
+    return addr >= SOC_RTC_DATA_LOW && addr < SOC_RTC_DATA_HIGH;
+#else
     (void)addr;
     return false;
+#endif
 }
 
-bool __attribute__((weak)) stub_target_mem_is_tcm(uintptr_t addr)
+bool stub_target_mem_is_tcm(uintptr_t addr)
 {
+#if defined(SOC_MEM_TCM_SUPPORTED) && SOC_MEM_TCM_SUPPORTED
+    return addr >= SOC_TCM_LOW && addr < SOC_TCM_HIGH;
+#else
     (void)addr;
     return false;
+#endif
 }
