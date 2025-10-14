@@ -6,7 +6,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <target/uart.h>
 #include "soc/reg_base.h"
 
 // These functions are defined in the ROM
@@ -14,10 +13,9 @@ extern void uartAttach(void);
 void Uart_Init(uint8_t uart_no, uint32_t clock);
 extern uint32_t ets_get_detected_xtal_freq(void);
 
-#define RTC_STORE5 (DR_REG_RTCCNTL_BASE + 0xb4)
-
-#define REG_WRITE(_r, _v) (*(volatile uint32_t *)(_r)) = (_v)
-#define REG_READ(_r) (*(volatile uint32_t *)(_r))
+#define RTC_STORE5              (DR_REG_RTCCNTL_BASE + 0xb4)
+#define REG_WRITE(_r, _v)       (*(volatile uint32_t *)(_r)) = (_v)
+#define REG_READ(_r)            (*(volatile uint32_t *)(_r))
 
 /*
  * The symbol 'ets_get_detected_xtal_freq_patch' is defined as:

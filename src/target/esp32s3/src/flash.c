@@ -48,12 +48,6 @@ void stub_target_flash_init(void *state)
     }
 }
 
-void stub_target_flash_deinit(const void *state)
-{
-    (void)state;
-    // TODO: Implement
-}
-
 const struct esp_rom_spiflash_chip *stub_target_flash_get_config(void)
 {
     return &g_rom_flashchip;

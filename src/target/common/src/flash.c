@@ -5,9 +5,11 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
 #include <log.h>
 #include <target/flash.h>
 #include <private/rom_flash.h>
+#include <esp-stub-lib/err.h>
 
 /* Flash geometry constants */
 #define STUB_FLASH_SECTOR_SIZE          0x1000
@@ -47,4 +49,33 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
 
     STUB_LOGE("Unknown flash_id: 0x%x\n", flash_id);
     return 0;
+}
+
+void __attribute__((weak)) stub_target_flash_init(void *state)
+{
+    (void)state;
+}
+
+uint32_t __attribute__((weak)) stub_target_flash_get_flash_id(void)
+{
+    return 0;
+}
+
+const struct esp_rom_spiflash_chip * __attribute__((weak)) stub_target_flash_get_config(void)
+{
+    return NULL;
+}
+
+void __attribute__((weak)) stub_target_flash_deinit(const void *state)
+{
+    (void)state;
+}
+
+int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
+{
+    (void)addr;
+    (void)buffer;
+    (void)size;
+
+    return STUB_LIB_FAIL;
 }

@@ -1,6 +1,4 @@
 set(srcs
-    src/flash.c
-    src/mem_utils.c
     src/trax.c
     src/uart.c
 )

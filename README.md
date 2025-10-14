@@ -16,6 +16,7 @@ This project is experimental and not yet ready for production use.
 - ESP32-C6
 - ESP32-C61
 - ESP32-H2
+- ESP32-H4
 - ESP32-P4
 
 ## How to use
@@ -29,6 +30,71 @@ A complete example project is provided in the [example](example/) directory. It 
 - Build system integration
 
 See the [example README](example/README.md) for build instructions.
+
+## Project Structure
+
+The library uses a three-layer architecture to eliminate circular dependencies and maximize code reuse:
+
+```
+esp-stub-lib/
+├── include/esp-stub-lib/         # Public API - used by library clients
+│   ├── flash.h                   # (stub_lib_flash_init, stub_lib_flash_read, etc.)
+│   ├── log.h
+│   ├── mem_utils.h
+│   └── ...
+│
+├── src/                          # Implementation layer
+│   ├── flash.c
+│   ├── mem_utils.c
+│   └── ...
+│
+└── src/target/                   # Internal abstraction layers
+    ├── base/                     # Interface layer (headers only)
+    │   └── include/
+    │       ├── target/           # Internal API between common/target layers
+    │       └── private/          # Internal ROM/hardware details
+    │
+    ├── common/                   # Generic implementations
+    │   ├── src/                  # Weak functions using SOC_* macros
+    │   │   ├── mem_utils.c       # Default implementations
+    │   │   ├── uart.c
+    │   │   └── flash.c
+    │   └── CMakeLists.txt
+    │
+    └── esp32*/                   # Target-specific implementations
+        ├── include/
+        │   └── soc/
+        │       └── soc.h         # SOC_* macro definitions
+        ├── src/
+        │   ├── mem_utils.c       # Strong overrides (optional)
+        │   ├── uart.c
+        │   └── ...
+        └── CMakeLists.txt
+```
+
+**Dependency Flow:**
+```
+Public API (include/esp-stub-lib/)  ← Library clients use this
+    ↓
+Implementation (src/)
+    ↓
+Common (generic implementations with weak functions)
+    ↓
+Target (overridden weak functions for target-specific implementations)
+    ↓
+Base (interface headers only - serves both common and target)
+```
+
+**Layer Purposes:**
+- **include/esp-stub-lib/**: Public API for library clients (e.g., `stub_lib_flash_init()`)
+- **src/**: Implementation layer that uses the target abstraction below
+- **base/**: Internal interface layer - shared by both common and target implementations
+  - `target/`: Internal API between common/target layers (e.g., `stub_target_flash_init()`)
+  - `private/`: Internal headers to be used from target implementations. (e.g., `esp_rom_spiflash_read()`)
+- **common/**: Provides reusable weak implementations that work across targets
+- **target/esp32***: Target-specific constants (`soc.h`) and strong function overrides when needed
+
+> **Note**: Library clients should only include headers from `include/esp-stub-lib/`. The `src/target/base/` folder (both `target/` and `private/`) contains internal implementation details used by the library itself.
 
 ## Contributing
 
