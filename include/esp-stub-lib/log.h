@@ -35,6 +35,6 @@ void stub_lib_log_printf(const char *fmt, ...);
 #define STUB_LOGD(fmt, ...) STUB_LOG("STUB_D: " fmt, ##__VA_ARGS__)
 #define STUB_LOGV(fmt, ...) STUB_LOG("STUB_V: " fmt, ##__VA_ARGS__)
 // trace only function name
-#define STUB_LOG_TRACE() STUB_LOG("STUB_TRACE %s()\n", __func__)
+#define STUB_LOG_TRACE() STUB_LOG("STUB_T: %s()\n", __func__)
 // trace with format
-#define STUB_LOG_TRACEF(fmt, ...) STUB_LOG("STUB_TRACE %s(): " fmt, __func__, ##__VA_ARGS__)
+#define STUB_LOG_TRACEF(fmt, ...) STUB_LOG("STUB_T: %s(): " fmt, __func__, ##__VA_ARGS__)
