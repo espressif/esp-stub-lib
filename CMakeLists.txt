@@ -50,19 +50,18 @@ include_directories(include/esp-stub-lib)
 add_compile_definitions(${STUB_COMPILE_DEFS})
 
 # Three-layer architecture:
-# - entry: Main stub code (src/)
-# - common: Generic implementations using base headers + target's soc.h  + (weak functions)
-# - target: Target-specific code + soc.h + overrides (weak functions)
-# - base: Interface headers (target/*.h, private/*.h) - serves to common and target
+#
+# Layer structure and locations:
+# - entry:  Main stub code                     → src/
+# - common: Generic implementations (weak)     → src/target/common/
+# - target: Target-specific overrides (strong) → src/target/${ESP_TARGET}/
+# - base:   Interface headers only             → src/target/base/
 #
 # Dependency flow: entry → common → target
 #                            ↓         ↓
 #                           base      base
 
-add_subdirectory(src/target/base ${ESP_BASE_LIB})
-add_subdirectory(src/target/${ESP_TARGET} ${ESP_TARGET_LIB})
-add_subdirectory(src/target/common ${ESP_COMMON_LIB})
+add_subdirectory(src/target)
 
-target_link_libraries(${ESP_TARGET_LIB} PUBLIC ${ESP_BASE_LIB})
-target_link_libraries(${ESP_COMMON_LIB} PUBLIC ${ESP_BASE_LIB} ${ESP_TARGET_LIB})
+# Link to common library (which transitively includes target and base)
 target_link_libraries(${ESP_STUB_LIB} PUBLIC ${ESP_COMMON_LIB})

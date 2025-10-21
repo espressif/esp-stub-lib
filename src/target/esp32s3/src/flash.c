@@ -62,7 +62,7 @@ uint32_t stub_target_flash_get_flash_id(void)
 int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
     if (addr & 3 || size & 3) {
-        STUB_LOGE("Unligned read: 0x%x, %u", addr, size);
+        STUB_LOGE("Unaligned read: 0x%x, %u\n", addr, size);
         return STUB_LIB_ERR_FLASH_READ_UNALIGNED;
     }
     esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t*)buffer, (int32_t)size);
