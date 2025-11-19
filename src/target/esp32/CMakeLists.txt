@@ -1,6 +1,7 @@
 set(srcs
     src/trax.c
     src/uart.c
+    src/security.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

@@ -13,6 +13,7 @@
 #include <esp-stub-lib/flash.h>
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/mem_utils.h>
+#include <esp-stub-lib/security.h>
 
 #include "stub_main.h"
 
@@ -35,6 +36,30 @@ static void example_mem_utils(void)
     (void)stub_lib_mem_is_rtc_dram_fast(0x0);
     (void)stub_lib_mem_is_rtc_slow(0x0);
     (void)stub_lib_mem_is_tcm(0x0);
+}
+
+static void example_security(void)
+{
+    uint32_t size = stub_lib_security_info_size();
+    STUB_LOGI("Security info size: %u bytes\n", size);
+
+    if (size > 0) {
+        uint8_t security_buffer[size];
+
+        int ret = stub_lib_get_security_info(security_buffer, size);
+        if (ret == STUB_LIB_OK) {
+            STUB_LOGI("Security info retrieved successfully\n");
+            STUB_LOGI("Security info: ");
+            for (uint32_t i = 0; i < size; ++i) {
+                STUB_LOG("0x%02x ", security_buffer[i]);
+            }
+            STUB_LOG("\n\n");
+        } else {
+            STUB_LOGE("Failed to get security info: %d\n", ret);
+        }
+    } else {
+        STUB_LOGI("Security info not supported on this chip\n");
+    }
 }
 
 static  __attribute__((unused)) int handle_test1(va_list ap)
@@ -61,6 +86,7 @@ static  __attribute__((unused)) int handle_test1(va_list ap)
     (void)__bswapsi2(0x77AAFF33);
 
     example_mem_utils();
+    example_security();
 
     return 0;
 }

@@ -1,6 +1,7 @@
 set(common_srcs
     src/flash.c
     src/mem_utils.c
+    src/security.c
     src/uart.c
 )
 
