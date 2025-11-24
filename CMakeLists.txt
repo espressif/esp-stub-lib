@@ -20,6 +20,7 @@ set(srcs
     src/flash.c
     src/mem_utils.c
     src/rom_wrappers.c
+    src/security.c
 )
 
 if(STUB_LOG_ENABLED IN_LIST STUB_COMPILE_DEFS)

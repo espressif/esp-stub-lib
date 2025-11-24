@@ -1,6 +1,7 @@
 set(srcs
     src/rom-missings.c
     src/rom-patched.c
+    src/security.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
