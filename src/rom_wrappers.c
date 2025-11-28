@@ -7,9 +7,6 @@
 
 extern void ets_delay_us(uint32_t us);
 extern uint16_t crc16_le(uint16_t crc, const uint8_t *buf, uint32_t len);
-extern uint8_t uart_tx_one_char(uint8_t ch);
-extern uint8_t uart_rx_one_char(void);
-extern void uart_tx_flush(void);
 
 void stub_lib_delay_us(uint32_t us)
 {
@@ -19,19 +16,4 @@ void stub_lib_delay_us(uint32_t us)
 uint16_t stub_lib_crc16_le(uint16_t crc, const uint8_t *buf, uint32_t len)
 {
     return crc16_le(crc, buf, len);
-}
-
-uint8_t stub_lib_uart_tx_one_char(uint8_t c)
-{
-    return uart_tx_one_char(c);
-}
-
-uint8_t stub_lib_uart_rx_one_char(void)
-{
-    return uart_rx_one_char();
-}
-
-void stub_lib_uart_tx_flush(void)
-{
-    uart_tx_flush();
 }

@@ -28,6 +28,10 @@ PROVIDE ( esp_rom_uart_rx_string      = UartRxString );
 PROVIDE ( esp_rom_uart_set_as_console = uart_tx_switch );
 PROVIDE ( esp_rom_uart_usb_acm_init   = Uart_Init_USB );
 PROVIDE ( esp_rom_uart_putc           = ets_write_char_uart );
+PROVIDE ( esp_rom_uart_attach         = uartAttach );
+PROVIDE ( esp_rom_uart_init           = Uart_Init );
+PROVIDE ( esp_rom_uart_div_modify     = uart_div_modify );
+PROVIDE ( esp_rom_get_apb_freq        = ets_get_apb_freq );
 
 PROVIDE ( esp_rom_output_flush_tx       = uart_tx_flush );
 PROVIDE ( esp_rom_output_tx_one_char    = uart_tx_one_char );
@@ -50,6 +54,8 @@ PROVIDE ( esp_rom_delay_us = ets_delay_us );
 PROVIDE ( esp_rom_install_uart_printf = ets_install_uart_printf );
 PROVIDE ( esp_rom_get_reset_reason = rtc_get_reset_reason );
 PROVIDE ( esp_rom_route_intr_matrix = intr_matrix_set );
+PROVIDE ( esp_rom_isr_attach = ets_isr_attach );
+PROVIDE ( esp_rom_isr_unmask = ets_isr_unmask );
 PROVIDE ( esp_rom_get_cpu_ticks_per_us = ets_get_cpu_frequency );
 PROVIDE ( esp_rom_set_cpu_ticks_per_us = ets_update_cpu_frequency );
 

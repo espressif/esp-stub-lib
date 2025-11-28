@@ -31,6 +31,10 @@ A complete example project is provided in the [example](example/) directory. It 
 
 See the [example README](example/README.md) for build instructions.
 
+## Function Naming Conventions
+
+Functions that contain `rominit` (e.g., `stub_target_uart_rominit_intr_attach`) require ROM preinitialization by entering download mode to work correctly. These functions are simplified compared to full implementation and expect some initialization done by ROM. They should only be called in contexts where the ROM download mode has been entered.
+
 ## Project Structure
 
 The library uses a three-layer architecture to eliminate circular dependencies and maximize code reuse:
