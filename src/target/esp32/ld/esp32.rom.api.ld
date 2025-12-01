@@ -49,3 +49,4 @@ PROVIDE ( esp_rom_spiflash_write = SPIWrite );
 PROVIDE ( esp_rom_spiflash_write_encrypted = SPI_Encrypt_Write );
 PROVIDE ( esp_rom_spiflash_erase_block = SPIEraseBlock );
 PROVIDE ( esp_rom_spiflash_erase_sector = SPIEraseSector );
+PROVIDE (esp_rom_spiflash_erase_area = SPIEraseArea );
