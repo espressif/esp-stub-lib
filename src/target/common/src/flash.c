@@ -11,20 +11,22 @@
 #include <private/rom_flash.h>
 #include <esp-stub-lib/err.h>
 
-/* Flash geometry constants */
-#define STUB_FLASH_SECTOR_SIZE          0x1000
-#define STUB_FLASH_BLOCK_SIZE           0x10000
-#define STUB_FLASH_PAGE_SIZE            0x100
-#define STUB_FLASH_STATUS_MASK          0xFFFF
+extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_chip(void);
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
+extern esp_rom_spiflash_result_t esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
+extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_sector(uint32_t addr);
+extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_block(uint32_t addr);
+extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
 
-void stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size)
+int stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size, uint32_t block_size, uint32_t sector_size, uint32_t page_size, uint32_t status_mask)
 {
-    (void)esp_rom_spiflash_config_param(flash_id,
-                                        flash_size,
-                                        STUB_FLASH_BLOCK_SIZE,
-                                        STUB_FLASH_SECTOR_SIZE,
-                                        STUB_FLASH_PAGE_SIZE,
-                                        STUB_FLASH_STATUS_MASK);
+    esp_rom_spiflash_result_t res = esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size, status_mask);
+    if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
+        STUB_LOGE("Failed to update flash config: %d\n", res);
+        return STUB_LIB_FAIL;
+    }
+    return STUB_LIB_OK;
 }
 
 uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
@@ -71,11 +73,69 @@ void __attribute__((weak)) stub_target_flash_deinit(const void *state)
     (void)state;
 }
 
+int __attribute__((weak)) stub_target_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
+{
+    if (addr & 3 || size & 3) {
+        STUB_LOGE("Unaligned write: 0x%x, %u\n", addr, size);
+        return STUB_LIB_ERR_FLASH_WRITE_UNALIGNED;
+    }
+    esp_rom_spiflash_result_t res;
+    if (encrypt) {
+        res = esp_rom_spiflash_write_encrypted(addr, buffer, size);
+    } else {
+        res = esp_rom_spiflash_write(addr, buffer, size);
+    }
+    STUB_LOG_TRACEF("(0x%x, 0x%x, %u, %d) results: %d\n", addr, (uint32_t)buffer, size, encrypt, res);
+    return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_FAIL;
+}
+
 int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
-    (void)addr;
-    (void)buffer;
-    (void)size;
+    if (addr & 3 || size & 3) {
+        STUB_LOGE("Unaligned read: 0x%x, %u\n", addr, size);
+        return STUB_LIB_ERR_FLASH_READ_UNALIGNED;
+    }
+    esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t*)buffer, (int32_t)size);
+    STUB_LOG_TRACEF("esp_rom_spiflash_read(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
+    if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
+        return STUB_LIB_ERR_FLASH_READ_ROM_ERR;
+    }
+    return STUB_LIB_OK;
+}
 
+int stub_target_flash_erase_chip(void)
+{
+    if (esp_rom_spiflash_erase_chip()  == ESP_ROM_SPIFLASH_RESULT_OK) {
+        return STUB_LIB_OK;
+    }
     return STUB_LIB_FAIL;
+}
+
+int stub_target_flash_erase_sector(uint32_t addr)
+{
+    if (esp_rom_spiflash_erase_sector(addr) == ESP_ROM_SPIFLASH_RESULT_OK) {
+        return STUB_LIB_OK;
+    }
+    return STUB_LIB_FAIL;
+}
+
+int stub_target_flash_erase_block(uint32_t addr)
+{
+    if (esp_rom_spiflash_erase_block(addr) == ESP_ROM_SPIFLASH_RESULT_OK) {
+        return STUB_LIB_OK;
+    }
+    return STUB_LIB_FAIL;
+}
+
+int stub_target_flash_erase_area(uint32_t addr, uint32_t size)
+{
+    if (esp_rom_spiflash_erase_area(addr, size) == ESP_ROM_SPIFLASH_RESULT_OK) {
+        return STUB_LIB_OK;
+    }
+    return STUB_LIB_FAIL;
+}
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
 }

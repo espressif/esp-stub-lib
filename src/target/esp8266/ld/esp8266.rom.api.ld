@@ -30,8 +30,14 @@ PROVIDE ( esp_rom_set_cpu_ticks_per_us = ets_update_cpu_frequency );
 
 PROVIDE ( esp_rom_spiflash_attach = spi_flash_attach );
 PROVIDE ( esp_rom_spiflash_write_enable = SPI_write_enable );
-PROVIDE ( esp_rom_spiflash_erase_area = SPIEraseArea );
 PROVIDE ( esp_rom_spiflash_select_padsfunc = SelectSpiFunction );
+PROVIDE ( esp_rom_spiflash_write = SPIWrite );
+PROVIDE ( esp_rom_spiflash_read = SPIRead );
+PROVIDE ( esp_rom_spiflash_erase_chip = SPIEraseChip );
+PROVIDE ( esp_rom_spiflash_erase_block = SPIEraseBlock );
+PROVIDE ( esp_rom_spiflash_erase_sector = SPIEraseSector );
+PROVIDE ( esp_rom_spiflash_erase_area = SPIEraseArea );
+
 
 PROVIDE ( esp_rom_regi2c_read = rom_i2c_readReg );
 PROVIDE ( esp_rom_regi2c_read_mask = rom_i2c_readReg_Mask );

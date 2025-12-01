@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct stub_lib_flash_info {
     uint32_t id;
@@ -18,9 +19,37 @@ typedef struct stub_lib_flash_info {
     uint32_t encrypted;
 } stub_lib_flash_info_t;
 
+typedef struct stub_lib_flash_config {
+    uint32_t flash_id;
+    uint32_t flash_size;
+    uint32_t block_size;
+    uint32_t sector_size;
+    uint32_t page_size;
+    uint32_t status_mask;
+} stub_lib_flash_config_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+/**
+ * @brief Update SPI Flash configuration.
+ *
+ * @param config Flash configuration
+ *
+ * @return Result:
+ * - STUB_LIB_OK if success
+ * - STUB_LIB_FAIL on ROM config error
+ */
+int stub_lib_flash_update_config(stub_lib_flash_config_t *config);
+
+/**
+ * @brief Attach SPI Flash to the hardware.
+ *
+ * @param ishspi SPI Flash configuration
+ * @param legacy Legacy mode - disable quad mode
+ */
+void stub_lib_flash_attach(uint32_t ishspi, bool legacy);
 
 /**
  * @brief Initialize SPI Flash before any use.
