@@ -63,6 +63,7 @@ PROVIDE ( esp_rom_get_reset_reason = rtc_get_reset_reason );
 PROVIDE ( esp_rom_route_intr_matrix = intr_matrix_set );
 PROVIDE ( esp_rom_isr_attach = ets_isr_attach );
 PROVIDE ( esp_rom_isr_unmask = ets_isr_unmask );
+PROVIDE ( esp_rom_isr_mask = ets_isr_mask );
 PROVIDE ( esp_rom_get_cpu_ticks_per_us = ets_get_cpu_frequency );
 PROVIDE ( esp_rom_set_cpu_ticks_per_us = ets_update_cpu_frequency );
 
