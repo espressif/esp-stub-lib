@@ -1,5 +1,6 @@
 set(srcs
     src/uart.c
+    src/usb_cdc.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
