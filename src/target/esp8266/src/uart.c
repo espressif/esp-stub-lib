@@ -58,8 +58,9 @@ void stub_target_uart_rominit_set_baudrate(uint8_t uart_num, uint32_t baudrate)
     esp_rom_uart_div_modify(uart_num, divisor);
 }
 
-void stub_target_uart_tx_flush(void)
+void stub_target_uart_tx_flush(uint8_t uart_no)
 {
+    (void)uart_no;
     const uint32_t UART0_STATUS_REG = 0x60000F1C;
     const uint32_t UART_STATUS_TX_EMPTY = 0xFF << 16;
 

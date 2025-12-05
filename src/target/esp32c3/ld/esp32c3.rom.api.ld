@@ -29,6 +29,7 @@ PROVIDE ( esp_rom_uart_attach         = uartAttach );
 PROVIDE ( esp_rom_uart_init           = Uart_Init );
 PROVIDE ( esp_rom_uart_div_modify     = uart_div_modify );
 PROVIDE ( esp_rom_get_xtal_freq       = ets_get_xtal_freq );
+PROVIDE ( esp_rom_get_uart_device     = GetUartDevice );
 
 PROVIDE ( esp_rom_output_flush_tx       = uart_tx_flush );
 PROVIDE ( esp_rom_output_tx_one_char    = uart_tx_one_char );

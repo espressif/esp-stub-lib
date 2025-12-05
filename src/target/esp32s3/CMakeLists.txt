@@ -2,6 +2,7 @@ set(srcs
     src/flash.c
     src/trax.c
     src/uart.c
+    src/usb_serial_jtag.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

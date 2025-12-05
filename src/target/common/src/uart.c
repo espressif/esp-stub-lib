@@ -14,7 +14,7 @@ extern uint32_t esp_rom_get_cpu_freq(void);
 extern void esp_rom_uart_set_as_console(uint8_t uart_no);
 extern void esp_rom_uart_tx_wait_idle(uint8_t uart_num);
 extern void esp_rom_uart_div_modify(uint8_t uart_no, uint32_t divisor);
-extern void esp_rom_uart_flush_tx(void);
+extern void esp_rom_uart_flush_tx(uint8_t uart_no);
 
 void __attribute__((weak)) stub_target_uart_wait_idle(uint8_t uart_num)
 {
@@ -39,7 +39,7 @@ void __attribute__((weak)) stub_target_uart_rominit_set_baudrate(uint8_t uart_nu
     // TODO: Consider decimal part
 }
 
-void __attribute__((weak)) stub_target_uart_tx_flush(void)
+void __attribute__((weak)) stub_target_uart_tx_flush(uint8_t uart_no)
 {
-    esp_rom_uart_flush_tx();
+    esp_rom_uart_flush_tx(uart_no);
 }

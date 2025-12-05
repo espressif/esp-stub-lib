@@ -34,6 +34,7 @@ PROVIDE ( esp_rom_uart_div_modify     = uart_div_modify );
 PROVIDE ( esp_rom_get_apb_freq        = ets_get_apb_freq );
 PROVIDE ( esp_rom_uart_tx_switch      = uart_tx_switch );
 PROVIDE ( esp_rom_update_cpu_frequency = ets_update_cpu_frequency );
+PROVIDE ( esp_rom_get_uart_device     = GetUartDevice );
 
 PROVIDE ( esp_rom_output_flush_tx       = uart_tx_flush );
 PROVIDE ( esp_rom_output_tx_one_char    = uart_tx_one_char );

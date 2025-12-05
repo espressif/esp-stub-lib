@@ -29,7 +29,8 @@ PROVIDE ( esp_rom_uart_attach         = uartAttach );
 PROVIDE ( esp_rom_uart_init           = Uart_Init );
 PROVIDE ( esp_rom_uart_div_modify     = uart_div_modify );
 PROVIDE ( esp_rom_get_apb_freq        = ets_get_apb_freq );
-PROVIDE ( esp_rom_get_cpu_freq         = ets_clk_get_cpu_freq );
+PROVIDE ( esp_rom_get_cpu_freq        = ets_clk_get_cpu_freq );
+PROVIDE ( esp_rom_get_uart_device     = GetUartDevice );
 
 PROVIDE ( esp_rom_usb_serial_putc     = uart_tx_one_char3 );
 
