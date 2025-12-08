@@ -65,7 +65,7 @@ int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
         STUB_LOGE("Unaligned read: 0x%x, %u\n", addr, size);
         return STUB_LIB_ERR_FLASH_READ_UNALIGNED;
     }
-    esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t*)buffer, (int32_t)size);
+    esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t *)buffer, (int32_t)size);
     STUB_LOG_TRACEF("esp_rom_spiflash_read(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
     if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
         return STUB_LIB_ERR_FLASH_READ_ROM_ERR;

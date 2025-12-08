@@ -10,7 +10,7 @@
 #include <err.h>
 
 /* GetSecurityInfoProc function from ROM */
-extern uint32_t GetSecurityInfoProc(int* pMsg, int* pnErr, uint8_t *buf);
+extern uint32_t GetSecurityInfoProc(int *pMsg, int *pnErr, uint8_t *buf);
 
 #define SECURITY_INFO_BYTES_DEFAULT 20
 

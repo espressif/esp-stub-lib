@@ -10,8 +10,8 @@
 #include <err.h>
 
 /* GetSecurityInfoProc functions from ROM */
-extern uint32_t GetSecurityInfoProcEco1(int* pMsg, int* pnErr, uint8_t *buf);
-extern uint32_t GetSecurityInfoProcEco7(int* pMsg, int* pnErr, uint8_t *buf);
+extern uint32_t GetSecurityInfoProcEco1(int *pMsg, int *pnErr, uint8_t *buf);
+extern uint32_t GetSecurityInfoProcEco7(int *pMsg, int *pnErr, uint8_t *buf);
 /* ROM constant to define ECO version - address 0x40000014 */
 extern uint32_t _rom_eco_version;
 
