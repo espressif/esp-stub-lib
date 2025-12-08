@@ -43,4 +43,5 @@ set(COMMON_LINKER_FLAGS
     "-lc"
     "-Wl,--end-group"
     "-Wl,--undefined=s_esp_stub_desc"
+    "-Werror=lto-type-mismatch"
 )
