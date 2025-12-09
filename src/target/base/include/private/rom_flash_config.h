@@ -21,16 +21,16 @@ typedef struct {
     uint8_t rd_addr_bit_len;
     uint32_t read_sub_len;
     uint32_t write_sub_len;
-    void* unlock;
-    void* erase_sector;
-    void* erase_block;
-    void* read;
-    void* write;
-    void* encrypt_write;
-    void* check_sus;
-    void* wren;
-    void* wait_idle;
-    void* erase_area;
+    void *unlock;
+    void *erase_sector;
+    void *erase_block;
+    void *read;
+    void *write;
+    void *encrypt_write;
+    void *check_sus;
+    void *wren;
+    void *wait_idle;
+    void *erase_area;
 } esp_rom_spiflash_legacy_funcs_t;
 
 extern esp_rom_spiflash_legacy_data_t *rom_spiflash_legacy_data;

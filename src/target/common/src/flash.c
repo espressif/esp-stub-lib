@@ -63,7 +63,7 @@ uint32_t __attribute__((weak)) stub_target_flash_get_flash_id(void)
     return 0;
 }
 
-const struct esp_rom_spiflash_chip * __attribute__((weak)) stub_target_flash_get_config(void)
+const struct esp_rom_spiflash_chip *__attribute__((weak)) stub_target_flash_get_config(void)
 {
     return NULL;
 }

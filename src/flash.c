@@ -47,7 +47,7 @@ void stub_lib_flash_deinit(const void *state)
 
 void stub_lib_flash_get_info(stub_lib_flash_info_t *info)
 {
-    const esp_rom_spiflash_chip_t * chip = stub_target_flash_get_config();
+    const esp_rom_spiflash_chip_t *chip = stub_target_flash_get_config();
 
     info->id = chip->flash_id;
     info->size = chip->chip_size;
