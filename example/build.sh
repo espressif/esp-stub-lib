@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-TARGETS="esp8266 esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c5 esp32c6 esp32c61 esp32h2 esp32h21 esp32h4 esp32p4"
+TARGETS="esp8266 esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c5 esp32c6 esp32c61 esp32h2 esp32h21 esp32h4 esp32p4 esp32p4-rev1"
 
 ESP8266_LINUX_TOOLCHAIN_URL="https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz"
 ESP8266_MACOS_TOOLCHAIN_URL="https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz"
@@ -28,7 +28,18 @@ build_target() {
     local target=$1
     echo "Building for $target..."
 
-    if [ "$target" = "esp8266" ]; then
+    # Parse target string to extract base target and revision
+    # Format: esp32p4-rev1 -> base=esp32p4, rev=rev1
+    # Format: esp32p4 -> base=esp32p4, rev=""
+    local base_target=$target
+    local revision=""
+
+    if [[ "$target" == *-rev* ]]; then
+        base_target="${target%%-rev*}"
+        revision="rev${target##*-rev}"
+    fi
+
+    if [ "$base_target" = "esp8266" ]; then
         if [[ "$OSTYPE" == "windows"* ]]; then
             echo "ESP8266 build is only supported on unix-like systems. Skipping..."
             return
@@ -47,7 +58,15 @@ build_target() {
 
     mkdir -p build/$target
     cd build/$target
-    cmake -DESP_TARGET=$target -GNinja ../..
+
+    # Pass both base target and revision to CMake
+    local cmake_args="-DESP_TARGET=$base_target -GNinja"
+    if [ -n "$revision" ]; then
+        cmake_args="$cmake_args -DESP_TARGET_REV=$revision"
+        echo "  Base target: $base_target, Revision: $revision"
+    fi
+
+    cmake $cmake_args ../..
     ninja
     cd ../..
 }
@@ -61,7 +80,10 @@ elif [ "$1" = "clean" ]; then
     rm -rf build
 else
     # Build specific target
+    # Only targets explicitly listed in TARGETS are allowed
     if [[ ! " $TARGETS " =~ " $1 " ]]; then
+        echo "Error: Unknown target '$1'"
+        echo ""
         echo "Usage: $0 <target|all|clean>"
         echo "Available targets: $TARGETS"
         exit 1
