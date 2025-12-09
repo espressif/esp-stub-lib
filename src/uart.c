@@ -32,9 +32,9 @@ void stub_lib_uart_rominit_set_baudrate(uart_port_t uart_num, uint32_t baudrate)
     stub_target_uart_rominit_set_baudrate(uart_num, baudrate);
 }
 
-void stub_lib_uart_tx_flush(void)
+void stub_lib_uart_tx_flush(uart_port_t uart_no)
 {
-    stub_target_uart_tx_flush();
+    stub_target_uart_tx_flush(uart_no);
 }
 
 void stub_lib_uart_rominit_intr_attach(uart_port_t uart_num, int intr_num, void *handler, uint32_t flags)
@@ -51,7 +51,7 @@ void stub_lib_uart_rominit_intr_attach(uart_port_t uart_num, int intr_num, void 
     esp_rom_isr_unmask(1 << intr_num);
 }
 
-uint32_t stub_lib_uart_get_intr_flags(uart_port_t uart_num)
+uint32_t stub_lib_uart_clear_intr_flags(uart_port_t uart_num)
 {
     uint32_t status = READ_PERI_REG(UART_INT_ST_REG(uart_num));
     // Clear the interrupts

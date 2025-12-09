@@ -71,13 +71,13 @@ static int __attribute__((unused)) handle_test_uart(void)
     stub_lib_uart_init(UART_NUM_0);
     stub_lib_uart_set_rx_timeout(UART_NUM_0, 10);
     (void)stub_lib_uart_get_rxfifo_count(UART_NUM_0);
-    (void)stub_lib_uart_get_intr_flags(UART_NUM_0);
+    (void)stub_lib_uart_clear_intr_flags(UART_NUM_0);
     (void)stub_lib_uart_read_rxfifo_byte(UART_NUM_0);
     (void)stub_lib_uart_rx_one_char();
     stub_lib_uart_rominit_intr_attach(UART_NUM_0, 5, uart_rx_interrupt_handler,
                                       UART_INTR_RXFIFO_FULL | UART_INTR_RXFIFO_TOUT);
     stub_lib_uart_tx_one_char('A');
-    stub_lib_uart_tx_flush();
+    stub_lib_uart_tx_flush(UART_NUM_0);
 
     return 0;
 }

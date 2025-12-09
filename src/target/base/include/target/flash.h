@@ -55,7 +55,8 @@ const struct esp_rom_spiflash_chip *stub_target_flash_get_config(void);
  * - STUB_LIB_OK if success
  * - STUB_LIB_FAIL on ROM config error
  */
-int stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size, uint32_t block_size, uint32_t sector_size, uint32_t page_size, uint32_t status_mask);
+int stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size, uint32_t block_size, uint32_t sector_size,
+                                    uint32_t page_size, uint32_t status_mask);
 
 /**
  * @brief Infer flash size (in bytes) from Flash ID

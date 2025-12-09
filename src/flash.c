@@ -19,7 +19,8 @@
 
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
-    return stub_target_flash_update_config(config->flash_id, config->flash_size, config->block_size, config->sector_size, config->page_size, config->status_mask);
+    return stub_target_flash_update_config(config->flash_id, config->flash_size, config->block_size, config->sector_size,
+                                           config->page_size, config->status_mask);
 }
 
 void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
@@ -37,7 +38,8 @@ int stub_lib_flash_init(void **state)
     }
     STUB_LOG_TRACEF("Flash size: %d MB\n", MB(flash_size));
 
-    return stub_target_flash_update_config(flash_id, flash_size, STUB_FLASH_BLOCK_SIZE, STUB_FLASH_SECTOR_SIZE, STUB_FLASH_PAGE_SIZE, STUB_FLASH_STATUS_MASK);
+    return stub_target_flash_update_config(flash_id, flash_size, STUB_FLASH_BLOCK_SIZE, STUB_FLASH_SECTOR_SIZE,
+                                           STUB_FLASH_PAGE_SIZE, STUB_FLASH_STATUS_MASK);
 }
 
 void stub_lib_flash_deinit(const void *state)

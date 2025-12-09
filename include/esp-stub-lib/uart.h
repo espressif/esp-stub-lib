@@ -85,7 +85,7 @@ void stub_lib_uart_rominit_intr_attach(uart_port_t uart_num, int intr_num, void 
  * @param uart_num UART port number
  * @return Bitmask of active interrupts that were cleared
  */
-uint32_t stub_lib_uart_get_intr_flags(uart_port_t uart_num);
+uint32_t stub_lib_uart_clear_intr_flags(uart_port_t uart_num);
 
 /**
  * @brief Get number of bytes available in RX FIFO
@@ -139,8 +139,10 @@ uint8_t stub_lib_uart_rx_one_char(void);
 
 /**
  * @brief Flush any buffered transmit data.
+ *
+ * @param uart_no UART port number
  */
-void stub_lib_uart_tx_flush(void);
+void stub_lib_uart_tx_flush(uart_port_t uart_no);
 
 #ifdef __cplusplus
 }

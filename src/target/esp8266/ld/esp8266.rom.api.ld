@@ -8,6 +8,7 @@ PROVIDE ( esp_rom_uart_rx_intr_handler = uart_rx_intr_handler );
 PROVIDE ( esp_rom_uart_rx_one_char    = uart_rx_one_char );
 PROVIDE ( esp_rom_uart_rx_string      = UartRxString );
 PROVIDE ( esp_rom_uart_tx_one_char    = uart_tx_one_char );
+PROVIDE ( esp_rom_get_uart_device     = GetUartDevice );
 
 PROVIDE ( esp_rom_output_rx_one_char    = uart_rx_one_char );
 PROVIDE ( esp_rom_output_rx_string      = UartRxString );

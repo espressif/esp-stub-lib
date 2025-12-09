@@ -19,9 +19,11 @@ extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_sector(uint32_t addr);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_block(uint32_t addr);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
 
-int stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size, uint32_t block_size, uint32_t sector_size, uint32_t page_size, uint32_t status_mask)
+int stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size, uint32_t block_size, uint32_t sector_size,
+                                    uint32_t page_size, uint32_t status_mask)
 {
-    esp_rom_spiflash_result_t res = esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size, status_mask);
+    esp_rom_spiflash_result_t res = esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size,
+                                                                  status_mask);
     if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
         STUB_LOGE("Failed to update flash config: %d\n", res);
         return STUB_LIB_FAIL;
@@ -95,7 +97,7 @@ int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffe
         STUB_LOGE("Unaligned read: 0x%x, %u\n", addr, size);
         return STUB_LIB_ERR_FLASH_READ_UNALIGNED;
     }
-    esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t*)buffer, (int32_t)size);
+    esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t *)buffer, (int32_t)size);
     STUB_LOG_TRACEF("esp_rom_spiflash_read(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
     if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
         return STUB_LIB_ERR_FLASH_READ_ROM_ERR;
