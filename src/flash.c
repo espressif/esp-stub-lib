@@ -11,6 +11,22 @@
 #include <target/flash.h>
 #include <private/rom_flash_config.h>
 
+/* Flash geometry constants */
+#define STUB_FLASH_SECTOR_SIZE          0x1000
+#define STUB_FLASH_BLOCK_SIZE           0x10000
+#define STUB_FLASH_PAGE_SIZE            0x100
+#define STUB_FLASH_STATUS_MASK          0xFFFF
+
+int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
+{
+    return stub_target_flash_update_config(config->flash_id, config->flash_size, config->block_size, config->sector_size, config->page_size, config->status_mask);
+}
+
+void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
+{
+    stub_target_flash_attach(ishspi, legacy);
+}
+
 int stub_lib_flash_init(void **state)
 {
     stub_target_flash_init(state);
@@ -21,9 +37,7 @@ int stub_lib_flash_init(void **state)
     }
     STUB_LOG_TRACEF("Flash size: %d MB\n", MB(flash_size));
 
-    stub_target_flash_update_config(flash_id, flash_size);
-
-    return STUB_LIB_OK;
+    return stub_target_flash_update_config(flash_id, flash_size, STUB_FLASH_BLOCK_SIZE, STUB_FLASH_SECTOR_SIZE, STUB_FLASH_PAGE_SIZE, STUB_FLASH_STATUS_MASK);
 }
 
 void stub_lib_flash_deinit(const void *state)
@@ -64,4 +78,29 @@ void stub_lib_flash_info_print(const stub_lib_flash_info_t *info)
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
     return stub_target_flash_read_buff(addr, buffer, size);
+}
+
+int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt)
+{
+    return stub_target_flash_write_buff(addr, buffer, size, encrypt);
+}
+
+int stub_lib_flash_erase_chip(void)
+{
+    return stub_target_flash_erase_chip();
+}
+
+int stub_lib_flash_erase_sector(uint32_t addr)
+{
+    return stub_target_flash_erase_sector(addr);
+}
+
+int stub_lib_flash_erase_block(uint32_t addr)
+{
+    return stub_target_flash_erase_block(addr);
+}
+
+int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
+{
+    return stub_target_flash_erase_area(addr, size);
 }

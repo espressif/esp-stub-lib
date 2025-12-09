@@ -81,6 +81,29 @@ static int __attribute__((unused)) handle_test_uart(void)
     return 0;
 }
 
+static int __attribute__((unused)) handle_test_flash(void)
+{
+    void *flash_state = NULL;
+    stub_lib_flash_info_t flash_info;
+    stub_lib_flash_config_t flash_config;
+    uint8_t buffer[256];
+
+    (void)stub_lib_flash_init(&flash_state);
+    stub_lib_flash_get_info(&flash_info);
+    stub_lib_flash_info_print(&flash_info);
+    (void)stub_lib_flash_update_config(&flash_config);
+    stub_lib_flash_attach(0, false);
+    (void)stub_lib_flash_read_buff(0x1000, buffer, sizeof(buffer));
+    (void)stub_lib_flash_write_buff(0x10000, buffer, sizeof(buffer), 0);
+    (void)stub_lib_flash_erase_sector(0x10000);
+    (void)stub_lib_flash_erase_block(0x10000);
+    (void)stub_lib_flash_erase_area(0x20000, 0x10000);
+    (void)stub_lib_flash_erase_chip();
+    stub_lib_flash_deinit(flash_state);
+
+    return 0;
+}
+
 static  __attribute__((unused)) int handle_test1(va_list ap)
 {
     (void)ap;
