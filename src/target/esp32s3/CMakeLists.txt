@@ -3,7 +3,7 @@ set(srcs
     src/trax.c
     src/uart.c
     src/usb_serial_jtag.c
-    src/usb_cdc.c
+    src/usb_otg.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

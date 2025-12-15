@@ -16,7 +16,7 @@
 // External ROM functions
 extern void esp_rom_isr_attach(int int_num, void *handler, void *arg);
 extern void esp_rom_isr_unmask(int int_num);
-extern void esprv_intc_int_set_priority(int int_num, int priority);
+extern void esp_rom_esprv_intc_int_set_priority(int int_num, int priority);
 
 bool stub_target_usb_serial_jtag_is_supported(void)
 {
@@ -27,7 +27,7 @@ void stub_target_usb_serial_jtag_rominit_intr_attach(int intr_num, void *handler
 {
     // Route USB interrupt to CPU
     WRITE_PERI_REG(INTERRUPT_CORE0_USB_SERIAL_JTAG_INTR_MAP_REG, intr_num + CLIC_EXT_INTR_NUM_OFFSET);
-    esprv_intc_int_set_priority(intr_num, 1);
+    esp_rom_esprv_intc_int_set_priority(intr_num, 1);
 
     // Clear pending interrupt flags
     WRITE_PERI_REG(USB_SERIAL_JTAG_INT_CLR_REG, 0xFFFFFFFFU);

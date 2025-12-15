@@ -6,6 +6,16 @@ PROVIDE ( esp_rom_crc32_le = crc32_le );
 PROVIDE ( esp_rom_crc16_le = crc16_le );
 PROVIDE ( esp_rom_crc8_le  = crc8_le );
 
+PROVIDE ( esp_rom_cdc_acm_fifo_fill = cdc_acm_fifo_fill );
+PROVIDE ( esp_rom_cdc_acm_fifo_read = cdc_acm_fifo_read );
+PROVIDE ( esp_rom_cdc_acm_rx_fifo_cnt = cdc_acm_rx_fifo_cnt );
+PROVIDE ( esp_rom_cdc_acm_line_ctrl_get = cdc_acm_line_ctrl_get );
+PROVIDE ( esp_rom_cdc_acm_irq_rx_enable = cdc_acm_irq_rx_enable );
+PROVIDE ( esp_rom_cdc_acm_irq_rx_disable = cdc_acm_irq_rx_disable );
+PROVIDE ( esp_rom_cdc_acm_irq_callback_set = cdc_acm_irq_callback_set );
+PROVIDE ( esp_rom_cdc_acm_irq_state_enable = cdc_acm_irq_state_enable );
+PROVIDE ( esp_rom_usb_dw_isr_handler = usb_dw_isr_handler );
+
 PROVIDE ( esp_rom_gpio_pad_select_gpio    = gpio_pad_select_gpio );
 PROVIDE ( esp_rom_gpio_pad_pullup_only    = gpio_pad_pullup );
 PROVIDE ( esp_rom_gpio_pad_set_drv        = gpio_pad_set_drv );
