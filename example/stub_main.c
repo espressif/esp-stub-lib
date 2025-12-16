@@ -17,6 +17,7 @@
 #include <esp-stub-lib/security.h>
 #include <esp-stub-lib/uart.h>
 #include <esp-stub-lib/usb_serial_jtag.h>
+#include <esp-stub-lib/rom_wrappers.h>
 
 #include "stub_main.h"
 
@@ -80,6 +81,14 @@ static void __attribute__((unused)) test_usb_serial_jtag(void)
     (void)stub_lib_usb_serial_jtag_read_rxfifo_byte();
     (void)stub_lib_usb_serial_jtag_tx_one_char('A');
     (void)stub_lib_usb_serial_jtag_tx_flush();
+}
+
+static __attribute__((unused)) void test_md5(void)
+{
+    struct stub_lib_md5_ctx ctx;
+    stub_lib_md5_init(&ctx);
+    stub_lib_md5_update(&ctx, NULL, 0);
+    stub_lib_md5_final(NULL, &ctx);
 }
 
 static int __attribute__((unused)) handle_test_uart(void)
