@@ -8,6 +8,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 #define MHZ 1000000
 
 /**
@@ -28,3 +32,7 @@ uint32_t stub_target_get_cpu_freq(void);
  * @return APB frequency in Hz
  */
 uint32_t stub_target_get_apb_freq(void);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
