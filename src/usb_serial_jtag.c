@@ -33,20 +33,25 @@ typedef struct {
 
 bool stub_lib_usb_serial_jtag_is_active(void)
 {
-    if (!stub_target_usb_serial_jtag_is_supported()) {
-        return false;
-    }
-
+#if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
     uart_device_t *uart = (uart_device_t *)esp_rom_get_uart_device();
     if (uart == NULL) {
         return false;
     }
     return ((int8_t)uart->buff_uart_no == ESP_ROM_USB_SERIAL_DEVICE_NUM);
+#else
+    return false;
+#endif
 }
 
 void stub_lib_usb_serial_jtag_rominit_intr_attach(int intr_num, void *handler, uint32_t flags)
 {
+#if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
     stub_target_usb_serial_jtag_rominit_intr_attach(intr_num, handler, flags);
+#endif
+    (void)intr_num;
+    (void)handler;
+    (void)flags;
 }
 
 uint32_t stub_lib_usb_serial_jtag_clear_intr_flags(void)

@@ -10,13 +10,6 @@
 #include <stdbool.h>
 
 /**
- * @brief Check if USB-Serial/JTAG is supported on this chip
- *
- * @return true if USB-Serial/JTAG is supported, false otherwise
- */
-bool stub_target_usb_serial_jtag_is_supported(void);
-
-/**
  * @brief Attach interrupt handler to USB-Serial/JTAG and configure interrupts
  *
  * @param intr_num CPU interrupt source
