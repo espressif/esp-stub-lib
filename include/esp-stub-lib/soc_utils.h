@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #define ETS_UNCACHED_ADDR(addr) (addr)
 #define ETS_CACHED_ADDR(addr) (addr)
 
@@ -28,11 +30,11 @@
         } while(0)
 
 #define REG_CLR_BIT(_r, _b)  do {                                                                                      \
-            REG_WRITE(_r, REG_READ(_r) & (~(_b)));                                                                     \
+            REG_WRITE(_r, REG_READ(_r) & (~(volatile uint32_t)(_b)));                                                  \
         } while(0)
 
 #define REG_SET_BITS(_r, _b, _m) do {                                                                                  \
-            REG_WRITE(_r, (REG_READ(_r) & ~(_m)) | ((_b) & (_m)));                                                     \
+            REG_WRITE(_r, (REG_READ(_r) & ~(volatile uint32_t)(_m)) | ((volatile uint32_t)(_b) & (volatile uint32_t)(_m))); \
         } while(0)
 
 // Field manipulation macros
@@ -41,7 +43,7 @@
         })
 
 #define REG_SET_FIELD(_r, _f, _v) do {                                                                                 \
-            REG_WRITE(_r, (REG_READ(_r) & ~((_f##_V) << (_f##_S))) | (((_v) & (_f##_V)) << (_f##_S)));                 \
+            REG_WRITE(_r, (REG_READ(_r) & ~((volatile uint32_t)((_f##_V) << (_f##_S)))) | (((volatile uint32_t)(_v) & (_f##_V)) << (_f##_S))); \
         } while(0)
 
 // Value field manipulation macros
@@ -49,9 +51,9 @@
 
 #define VALUE_GET_FIELD2(_r, _f) (((_r) & (_f)) >> (_f##_S))
 
-#define VALUE_SET_FIELD(_r, _f, _v) ((_r) = ((_r) & ~((_f) << (_f##_S))) | ((_v) << (_f##_S)))
+#define VALUE_SET_FIELD(_r, _f, _v) ((_r) = ((_r) & ~((volatile uint32_t)((_f) << (_f##_S)))) | ((volatile uint32_t)(_v) << (_f##_S)))
 
-#define VALUE_SET_FIELD2(_r, _f, _v) ((_r) = ((_r) & ~(_f)) | ((_v) << (_f##_S)))
+#define VALUE_SET_FIELD2(_r, _f, _v) ((_r) = ((_r) & ~(volatile uint32_t)(_f)) | ((volatile uint32_t)(_v) << (_f##_S)))
 
 // Field to value conversion macros
 #define FIELD_TO_VALUE(_f, _v) (((_v) & (_f)) << _f##_S)
@@ -64,7 +66,7 @@
 #define WRITE_PERI_REG(addr, val) REG_WRITE(ETS_UNCACHED_ADDR(addr), (uint32_t)(val))
 
 #define CLEAR_PERI_REG_MASK(reg, mask) do {                                                                            \
-            WRITE_PERI_REG(reg, READ_PERI_REG(reg) & (~(mask)));                                                       \
+            WRITE_PERI_REG(reg, READ_PERI_REG(reg) & (~(volatile uint32_t)(mask)));                                    \
         } while(0)
 
 #define SET_PERI_REG_MASK(reg, mask) do {                                                                              \
@@ -80,7 +82,7 @@
         })
 
 #define SET_PERI_REG_BITS(reg, bit_map, value, shift) do {                                                             \
-            WRITE_PERI_REG(reg, (READ_PERI_REG(reg) & (~((bit_map) << (shift)))) | (((value) & (bit_map)) << (shift))); \
+            WRITE_PERI_REG(reg, (READ_PERI_REG(reg) & (~((volatile uint32_t)(bit_map) << (shift)))) | (((volatile uint32_t)(value) & (volatile uint32_t)(bit_map)) << (shift))); \
         } while(0)
 
 #define GET_PERI_REG_BITS2(reg, mask, shift) ({                                                                        \

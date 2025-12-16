@@ -3,6 +3,7 @@ set(srcs
     src/uart.c
     src/security.c
     src/usb_otg.c
+    src/clock.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

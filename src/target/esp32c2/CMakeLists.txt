@@ -1,5 +1,6 @@
 set(srcs
     src/uart.c
+    src/clock.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
