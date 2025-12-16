@@ -7,6 +7,7 @@
 #pragma once
 
 #include <soc/reg_base.h>
+#include <bit_utils.h>
 
 #ifdef __cplusplus
 extern "C" {

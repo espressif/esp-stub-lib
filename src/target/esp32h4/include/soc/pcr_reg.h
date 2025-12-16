@@ -5,8 +5,9 @@
  */
 #pragma once
 
-#include <stdint.h>
-#include "soc/soc.h"
+#include <soc/reg_base.h>
+#include <bit_utils.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

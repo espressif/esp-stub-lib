@@ -16,3 +16,9 @@ void stub_target_clock_init(void)
 {
     esp_rom_set_cpu_ticks_per_us(52);
 }
+
+void stub_target_clock_disable_watchdogs(void)
+{
+#define WDT_CTL_REG 0x60000900
+    REG_SET_BIT(WDT_CTL_REG, 0);
+}
