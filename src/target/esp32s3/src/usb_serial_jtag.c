@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <target/usb_serial_jtag.h>
+#include <esp-stub-lib/soc_utils.h>
 #include <soc/usb_serial_jtag_reg.h>
 #include <soc/interrupt_core0_reg.h>
 #include <soc_utils.h>
