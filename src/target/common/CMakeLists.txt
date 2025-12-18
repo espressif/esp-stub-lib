@@ -4,6 +4,7 @@ set(common_srcs
     src/security.c
     src/uart.c
     src/usb_serial_jtag.c
+    src/usb_otg.c
 )
 
 add_library(${ESP_COMMON_LIB} STATIC ${common_srcs})
