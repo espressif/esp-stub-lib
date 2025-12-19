@@ -12,8 +12,7 @@
 extern "C" {
 #endif // __cplusplus
 
-struct stub_lib_md5_ctx
-{
+struct stub_lib_md5_ctx {
     uint32_t total[2];
     uint32_t state[4];
     uint8_t buffer[64];
