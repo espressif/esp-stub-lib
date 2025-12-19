@@ -12,8 +12,7 @@
 extern "C" {
 #endif // __cplusplus
 
-struct stub_lib_md5_ctx
-{
+struct stub_lib_md5_ctx {
     uint32_t total[2];
     uint32_t state[4];
     uint8_t buffer[64];
@@ -55,10 +54,11 @@ void stub_lib_md5_update(struct stub_lib_md5_ctx *ctx, const uint8_t *data, uint
 /**
  * @brief Finalize an MD5 context and compute the digest.
  *
- * @param digest Pointer to the buffer to store the digest.
  * @param ctx Pointer to the MD5 context.
+ * @param digest Pointer to the buffer to store the digest.
+ *
  */
-void stub_lib_md5_final(uint8_t digest[16], struct stub_lib_md5_ctx *ctx);
+void stub_lib_md5_final(struct stub_lib_md5_ctx *ctx, uint8_t digest[16]);
 
 #ifdef __cplusplus
 }

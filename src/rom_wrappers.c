@@ -32,7 +32,7 @@ void stub_lib_md5_update(struct stub_lib_md5_ctx *ctx, const uint8_t *data, uint
     MD5Update(ctx, data, len);
 }
 
-void stub_lib_md5_final(uint8_t digest[16], struct stub_lib_md5_ctx *ctx)
+void stub_lib_md5_final(struct stub_lib_md5_ctx *ctx, uint8_t digest[16])
 {
     MD5Final(digest, ctx);
 }

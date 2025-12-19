@@ -18,3 +18,5 @@ ignore:
   include:
     - src/target/*/ld/*.ld
     - example/ld/*.ld
+    - src/target/esp8266/src/miniz.c
+    - include/esp-stub-lib/miniz.h
