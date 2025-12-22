@@ -16,6 +16,8 @@
 #include <esp-stub-lib/mem_utils.h>
 #include <esp-stub-lib/security.h>
 #include <esp-stub-lib/uart.h>
+#include <esp-stub-lib/rom_wrappers.h>
+#include <esp-stub-lib/miniz.h>
 
 #include "stub_main.h"
 
@@ -67,6 +69,21 @@ static void example_security(void)
 static void __attribute__((unused)) test_clock_init(void)
 {
     stub_lib_clock_init();
+}
+
+static __attribute__((unused)) void example_miniz(void)
+{
+    tinfl_decompressor inflator;
+    tinfl_init(&inflator);
+    tinfl_decompress(&inflator, 0, NULL, 0, 0, NULL, 0);
+}
+
+static __attribute__((unused)) void example_rom_wrappers(void)
+{
+    struct stub_lib_md5_ctx ctx;
+    stub_lib_md5_init(&ctx);
+    stub_lib_md5_update(&ctx, NULL, 0);
+    stub_lib_md5_final(NULL, &ctx);
 }
 
 static int __attribute__((unused)) handle_test_uart(void)
