@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <target/usb_serial_jtag.h>
+#include <esp-stub-lib/soc_utils.h>
 #include <soc/usb_serial_jtag_reg.h>
 #include <soc/interrupt_core0_reg.h>
 #include <soc_utils.h>
@@ -15,11 +16,6 @@
 // External ROM functions
 extern void esp_rom_isr_attach(int int_num, void *handler, void *arg);
 extern void esp_rom_isr_unmask(int int_num);
-
-bool stub_target_usb_serial_jtag_is_supported(void)
-{
-    return true;
-}
 
 void stub_target_usb_serial_jtag_rominit_intr_attach(int intr_num, void *handler, uint32_t flags)
 {

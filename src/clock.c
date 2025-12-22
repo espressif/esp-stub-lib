@@ -10,3 +10,8 @@ void stub_lib_clock_init(void)
 {
     stub_target_clock_init();
 }
+
+void stub_lib_clock_disable_watchdogs(void)
+{
+    stub_target_clock_disable_watchdogs();
+}

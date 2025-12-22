@@ -3,13 +3,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
-#ifndef _SOC_RTC_CNTL_REG_H_
-#define _SOC_RTC_CNTL_REG_H_
+#pragma once
+#include <soc/reg_base.h>
+#include <bit_utils.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "soc/soc.h"
+
 #define RTC_CNTL_TIME0_REG      RTC_CNTL_TIME_LOW0_REG
 #define RTC_CNTL_TIME1_REG      RTC_CNTL_TIME_HIGH0_REG
 
@@ -2615,5 +2616,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*_SOC_RTC_CNTL_REG_H_ */

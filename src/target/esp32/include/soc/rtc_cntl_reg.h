@@ -1,11 +1,17 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 #pragma once
 
 #include <soc/reg_base.h>
+#include <bit_utils.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define RTC_CNTL_OPTIONS0_REG          (DR_REG_RTCCNTL_BASE + 0x0)
 /* RTC_CNTL_SW_SYS_RST : WO ;bitpos:[31] ;default: 1'd0 ; */
 /*description: SW system reset*/
@@ -2045,3 +2051,7 @@
 #define RTC_CNTL_CNTL_DATE_V  0xFFFFFFF
 #define RTC_CNTL_CNTL_DATE_S  0
 #define RTC_CNTL_RTC_CNTL_DATE_VERSION 0x1604280
+
+#ifdef __cplusplus
+}
+#endif
