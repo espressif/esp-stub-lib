@@ -1,23 +1,23 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#pragma once
+#ifndef _SOC_RTC_CNTL_REG_H_
+#define _SOC_RTC_CNTL_REG_H_
+
+#include "soc/reg_base.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <bit_utils.h>
-#include "reg_base.h"
-
 /* The value that needs to be written to RTC_CNTL_SWD_WPROTECT_REG to write-enable the wdt registers */
 #define RTC_CNTL_SWD_WKEY_VALUE 0x8F1D312A
 
-#define RTC_CNTL_TIME0_REG     RTC_CNTL_TIME_LOW0_REG
-#define RTC_CNTL_TIME1_REG     RTC_CNTL_TIME_HIGH0_REG
+#define RTC_CNTL_TIME0_REG      RTC_CNTL_TIME_LOW0_REG
+#define RTC_CNTL_TIME1_REG      RTC_CNTL_TIME_HIGH0_REG
 
 #define RTC_CNTL_OPTIONS0_REG          (DR_REG_RTCCNTL_BASE + 0x0)
 /* RTC_CNTL_SW_SYS_RST : WO ;bitpos:[31] ;default: 1'd0 ; */
@@ -3695,3 +3695,5 @@ Due to the LDO slaves, RTC_CNTL_DATE_REG[18:13] can only be used for LDO adjustm
 #ifdef __cplusplus
 }
 #endif
+
+#endif /*_SOC_RTC_CNTL_REG_H_ */

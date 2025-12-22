@@ -95,7 +95,7 @@ extern "C" {
 
 #define UART_CLKDIV_REG(i)                  (REG_UART_BASE(i) + 0x14)
 #define UART_CLKDIV_M                       (UART_CLKDIV_V << UART_CLKDIV_S)
-#define UART_CLKDIV_CNT_V                   0x000FFFFF
+#define UART_CLKDIV_V                       0x000FFFFF
 #define UART_CLKDIV_S                       0
 
 #define UART_AUTOBAUD_REG(i)                (REG_UART_BASE(i) + 0x18)

@@ -6,7 +6,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <esp-stub-lib/rom_wrappers.h>
 #include <target/uart.h>
+#include <target/clock.h>
 #include <soc_utils.h>
 #include <soc/uart_reg.h>
 
@@ -17,10 +19,7 @@ extern void esp_rom_uart_rx_intr_handler(void *para);
 extern void esp_rom_isr_attach(int int_num, void *handler, void *arg);
 extern void esp_rom_isr_unmask(int int_num);
 extern void esp_rom_uart_div_modify(uint8_t uart_no, uint32_t divisor);
-extern uint32_t ets_get_detected_xtal_freq(void);
-extern uint32_t esp_rom_get_cpu_ticks_per_us(void);
-extern void esp_rom_set_cpu_ticks_per_us(uint32_t ticks_per_us);
-extern uint32_t g_ticks_per_us;
+extern uint32_t esp_rom_get_xtal_freq(void);
 
 void stub_target_rom_uart_attach(void *rxBuffer)
 {
@@ -52,10 +51,16 @@ void stub_target_uart_init(uint8_t uart_num)
 
 void stub_target_uart_rominit_set_baudrate(uint8_t uart_num, uint32_t baudrate)
 {
-    uint32_t xtal_freq = g_ticks_per_us * 1000000;
-    uint32_t clock = xtal_freq << 4;
-    uint32_t divisor = clock / baudrate;
-    esp_rom_uart_div_modify(uart_num, divisor);
+    stub_lib_delay_us(5 * 1000);
+
+    uint32_t uart_reg_value = READ_PERI_REG(UART_CLKDIV_REG(uart_num));
+    uint32_t clk_div = uart_reg_value & UART_CLKDIV_M;
+
+    uint32_t new_clk_div = clk_div * 115200 / baudrate;
+    stub_target_uart_wait_idle(uart_num);
+    esp_rom_uart_div_modify(uart_num, new_clk_div);
+
+    stub_lib_delay_us(5 * 1000);
 }
 
 void stub_target_uart_tx_flush(uint8_t uart_no)

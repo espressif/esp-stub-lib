@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <esp-stub-lib/clock.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/flash.h>
 #include <esp-stub-lib/err.h>
@@ -61,6 +62,11 @@ static void example_security(void)
     } else {
         STUB_LOGI("Security info not supported on this chip\n");
     }
+}
+
+static void __attribute__((unused)) test_clock_init(void)
+{
+    stub_lib_clock_init();
 }
 
 static int __attribute__((unused)) handle_test_uart(void)

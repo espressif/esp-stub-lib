@@ -24,6 +24,7 @@ set(srcs
     src/uart.c
     src/usb_serial_jtag.c
     src/usb_otg.c
+    src/clock.c
 )
 
 if(STUB_LOG_ENABLED IN_LIST STUB_COMPILE_DEFS)

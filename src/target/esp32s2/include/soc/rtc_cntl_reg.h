@@ -1,17 +1,16 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2017-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
 #pragma once
 
+#include <soc/reg_base.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <bit_utils.h>
-#include "reg_base.h"
 
 #define RTC_CNTL_TIME0_REG      RTC_CNTL_TIME_LOW0_REG
 #define RTC_CNTL_TIME1_REG      RTC_CNTL_TIME_HIGH0_REG

@@ -7,7 +7,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
  * @brief Wait until UART is idle

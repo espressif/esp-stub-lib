@@ -3,6 +3,7 @@ set(srcs
     src/rom-patched.c
     src/security.c
     src/flash.c
+    src/clock.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
