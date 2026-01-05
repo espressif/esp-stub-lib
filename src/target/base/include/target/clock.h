@@ -33,6 +33,15 @@ uint32_t stub_target_get_cpu_freq(void);
  */
 uint32_t stub_target_get_apb_freq(void);
 
+/**
+ * @brief Disable watchdogs
+ *
+ * This function disables the watchdogs to prevent the device from resetting.
+ * By default watchdog is disabled after chip reset, but second stage bootloader may enable it again,
+ * and if application does not disable it, it will reset the device.
+ */
+void stub_target_clock_disable_watchdogs(void);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

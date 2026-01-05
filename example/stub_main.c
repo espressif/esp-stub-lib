@@ -16,6 +16,7 @@
 #include <esp-stub-lib/mem_utils.h>
 #include <esp-stub-lib/security.h>
 #include <esp-stub-lib/uart.h>
+#include <esp-stub-lib/usb_serial_jtag.h>
 
 #include "stub_main.h"
 
@@ -67,6 +68,18 @@ static void example_security(void)
 static void __attribute__((unused)) test_clock_init(void)
 {
     stub_lib_clock_init();
+    stub_lib_clock_disable_watchdogs();
+}
+
+static void __attribute__((unused)) test_usb_serial_jtag(void)
+{
+    (void)stub_lib_usb_serial_jtag_is_active();
+    (void)stub_lib_usb_serial_jtag_rominit_intr_attach(17, NULL, 0);
+    (void)stub_lib_usb_serial_jtag_clear_intr_flags();
+    (void)stub_lib_usb_serial_jtag_is_data_available();
+    (void)stub_lib_usb_serial_jtag_read_rxfifo_byte();
+    (void)stub_lib_usb_serial_jtag_tx_one_char('A');
+    (void)stub_lib_usb_serial_jtag_tx_flush();
 }
 
 static int __attribute__((unused)) handle_test_uart(void)

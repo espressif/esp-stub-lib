@@ -18,11 +18,6 @@ extern void esp_rom_isr_attach(int int_num, void *handler, void *arg);
 extern void esp_rom_isr_unmask(int int_num);
 extern void esp_rom_esprv_intc_int_set_priority(int int_num, int priority);
 
-bool stub_target_usb_serial_jtag_is_supported(void)
-{
-    return true;
-}
-
 void stub_target_usb_serial_jtag_rominit_intr_attach(int intr_num, void *handler, uint32_t flags)
 {
     // Route USB interrupt to CPU

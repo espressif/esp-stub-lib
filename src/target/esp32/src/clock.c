@@ -36,3 +36,14 @@ uint32_t stub_target_get_cpu_freq(void)
     }
     return s_cpu_freq;
 }
+
+#define RTC_CNTL_WDT_KEY 0x50D83AA1
+
+void stub_target_clock_disable_watchdogs(void)
+{
+    // Disable RWDT (RTC Watchdog)
+    REG_SET_BIT(RTC_CNTL_INT_CLR_REG, RTC_CNTL_WDT_INT_CLR);
+    WRITE_PERI_REG(RTC_CNTL_WDTWPROTECT_REG, RTC_CNTL_WDT_KEY);
+    WRITE_PERI_REG(RTC_CNTL_WDTCONFIG0_REG, 0x0);
+    WRITE_PERI_REG(RTC_CNTL_WDTWPROTECT_REG, 0x0);
+}

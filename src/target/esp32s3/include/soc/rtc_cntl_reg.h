@@ -8,6 +8,7 @@
 #define _SOC_RTC_CNTL_REG_H_
 
 #include "soc/reg_base.h"
+#include <bit_utils.h>
 
 #ifdef __cplusplus
 extern "C" {
