@@ -32,12 +32,12 @@ repos:
       - id: double-quote-string-fixer
 
   - repo: https://github.com/lyz-code/yamlfix/
-    rev: 1.18.0
+    rev: 1.19.1
     hooks:
       - id: yamlfix
 
   - repo: https://github.com/espressif/conventional-precommit-linter
-    rev: v1.10.0
+    rev: v1.11.0
     hooks:
       - id: conventional-precommit-linter
         stages: [commit-msg]
