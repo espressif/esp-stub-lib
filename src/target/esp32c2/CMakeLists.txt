@@ -1,4 +1,5 @@
 set(srcs
+    src/flash.c
     src/uart.c
     src/clock.c
 )

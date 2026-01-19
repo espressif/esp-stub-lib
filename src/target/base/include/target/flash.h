@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -148,3 +148,32 @@ int stub_target_flash_erase_area(uint32_t addr, uint32_t size);
  * @param legacy Legacy mode - disable quad mode
  */
 void stub_target_flash_attach(uint32_t ishspi, bool legacy);
+
+/**
+ * @brief Check if the SPI flash is busy (non-blocking)
+ *
+ * Target-specific implementations should check the flash busy status without blocking.
+ *
+ * @return true if flash is busy, false if ready
+ */
+bool stub_target_flash_is_busy(void);
+
+/**
+ * @brief Start erasing a 4KB sector without blocking
+ *
+ * Target implementations should trigger the sector erase command and return
+ * without waiting for completion.
+ *
+ * @param addr Sector address (guaranteed to be 4KB aligned by caller)
+ */
+void stub_target_flash_erase_sector_start(uint32_t addr);
+
+/**
+ * @brief Start erasing a 64KB block without blocking
+ *
+ * Target implementations should trigger the block erase command and return
+ * without waiting for completion.
+ *
+ * @param addr Block address (guaranteed to be 64KB aligned by caller)
+ */
+void stub_target_flash_erase_block_start(uint32_t addr);

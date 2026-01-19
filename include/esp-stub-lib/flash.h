@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -8,6 +8,12 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
+/* Flash geometry constants */
+#define STUB_FLASH_SECTOR_SIZE          0x1000U
+#define STUB_FLASH_BLOCK_SIZE           0x10000U
+#define STUB_FLASH_PAGE_SIZE            0x100U
+#define STUB_FLASH_STATUS_MASK          0xFFFFU
 
 typedef struct stub_lib_flash_info {
     uint32_t id;
@@ -98,6 +104,30 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
 int stub_lib_flash_erase_sector(uint32_t addr);
 int stub_lib_flash_erase_block(uint32_t addr);
 int stub_lib_flash_erase_chip(void);
+
+/**
+ * @brief Check if SPI flash is busy (non-blocking)
+ *
+ * @return true if flash is busy, false if ready
+ */
+bool stub_lib_flash_is_busy(void);
+
+/**
+ * @brief Start erasing the next sector or block (async)
+ *
+ * This function initiates an erase operation and returns immediately without
+ * waiting for completion. It determines whether to erase a 4KB sector or
+ * 64KB block based on alignment and remaining size.
+ *
+ * @param next_erase_addr Pointer to the next address to erase (will be updated)
+ * @param remaining_size Pointer to remaining bytes to erase (will be updated)
+ *
+ * @return Result:
+ * - STUB_LIB_OK if success
+ * - STUB_LIB_ERR_INVALID_ARG if invalid arguments
+ * - STUB_LIB_ERR_FLASH_BUSY if flash is busy
+ */
+int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -8,14 +8,9 @@
 #include <err.h>
 #include <log.h>
 #include <bit_utils.h>
+#include <stddef.h>
 #include <target/flash.h>
 #include <private/rom_flash_config.h>
-
-/* Flash geometry constants */
-#define STUB_FLASH_SECTOR_SIZE          0x1000
-#define STUB_FLASH_BLOCK_SIZE           0x10000
-#define STUB_FLASH_PAGE_SIZE            0x100
-#define STUB_FLASH_STATUS_MASK          0xFFFF
 
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
@@ -105,4 +100,55 @@ int stub_lib_flash_erase_block(uint32_t addr)
 int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
 {
     return stub_target_flash_erase_area(addr, size);
+}
+
+bool stub_lib_flash_is_busy(void)
+{
+    return stub_target_flash_is_busy();
+}
+
+int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size)
+{
+    if (next_erase_addr == NULL || remaining_size == NULL) {
+        return STUB_LIB_ERR_INVALID_ARG;
+    }
+
+    if (stub_lib_flash_is_busy()) {
+        return STUB_LIB_ERR_FLASH_BUSY;
+    }
+
+    if (*remaining_size == 0) {
+        return STUB_LIB_OK;
+    }
+
+    uint32_t addr = *next_erase_addr;
+    uint32_t remaining = *remaining_size;
+    uint32_t erase_size;
+
+    // Check if we can do a 64KB block erase
+    bool block_erase = false;
+    if (remaining >= STUB_FLASH_BLOCK_SIZE && (addr % STUB_FLASH_BLOCK_SIZE) == 0) {
+        block_erase = true;
+        erase_size = STUB_FLASH_BLOCK_SIZE;
+    } else {
+        erase_size = STUB_FLASH_SECTOR_SIZE;
+
+        // Check sector alignment
+        if (addr & (STUB_FLASH_SECTOR_SIZE - 1)) {
+            STUB_LOGE("Sector address 0x%x not aligned\n", addr);
+            return STUB_LIB_ERR_INVALID_ARG;
+        }
+    }
+
+    if (block_erase) {
+        stub_target_flash_erase_block_start(addr);
+    } else {
+        stub_target_flash_erase_sector_start(addr);
+    }
+
+    // Update state
+    *next_erase_addr = addr + erase_size;
+    *remaining_size = (remaining >= erase_size) ? (remaining - erase_size) : 0;
+
+    return STUB_LIB_OK;
 }
