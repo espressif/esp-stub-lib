@@ -29,4 +29,5 @@
 #define STUB_LIB_ERR_FLASH_READ_ROM_ERR         (STUB_LIB_ERROR_BASE + 0x4)
 #define STUB_LIB_ERR_NOT_SUPPORTED              (STUB_LIB_ERROR_BASE + 0x5)
 #define STUB_LIB_ERR_INVALID_ARG                (STUB_LIB_ERROR_BASE + 0x6)
+#define STUB_LIB_ERR_FLASH_BUSY                 (STUB_LIB_ERROR_BASE + 0x7)
 /** @} */

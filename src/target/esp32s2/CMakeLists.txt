@@ -1,4 +1,5 @@
 set(srcs
+    src/flash.c
     src/trax.c
     src/uart.c
     src/security.c

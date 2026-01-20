@@ -5,7 +5,8 @@
  */
 #pragma once
 
-#include <target/soc_utils.h>
+#include <esp-stub-lib/soc_utils.h>
+#include <esp-stub-lib/bit_utils.h>
 #include "reg_base.h"
 
 #ifdef __cplusplus
@@ -42,6 +43,34 @@ extern "C" {
 #define SPI_MEM_USR_M  (SPI_MEM_USR_V << SPI_MEM_USR_S)
 #define SPI_MEM_USR_V  0x00000001U
 #define SPI_MEM_USR_S  18
+/* SPI_MEM_FLASH_BE : R/W/SC ;bitpos:[23] ;default: 1'b0 ; */
+/*description: Block erase enable(32KB) .  Block erase operation will be triggered when the bit
+ is set. The bit will be cleared once the operation done.1: enable 0: disable..*/
+#define SPI_MEM_FLASH_BE    (BIT(23))
+#define SPI_MEM_FLASH_BE_M  (BIT(23))
+#define SPI_MEM_FLASH_BE_V  0x1
+#define SPI_MEM_FLASH_BE_S  23
+/* SPI_MEM_FLASH_SE : R/W/SC ;bitpos:[24] ;default: 1'b0 ; */
+/*description: Sector erase enable(4KB). Sector erase operation will be triggered when the bit
+is set. The bit will be cleared once the operation done.1: enable 0: disable..*/
+#define SPI_MEM_FLASH_SE    (BIT(24))
+#define SPI_MEM_FLASH_SE_M  (BIT(24))
+#define SPI_MEM_FLASH_SE_V  0x1
+#define SPI_MEM_FLASH_SE_S  24
+/* SPI_MEM_FLASH_RDSR : R/W/SC ;bitpos:[27] ;default: 1'b0 ; */
+/*description: Read status register-1.  Read status operation will be triggered when the bit is
+ set. The bit will be cleared once the operation done.1: enable 0: disable..*/
+#define SPI_MEM_FLASH_RDSR    (BIT(27))
+#define SPI_MEM_FLASH_RDSR_M  (BIT(27))
+#define SPI_MEM_FLASH_RDSR_V  0x1
+#define SPI_MEM_FLASH_RDSR_S  27
+/* SPI_MEM_FLASH_WREN : R/W/SC ;bitpos:[30] ;default: 1'b0 ; */
+/*description: Write flash enable.  Write enable command will be sent when the bit is set. The
+bit will be cleared once the operation done. 1: enable 0: disable..*/
+#define SPI_MEM_FLASH_WREN    (BIT(30))
+#define SPI_MEM_FLASH_WREN_M  (BIT(30))
+#define SPI_MEM_FLASH_WREN_V  0x1
+#define SPI_MEM_FLASH_WREN_S  30
 
 /** SPI_MEM_ADDR_REG register
  *  SPI1 address register
