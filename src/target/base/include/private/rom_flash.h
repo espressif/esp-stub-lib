@@ -75,8 +75,38 @@ extern int esp_rom_spiflash_config_param(uint32_t flash_id, uint32_t chip_size,
 esp_rom_spiflash_result_t esp_rom_spiflash_read(uint32_t src_addr, uint32_t *dest, int32_t len);
 
 /**
+  * @brief Unlock SPI Flash
+  *
+  * @return Result
+  * - ESP_ROM_SPIFLASH_RESULT_OK
+  * - ESP_ROM_SPIFLASH_RESULT_ERR
+  */
+esp_rom_spiflash_result_t esp_rom_spiflash_unlock(void);
+
+/**
  * @brief Check if Flash is OPI.
  *
  * @return true if eFuse indicates an OPI flash is attached.
  */
 bool ets_efuse_flash_octal_mode(void);
+
+/**
+ * @brief Wait for SPI flash to be idle
+ */
+void esp_rom_spiflash_wait_idle(void);
+
+/**
+ * @brief Erase a sector using OPI flash interface (ESP32-S3)
+ *
+ * @param sector_num Sector number to erase
+ * @return Result code
+ */
+int esp_rom_opiflash_erase_sector(uint32_t sector_num);
+
+/**
+ * @brief Erase a 64KB block using OPI flash interface (ESP32-S3)
+ *
+ * @param block_num Block number to erase
+ * @return Result code
+ */
+int esp_rom_opiflash_erase_block_64k(uint32_t block_num);
