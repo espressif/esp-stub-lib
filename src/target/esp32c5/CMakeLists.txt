@@ -1,5 +1,6 @@
 set(srcs
     src/flash.c
+    src/aes_xts.c
     src/uart.c
     src/usb_serial_jtag.c
     src/clock.c

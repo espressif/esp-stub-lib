@@ -17,6 +17,48 @@
 #define SPI_NUM 1
 #define STATUS_BUSY_BIT BIT(0)
 
+/* ECO version from ROM - used to route to correct ROM functions */
+extern uint32_t _rom_eco_version;
+
+/* ECO-specific ROM function declarations */
+extern void esp_rom_opiflash_exec_cmd_eco2(int spi_num, spi_flash_mode_t mode,
+                                           uint32_t cmd, int cmd_bit_len,
+                                           uint32_t addr, int addr_bit_len,
+                                           int dummy_bits,
+                                           uint8_t *mosi_data, int mosi_bit_len,
+                                           uint8_t *miso_data, int miso_bit_len,
+                                           uint32_t cs_mask,
+                                           bool is_write_erase_operation);
+
+extern void esp_rom_opiflash_exec_cmd_eco3(int spi_num, spi_flash_mode_t mode,
+                                           uint32_t cmd, int cmd_bit_len,
+                                           uint32_t addr, int addr_bit_len,
+                                           int dummy_bits,
+                                           uint8_t *mosi_data, int mosi_bit_len,
+                                           uint8_t *miso_data, int miso_bit_len,
+                                           uint32_t cs_mask,
+                                           bool is_write_erase_operation);
+
+void stub_target_opiflash_exec_cmd(int spi_num, spi_flash_mode_t mode,
+                                   uint32_t cmd, int cmd_bit_len,
+                                   uint32_t addr, int addr_bit_len,
+                                   int dummy_bits,
+                                   uint8_t *mosi_data, int mosi_bit_len,
+                                   uint8_t *miso_data, int miso_bit_len,
+                                   uint32_t cs_mask,
+                                   bool is_write_erase_operation)
+{
+    if (_rom_eco_version >= 3) {
+        esp_rom_opiflash_exec_cmd_eco3(spi_num, mode, cmd, cmd_bit_len, addr, addr_bit_len,
+                                       dummy_bits, mosi_data, mosi_bit_len, miso_data, miso_bit_len,
+                                       cs_mask, is_write_erase_operation);
+    } else {
+        esp_rom_opiflash_exec_cmd_eco2(spi_num, mode, cmd, cmd_bit_len, addr, addr_bit_len,
+                                       dummy_bits, mosi_data, mosi_bit_len, miso_data, miso_bit_len,
+                                       cs_mask, is_write_erase_operation);
+    }
+}
+
 static void spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI_MEM_CMD_REG(SPI_NUM), SPI_MEM_MST_ST)) {
