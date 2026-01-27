@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <target/flash.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
@@ -34,17 +35,9 @@ bool stub_target_flash_is_busy(void)
     return (status_value & STATUS_BUSY_BIT) != 0;
 }
 
-static void spi_write_enable(void)
-{
-    while (stub_target_flash_is_busy()) { }
-
-    REG_WRITE(SPI1_MEM_C_CMD_REG, SPI1_MEM_C_FLASH_WREN);
-    while (REG_READ(SPI1_MEM_C_CMD_REG) != 0) { }
-}
-
 void stub_target_flash_erase_sector_start(uint32_t addr)
 {
-    spi_write_enable();
+    stub_target_flash_write_enable();
     spi_wait_ready();
 
     REG_WRITE(SPI1_MEM_C_ADDR_REG, addr & 0xffffff);
@@ -56,7 +49,7 @@ void stub_target_flash_erase_sector_start(uint32_t addr)
 
 void stub_target_flash_erase_block_start(uint32_t addr)
 {
-    spi_write_enable();
+    stub_target_flash_write_enable();
     spi_wait_ready();
 
     REG_WRITE(SPI1_MEM_C_ADDR_REG, addr & 0xffffff);

@@ -106,11 +106,15 @@ int stub_lib_flash_erase_block(uint32_t addr);
 int stub_lib_flash_erase_chip(void);
 
 /**
- * @brief Check if SPI flash is busy (non-blocking)
+ * @brief Wait for SPI flash to become ready or timeout
  *
- * @return true if flash is busy, false if ready
+ * Polls stub_target_flash_is_busy() and counts elapsed time using stub_lib_delay_us(1).
+ * Use timeout_us 0 for a single non-blocking check (returns STUB_LIB_ERR_TIMEOUT if busy).
+ *
+ * @param timeout_us Maximum time to wait in microseconds
+ * @return STUB_LIB_OK on success (flash ready), STUB_LIB_ERR_TIMEOUT on timeout
  */
-bool stub_lib_flash_is_busy(void);
+int stub_lib_flash_wait_ready(uint64_t timeout_us);
 
 /**
  * @brief Start erasing the next sector or block (async)
