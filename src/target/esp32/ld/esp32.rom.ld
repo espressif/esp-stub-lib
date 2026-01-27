@@ -1378,6 +1378,7 @@ PROVIDE ( SPIEraseChip = 0x40062c14 );
 PROVIDE ( SPIEraseArea = 0x400631ac );
 PROVIDE ( SPIEraseBlock = 0x40062c4c );
 PROVIDE ( SPIEraseSector = 0x40062ccc );
+PROVIDE ( SPIUnlock = 0x400628b0);
 PROVIDE ( hci_le_rd_rem_used_feats_cmd_handler = 0x400417b4 );
 PROVIDE ( hci_per_inq_mode_cmd_handler = 0x400519b0 );
 PROVIDE ( llcp_length_req_handler = 0x40043808 );

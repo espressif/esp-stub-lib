@@ -20,9 +20,12 @@
 #define SPI_RD_STATUS_REG (SPI_BASE_REG + 0x10)
 #define SPI_ADDR_REG (SPI_BASE_REG + 0x04)
 #define SPI_FLASH_WREN    BIT(30)
+#define SPI_FLASH_RDID    BIT(28)
 #define SPI_FLASH_RDSR    BIT(27)
 #define SPI_FLASH_SE      BIT(24)
 #define SPI_FLASH_BE      BIT(23)
+#define SPI_W0     (SPI_BASE_REG + 0x40)
+#define SPI_CMD    (SPI_BASE_REG + 0x0)
 
 #define SPI_ST  0x00000007
 #define SPI_ST_M  ((SPI_ST_V)<<(SPI_ST_S))
@@ -31,14 +34,37 @@
 
 #define STATUS_BUSY_BIT BIT(0)
 
+extern struct esp_rom_spiflash_chip g_rom_flashchip;
 extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
+extern esp_rom_spiflash_result_t SPIUnlock(void);
+
+struct esp_rom_spiflash_chip *stub_target_flash_get_config(void)
+{
+    return &g_rom_flashchip;
+}
+
+static uint32_t get_flash_id(void)
+{
+    uint32_t rdid = 0;
+
+    REG_WRITE(SPI_W0, 0);
+    REG_WRITE(SPI_CMD, SPI_FLASH_RDID);
+    while (REG_READ(SPI_CMD) != 0);
+
+    rdid  = REG_READ(SPI_W0) & 0xffffff;
+    return rdid;
+}
+
+uint32_t stub_target_flash_get_flash_id(void)
+{
+    uint32_t flash_id = get_flash_id();
+    struct esp_rom_spiflash_chip *chip = stub_target_flash_get_config();
+    chip->flash_id = flash_id;
+    return flash_id;
+}
 
 int stub_target_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    if (addr & 3 || size & 3) {
-        STUB_LOGE("Unaligned write: 0x%x, %u\n", addr, size);
-        return STUB_LIB_ERR_FLASH_WRITE_UNALIGNED;
-    }
     if (encrypt) {
         return STUB_LIB_ERR_NOT_SUPPORTED;
     }
@@ -66,17 +92,9 @@ bool stub_target_flash_is_busy(void)
     return (status_value & STATUS_BUSY_BIT) != 0;
 }
 
-static void spi_write_enable(void)
-{
-    while (stub_target_flash_is_busy()) { }
-
-    REG_WRITE(SPI_CMD_REG, SPI_FLASH_WREN);
-    while (REG_READ(SPI_CMD_REG) != 0) { }
-}
-
 void stub_target_flash_erase_sector_start(uint32_t addr)
 {
-    spi_write_enable();
+    stub_target_flash_write_enable();
     spi_wait_ready();
 
     REG_WRITE(SPI_ADDR_REG, addr & 0xffffff);
@@ -88,7 +106,7 @@ void stub_target_flash_erase_sector_start(uint32_t addr)
 
 void stub_target_flash_erase_block_start(uint32_t addr)
 {
-    spi_write_enable();
+    stub_target_flash_write_enable();
     spi_wait_ready();
 
     REG_WRITE(SPI_ADDR_REG, addr & 0xffffff);
@@ -96,4 +114,22 @@ void stub_target_flash_erase_block_start(uint32_t addr)
     while (REG_READ(SPI_CMD_REG) != 0) { }
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
+}
+
+void stub_target_flash_write_encrypted_enable(void)
+{
+    // Empty weak function for targets that does not support AES-XTS
+}
+
+void stub_target_flash_write_encrypted_disable(void)
+{
+    // Empty weak function for targets that does not support AES-XTS
+}
+
+int stub_target_flash_unlock(void)
+{
+    if (SPIUnlock() == ESP_ROM_SPIFLASH_RESULT_OK) {
+        return STUB_LIB_OK;
+    }
+    return STUB_LIB_FAIL;
 }
