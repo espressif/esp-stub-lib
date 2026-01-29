@@ -137,7 +137,7 @@ static int __attribute__((unused)) handle_test_flash(void)
     (void)stub_lib_flash_erase_area(0x20000, 0x10000);
     (void)stub_lib_flash_erase_chip();
     (void)stub_lib_flash_start_next_erase(NULL, NULL);
-    (void)stub_lib_flash_is_busy();
+    (void)stub_lib_flash_wait_ready(0);
     stub_lib_flash_deinit(flash_state);
 
     return 0;

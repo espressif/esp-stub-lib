@@ -38,6 +38,7 @@ PROVIDE ( esp_rom_spiflash_erase_chip = SPIEraseChip );
 PROVIDE ( esp_rom_spiflash_erase_block = SPIEraseBlock );
 PROVIDE ( esp_rom_spiflash_erase_sector = SPIEraseSector );
 PROVIDE ( esp_rom_spiflash_erase_area = SPIEraseArea );
+PROVIDE ( esp_rom_spiflash_unlock = SPIUnlock );
 
 
 PROVIDE ( esp_rom_regi2c_read = rom_i2c_readReg );
