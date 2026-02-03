@@ -4,6 +4,7 @@ set(srcs
     src/usb_serial_jtag.c
     src/usb_otg.c
     src/clock.c
+    src/aes_xts.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
