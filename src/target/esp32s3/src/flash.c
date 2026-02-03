@@ -17,16 +17,8 @@
 #define SPI_NUM 1
 #define STATUS_BUSY_BIT BIT(0)
 
-/**
-  * @brief Read SPI flash pin configuration from eFuse
-  *
-  * Available only for ESP32, S2, C3, S3
-  *
-  * @return Configuration value:
-  * - 0 for default SPI pins
-  * - other value for custom configuration
-  */
 extern uint32_t ets_efuse_get_spiconfig(void);
+extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
 
 static void stub_target_flash_init_funcs(void)
 {
@@ -52,23 +44,8 @@ void stub_target_flash_init(void *state)
     }
 }
 
-const struct esp_rom_spiflash_chip *stub_target_flash_get_config(void)
-{
-    return &g_rom_flashchip;
-}
-
-uint32_t stub_target_flash_get_flash_id(void)
-{
-    esp_rom_spi_flash_update_id();
-    return stub_target_flash_get_config()->flash_id;
-}
-
 int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
-    if (addr & 3 || size & 3) {
-        STUB_LOGE("Unaligned read: 0x%x, %u\n", addr, size);
-        return STUB_LIB_ERR_FLASH_READ_UNALIGNED;
-    }
     esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t *)buffer, (int32_t)size);
     STUB_LOG_TRACEF("esp_rom_spiflash_read(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
     if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
@@ -96,17 +73,9 @@ bool stub_target_flash_is_busy(void)
     return (status_value & STATUS_BUSY_BIT) != 0;
 }
 
-static void spi_write_enable(void)
-{
-    while (stub_target_flash_is_busy()) { }
-
-    REG_WRITE(SPI_MEM_CMD_REG(SPI_NUM), SPI_MEM_FLASH_WREN);
-    while (REG_READ(SPI_MEM_CMD_REG(SPI_NUM)) != 0) { }
-}
-
 void stub_target_flash_erase_sector_start(uint32_t addr)
 {
-    spi_write_enable();
+    stub_target_flash_write_enable();
     spi_wait_ready();
 
     REG_WRITE(SPI_MEM_ADDR_REG(SPI_NUM), addr & 0xffffff);
@@ -118,7 +87,7 @@ void stub_target_flash_erase_sector_start(uint32_t addr)
 
 void stub_target_flash_erase_block_start(uint32_t addr)
 {
-    spi_write_enable();
+    stub_target_flash_write_enable();
     spi_wait_ready();
 
     REG_WRITE(SPI_MEM_ADDR_REG(SPI_NUM), addr & 0xffffff);

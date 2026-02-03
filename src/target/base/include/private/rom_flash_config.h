@@ -32,9 +32,3 @@ typedef struct {
     void *wait_idle;
     void *erase_area;
 } esp_rom_spiflash_legacy_funcs_t;
-
-extern esp_rom_spiflash_legacy_data_t *rom_spiflash_legacy_data;
-extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
-
-#define g_rom_flashchip (rom_spiflash_legacy_data->chip)
-#define g_rom_spiflash_dummy_len_plus (rom_spiflash_legacy_data->dummy_len_plus)

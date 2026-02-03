@@ -12,6 +12,24 @@
 struct esp_rom_spiflash_chip;
 
 /**
+ * @brief SPI flash read mode for OPI operations
+ */
+typedef enum {
+    SPI_FLASH_QIO_MODE = 0,
+    SPI_FLASH_QOUT_MODE,
+    SPI_FLASH_DIO_MODE,
+    SPI_FLASH_DOUT_MODE,
+    SPI_FLASH_FASTRD_MODE,
+    SPI_FLASH_SLOWRD_MODE,
+    SPI_FLASH_OPI_STR_MODE,
+    SPI_FLASH_OPI_DTR_MODE,
+    SPI_FLASH_OOUT_MODE,
+    SPI_FLASH_OIO_STR_MODE,
+    SPI_FLASH_OIO_DTR_MODE,
+    SPI_FLASH_QPI_MODE,
+} spi_flash_mode_t;
+
+/**
  * @brief Initialize SPI Flash hardware.
  *
  * Configure SPI pins, registers, mode, etc.
@@ -39,7 +57,7 @@ uint32_t stub_target_flash_get_flash_id(void);
  *
  * @return Always a non-NULL, but the structure may be uninitialized or incorrect.
  */
-const struct esp_rom_spiflash_chip *stub_target_flash_get_config(void);
+struct esp_rom_spiflash_chip *stub_target_flash_get_config(void);
 
 /**
  * @brief Set correct values to the internal SPI flash config in ROM
@@ -177,3 +195,71 @@ void stub_target_flash_erase_sector_start(uint32_t addr);
  * @param addr Block address (guaranteed to be 64KB aligned by caller)
  */
 void stub_target_flash_erase_block_start(uint32_t addr);
+
+/**
+ * @brief Enable writes to flash
+ *
+ * Target-specific implementation to enable flash write operations.
+ * Used by 4-byte flash operations during page programming.
+ * Each target that supports large flash must implement this.
+ */
+void stub_target_flash_write_enable(void);
+
+/**
+ * @brief Parameters for OPI flash command execution
+ *
+ * This structure encapsulates all parameters needed to execute an arbitrary
+ * flash command with configurable parameters.
+ */
+typedef struct opiflash_cmd_params {
+    int spi_num;                        /**< SPI peripheral number (typically 1 for flash) */
+    spi_flash_mode_t mode;              /**< Read mode (SLOWRD, FASTRD, etc.) */
+    uint32_t cmd;                       /**< Command opcode */
+    int cmd_bit_len;                    /**< Command length in bits */
+    uint32_t addr;                      /**< Address value */
+    int addr_bit_len;                   /**< Address length in bits (32 for 4-byte addressing) */
+    int dummy_bits;                     /**< Number of dummy clock cycles */
+    const uint8_t *mosi_data;           /**< Data to send (write operations) */
+    int mosi_bit_len;                   /**< Length of data to send in bits */
+    uint8_t *miso_data;                 /**< Buffer to receive data (read operations) */
+    int miso_bit_len;                   /**< Length of data to receive in bits */
+    uint32_t cs_mask;                   /**< Chip select mask (ESP_ROM_OPIFLASH_SEL_CS0 or CS1) */
+    bool is_write_erase_operation;      /**< True for write/erase, false for read */
+} opiflash_cmd_params_t;
+
+/**
+ * @brief Execute a generic SPI/OPI flash command
+ *
+ * This function is available on chips supporting >16 MB flash.
+ * It allows execution of arbitrary flash commands with configurable parameters.
+ *
+ * @param params Pointer to structure containing all command parameters
+ */
+void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params);
+
+/**
+ * @brief Enable encrypted writes to flash
+ *
+ * Target-specific implementation to enable encrypted flash write operations.
+ * Used by 4-byte flash operations during page programming.
+ * Each target that supports large flash must implement this.
+ */
+void stub_target_flash_write_encrypted_enable(void);
+
+/**
+ * @brief Disable encrypted writes to flash
+ *
+ * Target-specific implementation to disable encrypted flash write operations.
+ * Used by 4-byte flash operations during page programming.
+ * Each target that supports large flash must implement this.
+ */
+void stub_target_flash_write_encrypted_disable(void);
+
+/**
+ * @brief Unlock the flash
+ *
+ * Target-specific implementation to unlock the flash.
+ * Used by 4-byte flash operations during page programming.
+ * Each target that supports large flash must implement this.
+ */
+int stub_target_flash_unlock(void);
