@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 #include <stdint.h>
+#include <stddef.h>
 #include <esp-stub-lib/rom_wrappers.h>
 
 extern void ets_delay_us(uint32_t us);
@@ -11,6 +12,8 @@ extern uint16_t crc16_le(uint16_t crc, const uint8_t *buf, uint32_t len);
 extern void MD5Init(struct stub_lib_md5_ctx *ctx);
 extern void MD5Update(struct stub_lib_md5_ctx *ctx, const uint8_t *data, uint32_t len);
 extern void MD5Final(uint8_t digest[16], struct stub_lib_md5_ctx *ctx);
+extern void *memcpy(void *dest, const void *src, size_t n);
+extern void *memset(void *s, int c, size_t n);
 
 void stub_lib_delay_us(uint32_t us)
 {
@@ -35,4 +38,14 @@ void stub_lib_md5_update(struct stub_lib_md5_ctx *ctx, const uint8_t *data, uint
 void stub_lib_md5_final(struct stub_lib_md5_ctx *ctx, uint8_t digest[16])
 {
     MD5Final(digest, ctx);
+}
+
+void *stub_lib_memcpy(void *dest, const void *src, uint32_t n)
+{
+    return memcpy(dest, src, n);
+}
+
+void *stub_lib_memset(void *s, int c, uint32_t n)
+{
+    return memset(s, c, n);
 }

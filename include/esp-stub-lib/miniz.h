@@ -475,7 +475,7 @@ typedef void *const voidpc;
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
+#include <esp-stub-lib/rom_wrappers.h>
 
 /* ------------------- Types and macros */
 typedef unsigned char mz_uint8;
@@ -527,7 +527,7 @@ typedef struct mz_dummy_time_t_tag {
 
 #define MZ_MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MZ_MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MZ_CLEAR_OBJ(obj) memset(&(obj), 0, sizeof(obj))
+#define MZ_CLEAR_OBJ(obj) stub_lib_memset(&(obj), 0, sizeof(obj))
 
 #if MINIZ_USE_UNALIGNED_LOADS_AND_STORES && MINIZ_LITTLE_ENDIAN
 #define MZ_READ_LE16(p) *((const mz_uint16 *)(p))

@@ -24,8 +24,6 @@
 #define AES_XTS_STATE_DONE        0x2
 #define AES_XTS_STATE_VISIBLE     0x3
 
-extern void *memcpy(void *dest, const void *src, size_t n);
-
 void stub_target_aes_xts_init(void)
 {
     /* Set destination to flash (0 = flash, 1 = PSRAM) */
@@ -41,7 +39,7 @@ void stub_target_aes_xts_encrypt_trigger(uint32_t flash_addr, const void *data, 
     REG_WRITE(SPI_MEM_C_XTS_LINESIZE_REG, block_size >> 5);
 
     /* Copy plaintext data to AES-XTS input buffer */
-    memcpy((void *)(SPI_MEM_C_XTS_PLAIN_BASE_REG + plaintext_offs), data, block_size);
+    stub_lib_memcpy((void *)(SPI_MEM_C_XTS_PLAIN_BASE_REG + plaintext_offs), data, block_size);
 
     /* Set the physical address for encryption */
     REG_WRITE(SPI_MEM_C_XTS_PHYSICAL_ADDRESS_REG, flash_addr);

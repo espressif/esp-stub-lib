@@ -60,6 +60,26 @@ void stub_lib_md5_update(struct stub_lib_md5_ctx *ctx, const uint8_t *data, uint
  */
 void stub_lib_md5_final(struct stub_lib_md5_ctx *ctx, uint8_t digest[16]);
 
+/**
+ * @brief Copy memory from source to destination.
+ *
+ * @param dest Destination buffer
+ * @param src Source buffer
+ * @param n Number of bytes to copy
+ * @return Pointer to destination buffer
+ */
+void *stub_lib_memcpy(void *dest, const void *src, uint32_t n);
+
+/**
+ * @brief Fill memory with a constant byte.
+ *
+ * @param s Pointer to memory to fill
+ * @param c Byte value to fill with
+ * @param n Number of bytes to fill
+ * @return Pointer to the memory area s
+ */
+void *stub_lib_memset(void *s, int c, uint32_t n);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
