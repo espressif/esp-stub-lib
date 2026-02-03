@@ -34,7 +34,6 @@ void stub_target_rom_uart_init(uint8_t uart_no, uint32_t clock)
 
 void stub_target_uart_init(uint8_t uart_num)
 {
-    // Bug for some esp32c2 revisions, does not work with rev v1.0.
     extern bool g_uart_print;
     stub_target_rom_uart_attach(NULL);
     stub_target_rom_uart_init(uart_num, stub_target_get_apb_freq());
