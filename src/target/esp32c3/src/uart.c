@@ -12,6 +12,7 @@
 #include <esp-stub-lib/rom_wrappers.h>
 #include <soc_utils.h>
 #include <soc/uart_reg.h>
+#include <esp-stub-lib/uart.h>
 
 // These functions are defined in the ROM
 extern void esp_rom_uart_attach(void *rxBuffer);
@@ -36,11 +37,7 @@ void stub_target_uart_init(uint8_t uart_num)
 {
     extern bool g_uart_print;
     stub_target_rom_uart_attach(NULL);
-    stub_target_rom_uart_init(uart_num, stub_target_get_apb_freq());
-
-    // Set UART clock source to APB, after this, baudrate needs to be set again to recalculate the clock divider
-    SET_PERI_REG_BITS(UART_CLK_CONF_REG(0), UART_SCLK_SEL_V, 1, UART_SCLK_SEL_S);
-    stub_target_uart_rominit_set_baudrate(0, 115200);
+    stub_target_rom_uart_init(uart_num, esp_rom_get_xtal_freq());
 
     g_uart_print = true;
 }
@@ -49,7 +46,8 @@ void stub_target_uart_rominit_set_baudrate(uint8_t uart_num, uint32_t baudrate)
 {
     stub_lib_delay_us(5 * 1000);
 
-    uint32_t clk_div = (stub_target_get_apb_freq() << 4) / baudrate;
+    // ROM for esp32c3, uses XTAL frequency for UART clock
+    uint32_t clk_div = (esp_rom_get_xtal_freq() << 4) / baudrate;
     stub_target_uart_wait_idle(uart_num);
     esp_rom_uart_div_modify(uart_num, clk_div);
 
