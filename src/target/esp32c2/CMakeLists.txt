@@ -2,6 +2,7 @@ set(srcs
     src/flash.c
     src/uart.c
     src/clock.c
+    src/md5.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

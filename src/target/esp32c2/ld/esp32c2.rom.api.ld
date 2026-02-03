@@ -43,10 +43,6 @@ PROVIDE ( esp_rom_output_rx_string      = UartRxString );
 PROVIDE ( esp_rom_output_set_as_console = uart_tx_switch );
 PROVIDE ( esp_rom_output_putc           = ets_write_char_uart );
 
-PROVIDE ( MD5Init = mbedtls_md5_starts_ret );
-PROVIDE ( MD5Update = mbedtls_md5_update_ret );
-PROVIDE ( MD5Final = mbedtls_md5_finish_ret );
-
 PROVIDE ( esp_rom_software_reset_system = software_reset );
 PROVIDE ( esp_rom_software_reset_cpu    = software_reset_cpu );
 
