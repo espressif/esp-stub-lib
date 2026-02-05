@@ -24,8 +24,6 @@ uint32_t stub_target_security_info_size(void)
 
 int stub_target_get_security_info(uint8_t *buffer, uint32_t buffer_size)
 {
-    return STUB_LIB_ERR_NOT_SUPPORTED;
-
     if (buffer == NULL) {
         return STUB_LIB_ERR_INVALID_ARG;
     }

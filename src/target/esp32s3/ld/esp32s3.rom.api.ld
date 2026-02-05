@@ -73,6 +73,7 @@ PROVIDE ( esp_rom_isr_mask = ets_isr_mask );
 PROVIDE ( esp_rom_get_cpu_ticks_per_us = ets_get_cpu_frequency );
 PROVIDE ( esp_rom_set_cpu_ticks_per_us = ets_update_cpu_frequency );
 PROVIDE ( esp_rom_get_xtal_freq = ets_get_xtal_freq );
+PROVIDE ( esp_rom_get_apb_frequency = ets_get_apb_freq );
 
 PROVIDE ( esp_rom_spiflash_attach = spi_flash_attach );
 PROVIDE ( esp_rom_spiflash_clear_bp = esp_rom_spiflash_unlock );
