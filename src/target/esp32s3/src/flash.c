@@ -19,6 +19,14 @@
 
 extern uint32_t ets_efuse_get_spiconfig(void);
 extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
+extern void esp_rom_opiflash_exec_cmd(int spi_num, spi_flash_mode_t mode,
+                                      uint32_t cmd, int cmd_bit_len,
+                                      uint32_t addr, int addr_bit_len,
+                                      int dummy_bits,
+                                      const uint8_t *mosi_data, int mosi_bit_len,
+                                      uint8_t *miso_data, int miso_bit_len,
+                                      uint32_t cs_mask,
+                                      bool is_write_erase_operation);
 
 static void stub_target_flash_init_funcs(void)
 {
@@ -42,6 +50,15 @@ void stub_target_flash_init(void *state)
         STUB_LOGD("octal mode is on\n");
         stub_target_flash_init_funcs();
     }
+}
+
+void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
+{
+    esp_rom_opiflash_exec_cmd(params->spi_num, params->mode, params->cmd, params->cmd_bit_len,
+                              params->addr, params->addr_bit_len, params->dummy_bits,
+                              params->mosi_data, params->mosi_bit_len,
+                              params->miso_data, params->miso_bit_len,
+                              params->cs_mask, params->is_write_erase_operation);
 }
 
 int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
