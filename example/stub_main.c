@@ -19,6 +19,7 @@
 #include <esp-stub-lib/usb_serial_jtag.h>
 #include <esp-stub-lib/rom_wrappers.h>
 #include <esp-stub-lib/miniz.h>
+#include <esp-stub-lib/md5.h>
 
 #include "stub_main.h"
 
