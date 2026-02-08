@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <private/rom_flash.h>
 #include <target/flash.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/bit_utils.h>
@@ -17,7 +18,13 @@
 #define STATUS_BUSY_BIT BIT(0)
 
 extern struct esp_rom_spiflash_chip g_rom_flashchip;
+extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+
+uint32_t stub_target_flash_get_spiconfig_efuse(void)
+{
+    return esp_rom_efuse_get_flash_gpio_info();
+}
 
 void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {

@@ -63,10 +63,16 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
     return 0;
 }
 
+uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
+{
+    return 0;
+}
+
 void __attribute__((weak)) stub_target_flash_init(void *state)
 {
     (void)state;
-    stub_target_flash_attach(0, 0);
+    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+    stub_target_flash_attach(spiconfig, 0);
 }
 
 struct esp_rom_spiflash_chip *__attribute__((weak)) stub_target_flash_get_config(void)

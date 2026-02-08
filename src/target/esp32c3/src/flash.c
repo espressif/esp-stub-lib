@@ -16,7 +16,13 @@
 #define SPI_NUM         1
 #define STATUS_BUSY_BIT BIT(0)
 
+extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+
+uint32_t stub_target_flash_get_spiconfig_efuse(void)
+{
+    return esp_rom_efuse_get_flash_gpio_info();
+}
 
 void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
