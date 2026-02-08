@@ -30,6 +30,15 @@ typedef enum {
 } spi_flash_mode_t;
 
 /**
+ * @brief Reset default SPI IOMUX pins to GPIO mode
+ *
+ * This function configures the default SPI flash IOMUX pins as GPIOs.
+ * This is needed when switching from default IOMUX routing to GPIO matrix routing
+ * to avoid bus conflicts. Should be called before attaching with custom SPI pins.
+ */
+void stub_target_reset_default_spi_pins(void);
+
+/**
  * @brief Initialize SPI Flash hardware.
  *
  * Configure SPI pins, registers, mode, etc.

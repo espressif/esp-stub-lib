@@ -32,6 +32,7 @@ int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 
 void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
 {
+    stub_target_reset_default_spi_pins();
     stub_target_flash_attach(ishspi, legacy);
 }
 

@@ -11,6 +11,7 @@
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
 #include <esp-stub-lib/err.h>
+#include <soc/io_mux_reg.h>
 
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_chip(void);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
@@ -22,6 +23,17 @@ extern esp_rom_spiflash_result_t esp_rom_spiflash_write_enable(struct esp_rom_sp
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_unlock(void);
+extern void esp_rom_gpio_pad_select_gpio(uint32_t gpio_num);
+
+void __attribute__((weak)) stub_target_reset_default_spi_pins(void)
+{
+#ifdef SPI_CLK_GPIO_NUM
+    esp_rom_gpio_pad_select_gpio(SPI_CLK_GPIO_NUM);
+    esp_rom_gpio_pad_select_gpio(SPI_Q_GPIO_NUM);
+    esp_rom_gpio_pad_select_gpio(SPI_D_GPIO_NUM);
+    esp_rom_gpio_pad_select_gpio(SPI_CS0_GPIO_NUM);
+#endif
+}
 
 int stub_target_flash_update_config(uint32_t flash_id,
                                     uint32_t flash_size,

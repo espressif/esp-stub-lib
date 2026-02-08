@@ -39,6 +39,14 @@ extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, con
 extern void esp_rom_spiflash_attach(void);
 extern void esp_rom_spiflash_select_padsfunc(void);
 
+void stub_target_reset_default_spi_pins(void)
+{
+    /* ESP8266 doesn't support GPIO matrix routing for SPI flash.
+     * It only supports HSPI, but that's not currently implemented.
+     * The default SPI pins are always used through IOMUX.
+     * See: https://github.com/espressif/esptool/issues/98 */
+}
+
 struct esp_rom_spiflash_chip *stub_target_flash_get_config(void)
 {
     return &g_rom_flashchip;

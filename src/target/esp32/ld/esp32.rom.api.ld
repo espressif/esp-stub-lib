@@ -45,6 +45,8 @@ PROVIDE ( esp_rom_set_cpu_ticks_per_us = ets_update_cpu_frequency_rom );
 
 PROVIDE ( esp_rom_efuse_get_flash_gpio_info = ets_efuse_get_spiconfig );
 
+PROVIDE ( esp_rom_gpio_pad_select_gpio    = gpio_pad_select_gpio );
+
 PROVIDE ( esp_rom_spiflash_write_enable = SPI_write_enable);
 PROVIDE ( esp_rom_spiflash_erase_chip = SPIEraseChip);
 PROVIDE ( esp_rom_spiflash_unlock = SPIUnlock );

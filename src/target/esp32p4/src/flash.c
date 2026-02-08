@@ -140,9 +140,9 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy)
     esp_rom_spiflash_attach(ishspi, legacy);
 }
 
-void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+void stub_target_reset_default_spi_pins(void)
 {
-    esp_rom_spiflash_attach(ishspi, legacy);
+    /* ESP32-P4 uses dedicated pins for SPI flash. */
 }
 
 static void spi_wait_ready(void)
