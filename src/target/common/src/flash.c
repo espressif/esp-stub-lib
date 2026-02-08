@@ -75,6 +75,12 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
     return 0;
 }
 
+uint32_t __attribute__((weak)) stub_target_get_max_supported_flash_size(void)
+{
+    /* Default: chips without 4-byte addressing support (16MB max) */
+    return 16 * 1024 * 1024;
+}
+
 uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
 {
     return 0;

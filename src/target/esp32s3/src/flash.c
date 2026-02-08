@@ -142,3 +142,9 @@ void stub_target_flash_erase_block_start(uint32_t addr)
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
 }
+
+uint32_t stub_target_get_max_supported_flash_size(void)
+{
+    /* ESP32-S3 supports up to 1GB with 4-byte addressing */
+    return 1024 * 1024 * 1024;
+}

@@ -41,21 +41,33 @@ int stub_lib_flash_init(void **state)
     stub_target_flash_init(state);
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);
+
+    int return_code = STUB_LIB_OK;
+
     if (flash_size == 0) {
-        return STUB_LIB_ERR_UNKNOWN_FLASH_ID;
+        /* Unknown flash ID - use target-specific maximum supported size as fallback */
+        flash_size = stub_target_get_max_supported_flash_size();
+        STUB_LOGI("Unknown flash ID, assuming %d MB (chip max)\n", MB(flash_size));
+        return_code = STUB_LIB_ERR_UNKNOWN_FLASH_ID;
     }
+
     if (flash_size > 16 * 1024 * 1024) {
         large_flash_mode = true;
         STUB_LOGI("Large flash mode enabled (>16MB)\n");
     }
     STUB_LOG_TRACEF("Flash size: %d MB\n", MB(flash_size));
 
-    return stub_target_flash_update_config(flash_id,
-                                           flash_size,
-                                           STUB_FLASH_BLOCK_SIZE,
-                                           STUB_FLASH_SECTOR_SIZE,
-                                           STUB_FLASH_PAGE_SIZE,
-                                           STUB_FLASH_STATUS_MASK);
+    int config_ret = stub_target_flash_update_config(flash_id,
+                                                     flash_size,
+                                                     STUB_FLASH_BLOCK_SIZE,
+                                                     STUB_FLASH_SECTOR_SIZE,
+                                                     STUB_FLASH_PAGE_SIZE,
+                                                     STUB_FLASH_STATUS_MASK);
+    if (config_ret != STUB_LIB_OK) {
+        return config_ret;
+    }
+
+    return return_code;
 }
 
 void stub_lib_flash_deinit(const void *state)

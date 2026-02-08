@@ -191,3 +191,9 @@ void stub_target_flash_erase_block_start(uint32_t addr)
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
 }
+
+uint32_t stub_target_get_max_supported_flash_size(void)
+{
+    /* ESP32-P4 supports up to 64MB with 4-byte addressing */
+    return 64 * 1024 * 1024;
+}

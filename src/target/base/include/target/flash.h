@@ -100,6 +100,17 @@ int stub_target_flash_update_config(uint32_t flash_id,
 uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id);
 
 /**
+ * @brief Get maximum supported flash size for the target chip
+ *
+ * Returns the maximum flash size that the target chip can support,
+ * taking into account addressing limitations and hardware capabilities.
+ * This is used as a fallback when flash ID is unknown.
+ *
+ * @return Maximum supported flash size in bytes
+ */
+uint32_t stub_target_get_max_supported_flash_size(void);
+
+/**
  * @brief Read data.
  *
  * Check alignment, call a ROM function.
