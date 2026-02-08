@@ -110,7 +110,7 @@ void __attribute__((weak)) stub_target_flash_deinit(const void *state)
     (void)state;
 }
 
-void stub_target_flash_write_enable(void)
+void __attribute__((weak)) stub_target_flash_write_enable(void)
 {
     struct esp_rom_spiflash_chip *chip = stub_target_flash_get_config();
     esp_rom_spiflash_write_enable(chip);

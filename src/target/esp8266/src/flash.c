@@ -107,6 +107,15 @@ bool stub_target_flash_is_busy(void)
     return (status_value & STATUS_BUSY_BIT) != 0;
 }
 
+void stub_target_flash_write_enable(void)
+{
+    // ROM SPI_write_enable() does not work for ESP8266, so we use our own implementation
+    spi_wait_ready();
+    REG_WRITE(SPI_CMD_REG, SPI_FLASH_WREN);
+    while (REG_READ(SPI_CMD_REG) != 0)
+        ;
+}
+
 void stub_target_flash_erase_sector_start(uint32_t addr)
 {
     stub_target_flash_write_enable();
