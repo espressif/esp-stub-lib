@@ -5,6 +5,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <log.h>
 #include <err.h>
 #include <target/flash.h>
@@ -19,6 +20,7 @@
 
 extern uint32_t ets_efuse_get_spiconfig(void);
 extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
+extern void esp_rom_spiflash_attach(uint32_t spiconfig, bool legacy);
 extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       spi_flash_mode_t mode,
                                       uint32_t cmd,
@@ -32,6 +34,11 @@ extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       int miso_bit_len,
                                       uint32_t cs_mask,
                                       bool is_write_erase_operation);
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
 
 static void stub_target_flash_init_funcs(void)
 {

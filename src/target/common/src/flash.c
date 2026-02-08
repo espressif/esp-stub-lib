@@ -13,7 +13,6 @@
 #include <esp-stub-lib/err.h>
 
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_chip(void);
-extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_sector(uint32_t addr);
@@ -67,7 +66,7 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
 void __attribute__((weak)) stub_target_flash_init(void *state)
 {
     (void)state;
-    esp_rom_spiflash_attach(0, 0);
+    stub_target_flash_attach(0, 0);
 }
 
 struct esp_rom_spiflash_chip *__attribute__((weak)) stub_target_flash_get_config(void)
@@ -145,11 +144,6 @@ int stub_target_flash_erase_area(uint32_t addr, uint32_t size)
         return STUB_LIB_OK;
     }
     return STUB_LIB_FAIL;
-}
-
-void stub_target_flash_attach(uint32_t ishspi, bool legacy)
-{
-    esp_rom_spiflash_attach(ishspi, legacy);
 }
 
 void __attribute__((weak)) stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)

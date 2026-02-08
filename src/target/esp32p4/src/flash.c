@@ -17,7 +17,7 @@
 
 /* ECO version from ROM - used to route to correct ROM functions */
 extern uint32_t _rom_eco_version;
-
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 extern void esp_rom_opiflash_exec_cmd_eco1(int spi_num,
                                            spi_flash_mode_t mode,
                                            uint32_t cmd,
@@ -133,6 +133,16 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
                                        params->cs_mask,
                                        params->is_write_erase_operation);
     }
+}
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
 }
 
 static void spi_wait_ready(void)

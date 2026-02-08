@@ -19,6 +19,12 @@
 
 /* ECO version from ROM - used to route to correct ROM functions */
 extern uint32_t _rom_eco_version;
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
 
 /* ECO-specific ROM function declarations */
 extern void esp_rom_opiflash_exec_cmd_eco2(int spi_num,
