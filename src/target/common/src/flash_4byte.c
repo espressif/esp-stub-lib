@@ -12,6 +12,7 @@
 #include <private/rom_flash.h>
 #include <private/flash_commands.h>
 #include <target/flash_4byte.h>
+#include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/flash.h>
@@ -194,7 +195,7 @@ cleanup:
 
 int stub_target_flash_4byte_write(int spi_num, uint32_t flash_addr, const uint8_t *data, uint32_t size, bool encrypt)
 {
-    uint64_t timeout_us = size / 1024 * WRITE_PER_KB_TIMEOUT_US;
+    uint64_t timeout_us = ALIGN_UP((uint64_t)size, 1024) / 1024 * WRITE_PER_KB_TIMEOUT_US;
     if (encrypt) {
         return stub_target_flash_4byte_write_encrypted(spi_num, flash_addr, data, size, timeout_us);
     }
@@ -245,7 +246,7 @@ int stub_target_flash_4byte_erase_sector(int spi_num, uint32_t flash_addr)
         return ret;
     }
 
-    uint64_t timeout_us = STUB_FLASH_SECTOR_SIZE / 1024 * ERASE_PER_KB_TIMEOUT_US;
+    uint64_t timeout_us = ALIGN_UP(STUB_FLASH_SECTOR_SIZE, 1024) / 1024 * ERASE_PER_KB_TIMEOUT_US;
     if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
     }
@@ -259,7 +260,7 @@ int stub_target_flash_4byte_erase_block(int spi_num, uint32_t flash_addr)
         return ret;
     }
 
-    uint64_t timeout_us = STUB_FLASH_BLOCK_SIZE / 1024 * ERASE_PER_KB_TIMEOUT_US;
+    uint64_t timeout_us = ALIGN_UP(STUB_FLASH_BLOCK_SIZE, 1024) / 1024 * ERASE_PER_KB_TIMEOUT_US;
     if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
     }
