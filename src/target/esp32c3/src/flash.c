@@ -13,6 +13,7 @@
 #include <esp-stub-lib/err.h>
 #include <soc/spi_mem_reg.h>
 
+#define SPI_INTERNAL    0
 #define SPI_NUM         1
 #define STATUS_BUSY_BIT BIT(0)
 
@@ -31,6 +32,10 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 
 static void spi_wait_ready(void)
 {
+    /* There is no HW arbiter on SPI0, so we need to wait for it to be ready */
+    while (REG_GET_FIELD(SPI_MEM_FSM_REG(SPI_INTERNAL), SPI_MEM_EM_ST)) {
+        /* busy wait */
+    }
     while (REG_GET_FIELD(SPI_MEM_CMD_REG(SPI_NUM), SPI_MEM_MST_ST)) {
         /* busy wait */
     }
