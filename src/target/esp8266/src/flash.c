@@ -60,21 +60,14 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy)
     esp_rom_spiflash_attach();
 }
 
-static uint32_t get_flash_id(void)
+uint32_t stub_target_flash_get_flash_id(void)
 {
     REG_WRITE(SPI_W0, 0);
     REG_WRITE(SPI_CMD, SPI_FLASH_RDID);
-    while (REG_READ(SPI_CMD) != 0)
-        ;
-
+    while (REG_READ(SPI_CMD) != 0) {
+        /* busy wait */
+    }
     return REG_READ(SPI_W0) & 0xffffff;
-}
-
-uint32_t stub_target_flash_get_flash_id(void)
-{
-    struct esp_rom_spiflash_chip *chip = stub_target_flash_get_config();
-    chip->flash_id = get_flash_id();
-    return chip->flash_id;
 }
 
 int stub_target_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
