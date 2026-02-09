@@ -37,13 +37,30 @@ bool stub_target_usb_otg_is_supported(void)
     return true;
 }
 
+/* Workaround for LoadStoreException during compressed flashing over USB OTG.
+ *
+ * Without this wrapper, a LoadStoreException occurs during the first call to tinfl_decompress()
+ * due to register a13 being corrupted by esp_rom_usb_dw_isr_handler(). The wrapper function
+ * creates an additional call frame, which triggers the register window mechanism to allocate
+ * a different register window, preventing the corruption from affecting tinfl_decompress().
+ *
+ * Alternative solutions:
+ * - Add a 25 ms delay before calling tinfl_decompress() to allow esp_rom_usb_dw_isr_handler()
+ *   to complete execution
+ * - Temporarily disable the USB interrupt during tinfl_decompress() execution
+ */
+static void usb_dw_isr_handler_wrapper(void *arg)
+{
+    esp_rom_usb_dw_isr_handler(arg);
+}
+
 void stub_target_usb_otg_rominit_intr_attach(int intr_num, void *callback)
 {
     // Route interrupt
     WRITE_PERI_REG(INTERRUPT_CORE0_USB_INTR_MAP_REG, intr_num);
 
-    // Attach ISR
-    esp_rom_isr_attach(intr_num, esp_rom_usb_dw_isr_handler, NULL);
+    // Attach ISR with wrapper to prevent register corruption
+    esp_rom_isr_attach(intr_num, usb_dw_isr_handler_wrapper, NULL);
 
     // Common setup
     esp_rom_cdc_acm_irq_callback_set(uart_acm_dev, callback);
