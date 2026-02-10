@@ -16,8 +16,9 @@ This project is experimental and not yet ready for production use.
 - ESP32-C6
 - ESP32-C61
 - ESP32-H2
+- ESP32-H21
 - ESP32-H4
-- ESP32-P4
+- ESP32-P4 (including P4-rev1)
 
 ## How to use
 
