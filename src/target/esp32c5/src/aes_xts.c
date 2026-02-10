@@ -28,20 +28,6 @@
 
 extern void *memcpy(void *dest, const void *src, size_t n);
 
-static int stub_target_wait_reg_state(uint32_t reg, uint32_t expected_state, uint64_t *timeout_us)
-{
-    do {
-        if (REG_READ(reg) == expected_state) {
-            return STUB_LIB_OK;
-        }
-        if (*timeout_us == 0) {
-            return STUB_LIB_ERR_TIMEOUT;
-        }
-        stub_lib_delay_us(1);
-        --(*timeout_us);
-    } while (true);
-}
-
 void stub_target_aes_xts_init(void)
 {
     /* Set destination to flash (0 = flash, 1 = PSRAM) */
