@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -111,7 +111,9 @@ static int __attribute__((unused)) handle_test_uart(void)
     (void)stub_lib_uart_clear_intr_flags(UART_NUM_0);
     (void)stub_lib_uart_read_rxfifo_byte(UART_NUM_0);
     (void)stub_lib_uart_rx_one_char();
-    stub_lib_uart_rominit_intr_attach(UART_NUM_0, 5, uart_rx_interrupt_handler,
+    stub_lib_uart_rominit_intr_attach(UART_NUM_0,
+                                      5,
+                                      uart_rx_interrupt_handler,
                                       UART_INTR_RXFIFO_FULL | UART_INTR_RXFIFO_TOUT);
     stub_lib_uart_tx_one_char('A');
     stub_lib_uart_tx_flush(UART_NUM_0);
@@ -144,7 +146,7 @@ static int __attribute__((unused)) handle_test_flash(void)
     return 0;
 }
 
-static  __attribute__((unused)) int handle_test1(va_list ap)
+static __attribute__((unused)) int handle_test1(va_list ap)
 {
     (void)ap;
 
@@ -173,7 +175,7 @@ static  __attribute__((unused)) int handle_test1(va_list ap)
     return 0;
 }
 
-static  __attribute__((unused)) int handle_test2(va_list ap)
+static __attribute__((unused)) int handle_test2(va_list ap)
 {
     (void)ap;
 
@@ -184,22 +186,19 @@ static  __attribute__((unused)) int handle_test2(va_list ap)
     return 0;
 }
 
-static const struct stub_cmd_handler cmd_handlers[] = {
-    {ESP_STUB_CMD_TEST1, "CMD_TEST1", handle_test1},
-    {ESP_STUB_CMD_TEST2, "CMD_TEST2", handle_test2},
-    {0, NULL, NULL}
-};
+static const struct stub_cmd_handler cmd_handlers[] = { { ESP_STUB_CMD_TEST1, "CMD_TEST1", handle_test1 },
+                                                        { ESP_STUB_CMD_TEST2, "CMD_TEST2", handle_test2 },
+                                                        { 0, NULL, NULL } };
 
 int stub_main(int cmd, ...) __attribute__((used));
 
 #ifdef ESP8266
-__asm__(
-    ".global stub_main_esp8266\n"
-    ".literal_position\n"
-    ".align 4\n"
-    "stub_main_esp8266:\n"
-    "movi a0, 0x400010a8;"
-    "j stub_main;");
+__asm__(".global stub_main_esp8266\n"
+        ".literal_position\n"
+        ".align 4\n"
+        "stub_main_esp8266:\n"
+        "movi a0, 0x400010a8;"
+        "j stub_main;");
 #endif
 
 const char *stub_err_str(int ret_code)

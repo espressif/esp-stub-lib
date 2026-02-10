@@ -17,9 +17,9 @@
 #include <esp-stub-lib/flash.h>
 
 // Timeout values for flash operations, inspired by esptool
-#define DEFAULT_TIMEOUT_US 10000U
-#define ERASE_PER_KB_TIMEOUT_US 30000U
-#define WRITE_PER_KB_TIMEOUT_US 30000U
+#define DEFAULT_TIMEOUT_US        10000U
+#define ERASE_PER_KB_TIMEOUT_US   30000U
+#define WRITE_PER_KB_TIMEOUT_US   30000U
 
 // AES-XTS encryption block sizes for encrypted flash write operations
 // The hardware AES-XTS engine can process multiple 128-bit blocks simultaneously when
@@ -38,59 +38,53 @@
 
 static void exec_write_cmd_4b(int spi_num, uint32_t flash_addr, const uint8_t *data, int bit_len)
 {
-    stub_target_opiflash_exec_cmd(&(opiflash_cmd_params_t) {
-        .spi_num = spi_num,
-        .mode = SPI_FLASH_FASTRD_MODE,
-        .cmd = CMD_PROGRAM_PAGE_4B,
-        .cmd_bit_len = 8,
-        .addr = flash_addr,
-        .addr_bit_len = 32,
-        .dummy_bits = 0,
-        .mosi_data = data,
-        .mosi_bit_len = bit_len,
-        .miso_data = NULL,
-        .miso_bit_len = 0,
-        .cs_mask = ESP_ROM_OPIFLASH_SEL_CS0,
-        .is_write_erase_operation = true
-    });
+    stub_target_opiflash_exec_cmd(&(opiflash_cmd_params_t){ .spi_num = spi_num,
+                                                            .mode = SPI_FLASH_FASTRD_MODE,
+                                                            .cmd = CMD_PROGRAM_PAGE_4B,
+                                                            .cmd_bit_len = 8,
+                                                            .addr = flash_addr,
+                                                            .addr_bit_len = 32,
+                                                            .dummy_bits = 0,
+                                                            .mosi_data = data,
+                                                            .mosi_bit_len = bit_len,
+                                                            .miso_data = NULL,
+                                                            .miso_bit_len = 0,
+                                                            .cs_mask = ESP_ROM_OPIFLASH_SEL_CS0,
+                                                            .is_write_erase_operation = true });
 }
 
 static void exec_read_cmd_4b(int spi_num, uint32_t flash_addr, uint8_t *buffer, int bit_len)
 {
-    stub_target_opiflash_exec_cmd(&(opiflash_cmd_params_t) {
-        .spi_num = spi_num,
-        .mode = SPI_FLASH_FASTRD_MODE,
-        .cmd = CMD_FSTRD4B,
-        .cmd_bit_len = 8,
-        .addr = flash_addr,
-        .addr_bit_len = 32,
-        .dummy_bits = 8,
-        .mosi_data = NULL,
-        .mosi_bit_len = 0,
-        .miso_data = buffer,
-        .miso_bit_len = bit_len,
-        .cs_mask = ESP_ROM_OPIFLASH_SEL_CS0,
-        .is_write_erase_operation = false
-    });
+    stub_target_opiflash_exec_cmd(&(opiflash_cmd_params_t){ .spi_num = spi_num,
+                                                            .mode = SPI_FLASH_FASTRD_MODE,
+                                                            .cmd = CMD_FSTRD4B,
+                                                            .cmd_bit_len = 8,
+                                                            .addr = flash_addr,
+                                                            .addr_bit_len = 32,
+                                                            .dummy_bits = 8,
+                                                            .mosi_data = NULL,
+                                                            .mosi_bit_len = 0,
+                                                            .miso_data = buffer,
+                                                            .miso_bit_len = bit_len,
+                                                            .cs_mask = ESP_ROM_OPIFLASH_SEL_CS0,
+                                                            .is_write_erase_operation = false });
 }
 
 static void exec_erase_cmd_4b(int spi_num, uint32_t flash_addr, uint8_t erase_cmd)
 {
-    stub_target_opiflash_exec_cmd(&(opiflash_cmd_params_t) {
-        .spi_num = spi_num,
-        .mode = SPI_FLASH_SLOWRD_MODE,
-        .cmd = erase_cmd,
-        .cmd_bit_len = 8,
-        .addr = flash_addr,
-        .addr_bit_len = 32,
-        .dummy_bits = 0,
-        .mosi_data = NULL,
-        .mosi_bit_len = 0,
-        .miso_data = NULL,
-        .miso_bit_len = 0,
-        .cs_mask = ESP_ROM_OPIFLASH_SEL_CS0,
-        .is_write_erase_operation = true
-    });
+    stub_target_opiflash_exec_cmd(&(opiflash_cmd_params_t){ .spi_num = spi_num,
+                                                            .mode = SPI_FLASH_SLOWRD_MODE,
+                                                            .cmd = erase_cmd,
+                                                            .cmd_bit_len = 8,
+                                                            .addr = flash_addr,
+                                                            .addr_bit_len = 32,
+                                                            .dummy_bits = 0,
+                                                            .mosi_data = NULL,
+                                                            .mosi_bit_len = 0,
+                                                            .miso_data = NULL,
+                                                            .miso_bit_len = 0,
+                                                            .cs_mask = ESP_ROM_OPIFLASH_SEL_CS0,
+                                                            .is_write_erase_operation = true });
 }
 
 /**
@@ -108,18 +102,18 @@ static inline uint32_t get_write_chunk_size_unencrypted(uint32_t remaining, uint
  */
 static inline uint8_t get_write_block_size_encrypted(uint32_t flash_addr, uint32_t remaining, uint32_t page_space)
 {
-    if (IS_ALIGNED(flash_addr, AES_XTS_QUAD_BLOCK_SIZE) && remaining >= AES_XTS_QUAD_BLOCK_SIZE
-            && page_space >= AES_XTS_QUAD_BLOCK_SIZE) {
+    if (IS_ALIGNED(flash_addr, AES_XTS_QUAD_BLOCK_SIZE) && remaining >= AES_XTS_QUAD_BLOCK_SIZE &&
+        page_space >= AES_XTS_QUAD_BLOCK_SIZE) {
         return AES_XTS_QUAD_BLOCK_SIZE;
-    } else if (IS_ALIGNED(flash_addr, AES_XTS_DOUBLE_BLOCK_SIZE) && remaining >= AES_XTS_DOUBLE_BLOCK_SIZE
-               && page_space >= AES_XTS_DOUBLE_BLOCK_SIZE) {
+    } else if (IS_ALIGNED(flash_addr, AES_XTS_DOUBLE_BLOCK_SIZE) && remaining >= AES_XTS_DOUBLE_BLOCK_SIZE &&
+               page_space >= AES_XTS_DOUBLE_BLOCK_SIZE) {
         return AES_XTS_DOUBLE_BLOCK_SIZE;
     }
     return AES_XTS_MIN_BLOCK_SIZE;
 }
 
-static int stub_target_flash_4byte_write_unencrypted(int spi_num, uint32_t flash_addr, const uint8_t *data,
-                                                     uint32_t size, uint64_t timeout_us)
+static int stub_target_flash_4byte_write_unencrypted(
+    int spi_num, uint32_t flash_addr, const uint8_t *data, uint32_t size, uint64_t timeout_us)
 {
     if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
@@ -143,8 +137,8 @@ static int stub_target_flash_4byte_write_unencrypted(int spi_num, uint32_t flash
     return STUB_LIB_OK;
 }
 
-static int stub_target_flash_4byte_write_encrypted(int spi_num, uint32_t flash_addr, const uint8_t *data, uint32_t size,
-                                                   uint64_t timeout_us)
+static int stub_target_flash_4byte_write_encrypted(
+    int spi_num, uint32_t flash_addr, const uint8_t *data, uint32_t size, uint64_t timeout_us)
 {
     int ret = STUB_LIB_ERR_TIMEOUT;
 
@@ -177,7 +171,8 @@ static int stub_target_flash_4byte_write_encrypted(int spi_num, uint32_t flash_a
             goto cleanup;
         }
 
-        // Note: mosi_bit_len uses -1, possibly related to hardware bit counter (0-based), not clear why, should be investigated.
+        // Note: mosi_bit_len uses -1, possibly related to hardware bit counter (0-based), not clear why, should be
+        // investigated.
         exec_write_cmd_4b(spi_num, flash_addr, NULL, (int)(8 * block_size - 1));
         stub_target_aes_xts_clear();
 

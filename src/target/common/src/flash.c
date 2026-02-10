@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -24,11 +24,15 @@ extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_unlock(void);
 
-int stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size, uint32_t block_size, uint32_t sector_size,
-                                    uint32_t page_size, uint32_t status_mask)
+int stub_target_flash_update_config(uint32_t flash_id,
+                                    uint32_t flash_size,
+                                    uint32_t block_size,
+                                    uint32_t sector_size,
+                                    uint32_t page_size,
+                                    uint32_t status_mask)
 {
-    esp_rom_spiflash_result_t res = esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size,
-                                                                  status_mask);
+    esp_rom_spiflash_result_t res =
+        esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size, status_mask);
     if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
         STUB_LOGE("Failed to update flash config: %d\n", res);
         return STUB_LIB_FAIL;
@@ -40,17 +44,17 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
 {
     const uint32_t id = flash_id & 0xff;
     switch (id) {
-    case 0x12:  // 256 KB
+    case 0x12: // 256 KB
     case 0x13:
-    case 0x14:  // 1 MB
+    case 0x14: // 1 MB
     case 0x15:
     case 0x16:
     case 0x17:
     case 0x18:
-    case 0x19:  // 32 MB
-    case 0x1A:  // 64 MB
-    case 0x1B:  // 128 MB
-    case 0x1C:  // 256 MB
+    case 0x19: // 32 MB
+    case 0x1A: // 64 MB
+    case 0x1B: // 128 MB
+    case 0x1C: // 256 MB
         return 1u << id;
     case 0x39:
         return 32 * 1024 * 1024;
@@ -113,7 +117,7 @@ int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffe
 
 int stub_target_flash_erase_chip(void)
 {
-    if (esp_rom_spiflash_erase_chip()  == ESP_ROM_SPIFLASH_RESULT_OK) {
+    if (esp_rom_spiflash_erase_chip() == ESP_ROM_SPIFLASH_RESULT_OK) {
         return STUB_LIB_OK;
     }
     return STUB_LIB_FAIL;

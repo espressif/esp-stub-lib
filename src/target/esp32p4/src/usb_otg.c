@@ -32,8 +32,8 @@ extern void esp_rom_usb_dw_isr_handler(void *arg);
 extern void esp_rom_esprv_intc_int_set_priority(int int_num, int priority);
 
 #define USB_GAHBCFG_REG_OFFSET 0x008
-#define USB_GLBLLNTRMSK (1 << 0)
-#define USBDC_PERSIST_ENA (1U << 31)
+#define USB_GLBLLNTRMSK        (1 << 0)
+#define USBDC_PERSIST_ENA      (1U << 31)
 
 bool stub_target_usb_otg_is_supported(void)
 {

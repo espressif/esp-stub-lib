@@ -73,8 +73,12 @@ struct esp_rom_spiflash_chip *stub_target_flash_get_config(void);
  * - STUB_LIB_OK if success
  * - STUB_LIB_FAIL on ROM config error
  */
-int stub_target_flash_update_config(uint32_t flash_id, uint32_t flash_size, uint32_t block_size, uint32_t sector_size,
-                                    uint32_t page_size, uint32_t status_mask);
+int stub_target_flash_update_config(uint32_t flash_id,
+                                    uint32_t flash_size,
+                                    uint32_t block_size,
+                                    uint32_t sector_size,
+                                    uint32_t page_size,
+                                    uint32_t status_mask);
 
 /**
  * @brief Infer flash size (in bytes) from Flash ID
@@ -212,19 +216,19 @@ void stub_target_flash_write_enable(void);
  * flash command with configurable parameters.
  */
 typedef struct opiflash_cmd_params {
-    int spi_num;                        /**< SPI peripheral number (typically 1 for flash) */
-    spi_flash_mode_t mode;              /**< Read mode (SLOWRD, FASTRD, etc.) */
-    uint32_t cmd;                       /**< Command opcode */
-    int cmd_bit_len;                    /**< Command length in bits */
-    uint32_t addr;                      /**< Address value */
-    int addr_bit_len;                   /**< Address length in bits (32 for 4-byte addressing) */
-    int dummy_bits;                     /**< Number of dummy clock cycles */
-    const uint8_t *mosi_data;           /**< Data to send (write operations) */
-    int mosi_bit_len;                   /**< Length of data to send in bits */
-    uint8_t *miso_data;                 /**< Buffer to receive data (read operations) */
-    int miso_bit_len;                   /**< Length of data to receive in bits */
-    uint32_t cs_mask;                   /**< Chip select mask (ESP_ROM_OPIFLASH_SEL_CS0 or CS1) */
-    bool is_write_erase_operation;      /**< True for write/erase, false for read */
+    int spi_num;                   /**< SPI peripheral number (typically 1 for flash) */
+    spi_flash_mode_t mode;         /**< Read mode (SLOWRD, FASTRD, etc.) */
+    uint32_t cmd;                  /**< Command opcode */
+    int cmd_bit_len;               /**< Command length in bits */
+    uint32_t addr;                 /**< Address value */
+    int addr_bit_len;              /**< Address length in bits (32 for 4-byte addressing) */
+    int dummy_bits;                /**< Number of dummy clock cycles */
+    const uint8_t *mosi_data;      /**< Data to send (write operations) */
+    int mosi_bit_len;              /**< Length of data to send in bits */
+    uint8_t *miso_data;            /**< Buffer to receive data (read operations) */
+    int miso_bit_len;              /**< Length of data to receive in bits */
+    uint32_t cs_mask;              /**< Chip select mask (ESP_ROM_OPIFLASH_SEL_CS0 or CS1) */
+    bool is_write_erase_operation; /**< True for write/erase, false for read */
 } opiflash_cmd_params_t;
 
 /**

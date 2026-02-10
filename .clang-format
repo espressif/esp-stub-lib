@@ -1,0 +1,24 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 120
+BreakBeforeBraces: Linux
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+PointerAlignment: Right
+SpaceBeforeParens: ControlStatements
+SortIncludes: Never
+BinPackArguments: false
+BinPackParameters: false
+Cpp11BracedListStyle: false
+
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+
+PenaltyBreakBeforeFirstCallParameter: 1000

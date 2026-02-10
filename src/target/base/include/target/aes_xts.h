@@ -28,8 +28,8 @@
  */
 static inline int stub_target_wait_reg_state(uint32_t reg, uint32_t expected_state, uint64_t *timeout_us)
 {
-    if (!timeout_us || *timeout_us == 0)  {
-        return REG_READ(reg) == expected_state ? STUB_LIB_OK  :  STUB_LIB_ERR_TIMEOUT;
+    if (!timeout_us || *timeout_us == 0) {
+        return REG_READ(reg) == expected_state ? STUB_LIB_OK : STUB_LIB_ERR_TIMEOUT;
     }
 
     while ((*timeout_us)--) {

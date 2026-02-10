@@ -10,10 +10,10 @@
 #include <stdbool.h>
 
 /* Flash geometry constants */
-#define STUB_FLASH_SECTOR_SIZE          0x1000U
-#define STUB_FLASH_BLOCK_SIZE           0x10000U
-#define STUB_FLASH_PAGE_SIZE            0x100U
-#define STUB_FLASH_STATUS_MASK          0xFFFFU
+#define STUB_FLASH_SECTOR_SIZE 0x1000U
+#define STUB_FLASH_BLOCK_SIZE  0x10000U
+#define STUB_FLASH_PAGE_SIZE   0x100U
+#define STUB_FLASH_STATUS_MASK 0xFFFFU
 
 typedef struct stub_lib_flash_info {
     uint32_t id;

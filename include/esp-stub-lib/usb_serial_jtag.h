@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -10,11 +10,10 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif // __cplusplus
 
-#define USB_SERIAL_JTAG_OUT_RECV_PKT_INT_ENA    (0x1 << 2)
+#define USB_SERIAL_JTAG_OUT_RECV_PKT_INT_ENA (0x1 << 2)
 
 /**
  * @brief Check if USB-Serial/JTAG is currently being used for communication

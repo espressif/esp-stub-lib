@@ -14,25 +14,25 @@
 #include <esp-stub-lib/soc_utils.h>
 
 // ESP8266 uses SPI0 as the flash interface
-#define SPI_BASE_REG 0x60000200
-#define SPI_EXT2_REG (SPI_BASE_REG + 0xF8)
-#define SPI_CMD_REG (SPI_BASE_REG + 0x00)
+#define SPI_BASE_REG      0x60000200
+#define SPI_EXT2_REG      (SPI_BASE_REG + 0xF8)
+#define SPI_CMD_REG       (SPI_BASE_REG + 0x00)
 #define SPI_RD_STATUS_REG (SPI_BASE_REG + 0x10)
-#define SPI_ADDR_REG (SPI_BASE_REG + 0x04)
+#define SPI_ADDR_REG      (SPI_BASE_REG + 0x04)
 #define SPI_FLASH_WREN    BIT(30)
 #define SPI_FLASH_RDID    BIT(28)
 #define SPI_FLASH_RDSR    BIT(27)
 #define SPI_FLASH_SE      BIT(24)
 #define SPI_FLASH_BE      BIT(23)
-#define SPI_W0     (SPI_BASE_REG + 0x40)
-#define SPI_CMD    (SPI_BASE_REG + 0x0)
+#define SPI_W0            (SPI_BASE_REG + 0x40)
+#define SPI_CMD           (SPI_BASE_REG + 0x0)
 
-#define SPI_ST  0x00000007
-#define SPI_ST_M  ((SPI_ST_V)<<(SPI_ST_S))
-#define SPI_ST_V  0x7
-#define SPI_ST_S  0
+#define SPI_ST            0x00000007
+#define SPI_ST_M          ((SPI_ST_V) << (SPI_ST_S))
+#define SPI_ST_V          0x7
+#define SPI_ST_S          0
 
-#define STATUS_BUSY_BIT BIT(0)
+#define STATUS_BUSY_BIT   BIT(0)
 
 extern struct esp_rom_spiflash_chip g_rom_flashchip;
 extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
@@ -46,7 +46,8 @@ static uint32_t get_flash_id(void)
 {
     REG_WRITE(SPI_W0, 0);
     REG_WRITE(SPI_CMD, SPI_FLASH_RDID);
-    while (REG_READ(SPI_CMD) != 0);
+    while (REG_READ(SPI_CMD) != 0)
+        ;
 
     return REG_READ(SPI_W0) & 0xffffff;
 }
@@ -81,7 +82,8 @@ bool stub_target_flash_is_busy(void)
 
     REG_WRITE(SPI_RD_STATUS_REG, 0);
     REG_WRITE(SPI_CMD_REG, SPI_FLASH_RDSR);
-    while (REG_READ(SPI_CMD_REG) != 0) { }
+    while (REG_READ(SPI_CMD_REG) != 0) {
+    }
     uint32_t status_value = REG_READ(SPI_RD_STATUS_REG);
 
     return (status_value & STATUS_BUSY_BIT) != 0;
@@ -94,7 +96,8 @@ void stub_target_flash_erase_sector_start(uint32_t addr)
 
     REG_WRITE(SPI_ADDR_REG, addr & 0xffffff);
     REG_WRITE(SPI_CMD_REG, SPI_FLASH_SE);
-    while (REG_READ(SPI_CMD_REG) != 0) { }
+    while (REG_READ(SPI_CMD_REG) != 0) {
+    }
 
     STUB_LOG_TRACEF("Started sector erase at 0x%x\n", addr);
 }
@@ -106,7 +109,8 @@ void stub_target_flash_erase_block_start(uint32_t addr)
 
     REG_WRITE(SPI_ADDR_REG, addr & 0xffffff);
     REG_WRITE(SPI_CMD_REG, SPI_FLASH_BE);
-    while (REG_READ(SPI_CMD_REG) != 0) { }
+    while (REG_READ(SPI_CMD_REG) != 0) {
+    }
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
 }

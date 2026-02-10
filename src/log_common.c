@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -23,14 +23,14 @@ void stub_lib_log_printf(const char *fmt, ...)
             continue;
         }
 
-        fmt++;  // Skip the '%'
+        fmt++; // Skip the '%'
 
         switch (*fmt) {
         case 's': {
             const char *s = va_arg(args, const char *);
             ets_printf("%s", s ? s : "(null)");
+            break;
         }
-        break;
         case 'd': {
             int d = va_arg(args, int);
             if (d < 0) {
@@ -38,8 +38,8 @@ void stub_lib_log_printf(const char *fmt, ...)
             } else {
                 ets_printf("%u", (unsigned int)d);
             }
+            break;
         }
-        break;
         case 'u':
         case 'x':
         case 'X':

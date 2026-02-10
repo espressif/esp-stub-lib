@@ -22,8 +22,12 @@ static bool large_flash_mode = false;
 
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
-    return stub_target_flash_update_config(config->flash_id, config->flash_size, config->block_size, config->sector_size,
-                                           config->page_size, config->status_mask);
+    return stub_target_flash_update_config(config->flash_id,
+                                           config->flash_size,
+                                           config->block_size,
+                                           config->sector_size,
+                                           config->page_size,
+                                           config->status_mask);
 }
 
 void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
@@ -45,8 +49,12 @@ int stub_lib_flash_init(void **state)
     }
     STUB_LOG_TRACEF("Flash size: %d MB\n", MB(flash_size));
 
-    return stub_target_flash_update_config(flash_id, flash_size, STUB_FLASH_BLOCK_SIZE, STUB_FLASH_SECTOR_SIZE,
-                                           STUB_FLASH_PAGE_SIZE, STUB_FLASH_STATUS_MASK);
+    return stub_target_flash_update_config(flash_id,
+                                           flash_size,
+                                           STUB_FLASH_BLOCK_SIZE,
+                                           STUB_FLASH_SECTOR_SIZE,
+                                           STUB_FLASH_PAGE_SIZE,
+                                           STUB_FLASH_STATUS_MASK);
 }
 
 void stub_lib_flash_deinit(const void *state)
@@ -63,7 +71,7 @@ void stub_lib_flash_get_info(stub_lib_flash_info_t *info)
     info->block_size = chip->block_size;
     info->sector_size = chip->sector_size;
     info->page_size = chip->page_size;
-    info->mode = 0; // TODO: Implement
+    info->mode = 0;      // TODO: Implement
     info->encrypted = 0; // TODO: Implement
 }
 
@@ -76,12 +84,14 @@ void stub_lib_flash_info_print(const stub_lib_flash_info_t *info)
               "\tmode: %d, enc: %d\n",
               info->id,
               KB(info->size),
-              KB(info->block_size), info->block_size,
-              info->sector_size, info->sector_size,
-              info->page_size, info->page_size,
+              KB(info->block_size),
+              info->block_size,
+              info->sector_size,
+              info->sector_size,
+              info->page_size,
+              info->page_size,
               info->mode,
-              info->encrypted
-             );
+              info->encrypted);
 }
 
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
@@ -93,7 +103,11 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 
     if (large_flash_mode) {
         int res = stub_target_flash_4byte_read(SPI_NUM, addr, (uint8_t *)buffer, size);
-        STUB_LOG_TRACEF("stub_target_flash_4byte_read(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
+        STUB_LOG_TRACEF("stub_target_flash_4byte_read(0x%x, 0x%x, %u) results: %d\n",
+                        addr,
+                        (uint32_t)buffer,
+                        size,
+                        res);
         return (res == 0) ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_READ_ROM_ERR;
     }
     return stub_target_flash_read_buff(addr, buffer, size);
@@ -108,7 +122,11 @@ int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, 
 
     if (large_flash_mode) {
         int res = stub_target_flash_4byte_write(SPI_NUM, addr, buffer, size, encrypt);
-        STUB_LOG_TRACEF("stub_target_flash_4byte_write(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
+        STUB_LOG_TRACEF("stub_target_flash_4byte_write(0x%x, 0x%x, %u) results: %d\n",
+                        addr,
+                        (uint32_t)buffer,
+                        size,
+                        res);
         return (res == 0) ? STUB_LIB_OK : STUB_LIB_FAIL;
     }
     return stub_target_flash_write_buff(addr, buffer, size, encrypt);

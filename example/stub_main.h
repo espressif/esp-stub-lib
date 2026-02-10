@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -15,7 +15,7 @@ enum esp_stub_cmd {
 
 // Stub return codes, all compatible with esp-stub-lib/err.h without overlap
 
-#define ESP_STUB_OK                         0x0     // Equal to STUB_LIB_OK
-#define ESP_STUB_FAIL                       0x1     // Different from STUB_LIB_FAIL
+#define ESP_STUB_OK                    0x0 // Equal to STUB_LIB_OK
+#define ESP_STUB_FAIL                  0x1 // Different from STUB_LIB_FAIL
 
-#define ESP_STUB_ERR_CMD_NOT_SUPPORTED      0x2
+#define ESP_STUB_ERR_CMD_NOT_SUPPORTED 0x2

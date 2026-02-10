@@ -70,7 +70,7 @@ uint32_t stub_target_get_apb_freq(void)
 
 void stub_target_rom_uart_attach(void *rxBuffer)
 {
-    (void)rxBuffer;  // ESP32 ROM doesn't take parameter
+    (void)rxBuffer; // ESP32 ROM doesn't take parameter
     esp_rom_uart_attach();
 }
 
