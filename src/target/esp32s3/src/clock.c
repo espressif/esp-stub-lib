@@ -40,7 +40,19 @@ uint32_t stub_target_get_cpu_freq(void)
 
 uint32_t stub_target_get_apb_freq(void)
 {
-    return esp_rom_get_apb_frequency();
+    uint32_t clock;
+    uint32_t clock_sel = REG_GET_FIELD(SYSTEM_SYSCLK_CONF_REG, SYSTEM_SOC_CLK_SEL);
+    if (clock_sel == 0) {//from xtal, 80MHz, 40MHz, 20MHz, 10MHz, 8MHz,...
+        // Should be also divided by SYSTEM_PRE_DIV_CNT, but setting divider has no effect on ESP32S3.
+        clock = esp_rom_get_xtal_freq();
+    } else if (clock_sel == 1) { //from pll, 80MHz
+        clock = 80 * MHZ;
+    } else if (clock_sel == 2) { //8M RC, about 8MHz, code will not come here
+        clock = 8 * MHZ;
+    } else {//audio pll, code will not come here, just put an different clock here.
+        clock = 16 * MHZ;
+    }
+    return clock;
 }
 
 #define RTC_CNTL_WDT_KEY 0x50D83AA1
