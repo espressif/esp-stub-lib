@@ -13,8 +13,8 @@ void __attribute__((weak)) stub_target_aes_xts_init(void)
     // Empty weak function for targets that does not support AES-XTS
 }
 
-void __attribute__((weak)) stub_target_aes_xts_encrypt_trigger(uint32_t flash_addr, const void *data,
-                                                               uint32_t block_size)
+void __attribute__((weak))
+stub_target_aes_xts_encrypt_trigger(uint32_t flash_addr, const void *data, uint32_t block_size)
 {
     // Empty weak function for targets that does not support AES-XTS
     (void)flash_addr;

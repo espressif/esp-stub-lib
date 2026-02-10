@@ -30,7 +30,7 @@ extern void esp_rom_chip_usb_set_persist_flags(uint32_t flags);
 extern void esp_rom_usb_dw_isr_handler(void *arg);
 
 #define ETS_USB_INTR_SOURCE 48
-#define USBDC_PERSIST_ENA (1U << 31)
+#define USBDC_PERSIST_ENA   (1U << 31)
 
 bool stub_target_usb_otg_is_supported(void)
 {

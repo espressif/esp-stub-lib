@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -22,22 +22,22 @@ extern "C" {
  */
 
 typedef enum {
-    UART_NUM_0,                         /*!< UART port 0 */
-    UART_NUM_1,                         /*!< UART port 1 */
+    UART_NUM_0, /*!< UART port 0 */
+    UART_NUM_1, /*!< UART port 1 */
 #if SOC_UART_HP_NUM > 2
-    UART_NUM_2,                         /*!< UART port 2 */
+    UART_NUM_2, /*!< UART port 2 */
 #endif
 #if SOC_UART_HP_NUM > 3
-    UART_NUM_3,                         /*!< UART port 3 */
+    UART_NUM_3, /*!< UART port 3 */
 #endif
 #if SOC_UART_HP_NUM > 4
-    UART_NUM_4,                         /*!< UART port 4 */
+    UART_NUM_4, /*!< UART port 4 */
 #endif
-    UART_NUM_MAX,                       /*!< UART port max */
+    UART_NUM_MAX, /*!< UART port max */
 } uart_port_t;
 
-#define UART_INTR_RXFIFO_FULL      (0x1 << 0)
-#define UART_INTR_RXFIFO_TOUT      (0x1 << 8)
+#define UART_INTR_RXFIFO_FULL (0x1 << 0)
+#define UART_INTR_RXFIFO_TOUT (0x1 << 8)
 
 /**
  * @brief Wait until UART is idle

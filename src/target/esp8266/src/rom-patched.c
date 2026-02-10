@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -7,10 +7,8 @@
 
 int32_t __bswapsi2(int32_t u)
 {
-    return (int32_t)(((((uint32_t)u) & 0xff000000) >> 24)
-                     | ((((uint32_t)u) & 0x00ff0000) >>  8)
-                     | ((((uint32_t)u) & 0x0000ff00) <<  8)
-                     | ((((uint32_t)u) & 0x000000ff) << 24));
+    return (int32_t)(((((uint32_t)u) & 0xff000000) >> 24) | ((((uint32_t)u) & 0x00ff0000) >> 8) |
+                     ((((uint32_t)u) & 0x0000ff00) << 8) | ((((uint32_t)u) & 0x000000ff) << 24));
 }
 
 int64_t __ashldi3(int64_t a, int b)

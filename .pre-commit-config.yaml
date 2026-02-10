@@ -42,8 +42,9 @@ repos:
       - id: conventional-precommit-linter
         stages: [commit-msg]
 
-  - repo: https://github.com/espressif/astyle_py.git
-    rev: v1.1.0
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v21.1.8
     hooks:
-      - id: astyle_py
-        args: ['--astyle-version=3.4.7', '--rules=.astyle-rules.yml']
+      - id: clang-format
+        files: \.(c|h|cpp|hpp|cc|cxx)$
+        exclude: ^(include/esp-stub-lib/miniz\.h|src/target/esp8266/src/miniz\.c|src/target/.*/include/soc/.*\.h)$

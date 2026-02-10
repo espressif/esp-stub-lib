@@ -18,6 +18,6 @@ void stub_target_rom_uart_attach(void *rxBuffer)
 
 void stub_target_rom_uart_init(uint8_t uart_no, uint32_t clock)
 {
-    (void)clock;  // Ignore clock parameter for 1-param ROM function
+    (void)clock; // Ignore clock parameter for 1-param ROM function
     esp_rom_uart_init(uart_no);
 }

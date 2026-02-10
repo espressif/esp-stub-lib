@@ -19,10 +19,10 @@
  * 2: encryption calculation is done but the encrypted result is invisible to mspi
  * 3: the encrypted result is visible to mspi
  */
-#define AES_XTS_STATE_IDLE        0x0
-#define AES_XTS_STATE_BUSY        0x1
-#define AES_XTS_STATE_DONE        0x2
-#define AES_XTS_STATE_VISIBLE     0x3
+#define AES_XTS_STATE_IDLE    0x0
+#define AES_XTS_STATE_BUSY    0x1
+#define AES_XTS_STATE_DONE    0x2
+#define AES_XTS_STATE_VISIBLE 0x3
 
 extern void *memcpy(void *dest, const void *src, size_t n);
 

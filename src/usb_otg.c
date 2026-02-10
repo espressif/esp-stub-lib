@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -31,10 +31,10 @@ typedef struct {
 } uart_device_t;
 
 // Constants
-#define ACM_BYTES_PER_TX 64
-#define LINE_CTRL_RTS (1 << 1)
+#define ACM_BYTES_PER_TX             64
+#define LINE_CTRL_RTS                (1 << 1)
 #define ACM_STATUS_LINESTATE_CHANGED -1
-#define ACM_STATUS_RX -4
+#define ACM_STATUS_RX                -4
 
 // State
 static int s_usb_int_num = 0;

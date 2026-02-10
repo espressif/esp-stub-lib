@@ -1,8 +1,8 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
-*
-* SPDX-License-Identifier: Apache-2.0 OR MIT
-*/
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0 OR MIT
+ */
 
 #include <stdint.h>
 #include <stddef.h>
@@ -23,7 +23,7 @@ extern uint32_t esp_rom_get_xtal_freq(void);
 
 void stub_target_rom_uart_attach(void *rxBuffer)
 {
-    (void)rxBuffer;  // ESP8266 ROM doesn't take parameter
+    (void)rxBuffer; // ESP8266 ROM doesn't take parameter
     esp_rom_uart_attach();
 }
 
@@ -39,8 +39,7 @@ void stub_target_uart_wait_idle(uint8_t uart_num)
     do {
         status = READ_PERI_REG(UART_STATUS_REG(uart_num));
         // Check if TX FIFO is empty (TXFIFO_CNT == 0) and TX is idle (!TXD)
-    } while (((status >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT_V) != 0 ||
-             (status & UART_TXD) != 0);
+    } while (((status >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT_V) != 0 || (status & UART_TXD) != 0);
 }
 
 void stub_target_uart_init(uint8_t uart_num)
