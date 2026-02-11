@@ -2,10 +2,10 @@
 
 ## Repository Overview
 
-**esp-stub-lib** is an experimental C library for creating flash stubs that can be loaded onto Espressif ESP chips. The repository is ~5MB in size and contains a three-layer architecture designed to maximize code reuse across multiple ESP chip targets while eliminating circular dependencies.
+**esp-stub-lib** is an experimental C library for creating flash stubs that can be loaded onto Espressif ESP chips. The repository is ~9MB in size and contains a three-layer architecture designed to maximize code reuse across multiple ESP chip targets while eliminating circular dependencies.
 
 **Language/Tools:** C (C17), CMake, Ninja, Python, pre-commit hooks
-**Supported Targets:** ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-C61, ESP32-H2, ESP32-H21, ESP32-H4, ESP32-P4
+**Supported Targets:** ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-C61, ESP32-H2, ESP32-H21, ESP32-H4, ESP32-P4 (including P4-rev1)
 
 ## Three-Layer Architecture
 
@@ -24,8 +24,8 @@ Base (src/target/base/) - Interface headers only
 ```
 
 **Key Directories:**
-- `include/esp-stub-lib/` - Public API headers (flash.h, log.h, mem_utils.h, uart.h, etc.) - **Only these should be used by library clients**
-- `src/` - Top-level implementation layer (flash.c, mem_utils.c, uart.c, etc.)
+- `include/esp-stub-lib/` - Public API headers (15 total: bit_utils.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, rom_wrappers.h, security.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
+- `src/` - Top-level implementation layer (clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, md5.c, mem_utils.c, rom_wrappers.c, security.c, uart.c, usb_otg.c, usb_serial_jtag.c)
 - `src/target/base/include/` - Internal interface headers split into:
   - `target/` - Internal API between common/target layers
   - `private/` - Internal ROM/hardware details
@@ -76,8 +76,11 @@ The example directory contains a complete stub implementation demonstrating the 
 cd example
 ./build.sh all              # Build all targets
 ./build.sh esp32            # Build specific target
+./build.sh esp32p4-rev1     # Build P4 revision 1
 ./build.sh clean            # Clean all builds
 ```
+
+**Supported targets in build.sh:** esp8266, esp32, esp32s2, esp32s3, esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4, esp32p4-rev1
 
 **Manual build:**
 ```bash
@@ -87,10 +90,10 @@ cmake -DESP_TARGET=esp32 -GNinja ..  # Replace esp32 with your target
 ninja
 ```
 
-**Build outputs:** After successful build, find in `example/build/`:
-- `stub_{target}.elf` - Compiled binary
-- `stub_{target}.map` - Memory map
-- `stub_{target}.asm` - Disassembly
+**Build outputs:** After successful build, find in `example/build/{target}/`:
+- `stub_*.elf` - Compiled binary (e.g., `stub_esp32.elf`)
+- `stub_*.map` - Memory map
+- `stub_*.asm` - Disassembly
 
 **Build time:** Initial builds take 30-60 seconds per target depending on toolchain availability.
 
@@ -160,13 +163,33 @@ body (optional)
 
 **Common types:** feat, fix, docs, style, refactor, test, chore, change (for version bumps)
 
+### PR and Review Guidelines
+
+**When creating or reviewing PRs, always check if documentation updates are needed:**
+
+- **Chip/Target Support Changes:**
+  - Adding/removing chip support → Update supported targets list in README.md and this file (line 8)
+  - New target directories → Update target list in build documentation (lines 82-83)
+
+- **API/File Changes:**
+  - Adding/removing public API headers → Update header lists (line 27 and lines 197-211)
+  - Adding/removing source files → Update source file lists (line 28)
+  - New modules → Add descriptions in "Public API Modules" section
+
+- **Build System Changes:**
+  - Changes to build outputs, paths, or workflow → Update "Build System" and "GitHub Actions CI" sections
+  - New build targets or variants → Update build.sh documentation and workflow matrix
+
+- **README.md Updates:**
+  - Review if changes require updates to repository README.md (e.g., new features, targets, or significant architectural changes)
+
 ## GitHub Actions CI
 
 **Workflows:**
 1. **build_example.yml** - Builds example for all targets on PR/push to non-master branches
-   - Builds all ESP-IDF targets (esp32, esp32s2, esp32s3, esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4) using `espressif/esp-idf-ci-action@v1` with latest ESP-IDF
+   - Builds all ESP-IDF targets (esp32, esp32s2, esp32s3, esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4, esp32p4-rev1) using `espressif/esp-idf-ci-action@v1` with latest ESP-IDF
    - Builds ESP8266 separately using `./build.sh esp8266` (requires custom toolchain)
-   - Uploads build artifacts (.elf, .map, .asm files)
+   - Uploads build artifacts from `example/build/{target}/` (.elf, .map, .asm files)
    - **Failure means:** Build errors, missing toolchain, or incorrect CMake configuration
 
 2. **dangerjs.yml** - PR style linting (runs on PR open/edit/sync)
@@ -188,6 +211,26 @@ cd example
 
 ## Common Patterns & Conventions
 
+### Public API Modules
+
+The library provides 15 public API headers in `include/esp-stub-lib/`:
+
+- **bit_utils.h** - Bit manipulation macros (BIT, BIT64, ALIGN_UP, ALIGN_MASK)
+- **clock.h** - Clock initialization and watchdog control
+- **err.h** - Error code definitions (STUB_LIB_OK, STUB_LIB_ERR_*)
+- **flash.h** - Flash memory operations (read, write, erase)
+- **log.h** - Logging macros (conditional on STUB_LOG_ENABLED)
+- **md5.h** - MD5 hashing operations
+- **mem_utils.h** - Memory region classification (irom, drom, iram, dram)
+- **miniz.h** - Deflate/inflate compression (zlib-compatible)
+- **rom_wrappers.h** - ROM function wrappers (delay_us, crc16_le)
+- **security.h** - Security information retrieval
+- **soc_utils.h** - Register read/write macros (REG_READ, REG_WRITE)
+- **trax_mem.h** - Xtensa trace memory access
+- **uart.h** - UART communication interface
+- **usb_otg.h** - USB-OTG detection and initialization
+- **usb_serial_jtag.h** - USB-Serial/JTAG operations
+
 ### Function Naming
 
 - **Public API:** `stub_lib_{module}_{action}()` - e.g., `stub_lib_flash_init()`, `stub_lib_uart_tx()`
@@ -202,6 +245,7 @@ cd example
 4. **Add internal interface** to `src/target/base/include/target/{module}.h`
 5. **Add target overrides** (if needed) to `src/target/{target}/src/{module}.c` with strong symbols
 6. **Update CMakeLists.txt** files as needed to include new sources
+7. **Update this file** (`.github/copilot-instructions.md`) to reflect added/removed files in the "Key Directories" section (lines 27-28)
 
 ### Weak vs Strong Symbols
 
@@ -215,6 +259,7 @@ The common layer provides **weak** implementations that work generically. Target
 - **Documentation:** Update README.md if adding significant new features
 - **License:** All contributions are dual-licensed Apache-2.0 OR MIT
 - **Target-specific constants:** Defined in `src/target/{target}/include/soc/soc.h` as SOC_* macros (e.g., SOC_UART0_BASE)
+- **Refactoring commits:** Commits that perform considerable refactoring should be added to `.git-blame-ignore-revs` to keep git blame clean
 
 ## Troubleshooting
 
