@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
 #include <log.h>
+
 #include <target/flash.h>
+
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
+
 #include <esp-stub-lib/err.h>
 
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_chip(void);

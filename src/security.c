@@ -1,13 +1,15 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
 #include <stddef.h>
-#include <esp-stub-lib/security.h>
-#include <esp-stub-lib/err.h>
+
 #include <target/security.h>
+
+#include <esp-stub-lib/err.h>
+#include <esp-stub-lib/security.h>
 
 uint32_t stub_lib_security_info_size(void)
 {

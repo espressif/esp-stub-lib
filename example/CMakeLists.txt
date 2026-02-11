@@ -17,6 +17,8 @@ add_link_options(${COMMON_LINKER_FLAGS})
 set(APP_NAME stub_${ESP_TARGET})
 project(${APP_NAME}.elf LANGUAGES C CXX ASM)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Source and linker configuration
 set(SRC_DIR .)
 set(LINKER_SCRIPTS

@@ -6,11 +6,12 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
-#include <esp-stub-lib/soc_utils.h>
+#include <stdint.h>
+
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/rom_wrappers.h>
+#include <esp-stub-lib/soc_utils.h>
 
 /* Maximum size of an encryption block */
 #define MAX_ENCRYPT_BLOCK 64

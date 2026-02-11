@@ -1,12 +1,15 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
 #include <stdint.h>
-#include <target/clock.h>
+
 #include <soc_utils.h>
+
+#include <target/clock.h>
+
 #include <soc/soc.h>
 
 extern uint32_t esp_rom_get_cpu_ticks_per_us(void);

@@ -1,16 +1,19 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
-#include <esp-stub-lib/usb_serial_jtag.h>
-#include <target/usb_serial_jtag.h>
+#include <stdint.h>
+
 #include <esp_rom_caps.h>
 #include <soc_utils.h>
+
+#include <target/usb_serial_jtag.h>
+
+#include <esp-stub-lib/usb_serial_jtag.h>
 
 #if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
 #include <soc/usb_serial_jtag_reg.h>

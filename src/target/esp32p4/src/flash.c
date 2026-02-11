@@ -4,13 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include <target/flash.h>
-#include <esp-stub-lib/log.h>
+
 #include <esp-stub-lib/bit_utils.h>
-#include <esp-stub-lib/soc_utils.h>
 #include <esp-stub-lib/err.h>
+#include <esp-stub-lib/log.h>
+#include <esp-stub-lib/soc_utils.h>
 #include <soc/spi1_mem_c_reg.h>
 
 #define STATUS_BUSY_BIT BIT(0)

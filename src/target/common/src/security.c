@@ -6,8 +6,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <target/security.h>
+
 #include <err.h>
+
+#include <target/security.h>
 
 /* GetSecurityInfoProc function from ROM */
 extern uint32_t GetSecurityInfoProc(int *pMsg, int *pnErr, uint8_t *buf);

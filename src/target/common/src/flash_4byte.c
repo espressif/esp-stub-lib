@@ -4,17 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <target/flash.h>
+#include <stdint.h>
+
 #include <target/aes_xts.h>
-#include <private/rom_flash.h>
-#include <private/flash_commands.h>
+#include <target/flash.h>
 #include <target/flash_4byte.h>
-#include <esp-stub-lib/log.h>
+
+#include <private/flash_commands.h>
+#include <private/rom_flash.h>
+
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/flash.h>
+#include <esp-stub-lib/log.h>
 
 // Timeout values for flash operations, inspired by esptool
 #define DEFAULT_TIMEOUT_US        10000U
@@ -112,8 +115,11 @@ static inline uint8_t get_write_block_size_encrypted(uint32_t flash_addr, uint32
     return AES_XTS_MIN_BLOCK_SIZE;
 }
 
-static int stub_target_flash_4byte_write_unencrypted(
-    int spi_num, uint32_t flash_addr, const uint8_t *data, uint32_t size, uint64_t timeout_us)
+static int stub_target_flash_4byte_write_unencrypted(int spi_num,
+                                                     uint32_t flash_addr,
+                                                     const uint8_t *data,
+                                                     uint32_t size,
+                                                     uint64_t timeout_us)
 {
     if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
@@ -137,8 +143,11 @@ static int stub_target_flash_4byte_write_unencrypted(
     return STUB_LIB_OK;
 }
 
-static int stub_target_flash_4byte_write_encrypted(
-    int spi_num, uint32_t flash_addr, const uint8_t *data, uint32_t size, uint64_t timeout_us)
+static int stub_target_flash_4byte_write_encrypted(int spi_num,
+                                                   uint32_t flash_addr,
+                                                   const uint8_t *data,
+                                                   uint32_t size,
+                                                   uint64_t timeout_us)
 {
     int ret = STUB_LIB_ERR_TIMEOUT;
 

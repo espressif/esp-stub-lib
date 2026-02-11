@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
 #include <target/clock.h>
 #include <target/uart.h>
+
 #include <esp-stub-lib/rom_wrappers.h>
 
 extern void esp_rom_uart_set_as_console(uint8_t uart_no);

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Flash geometry constants */
 #define STUB_FLASH_SECTOR_SIZE 0x1000U
