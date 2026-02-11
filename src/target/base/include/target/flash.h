@@ -9,7 +9,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct esp_rom_spiflash_chip;
+#include <private/rom_flash.h>
+
+/**
+ * @brief Flash geometry constants
+ */
+#define STUB_FLASH_SECTOR_SIZE 0x1000U
+#define STUB_FLASH_BLOCK_SIZE  0x10000U
+#define STUB_FLASH_PAGE_SIZE   0x100U
+#define STUB_FLASH_STATUS_MASK 0xFFFFU
 
 /**
  * @brief SPI flash read mode for OPI operations
@@ -66,7 +74,7 @@ uint32_t stub_target_flash_get_flash_id(void);
  *
  * @return Always a non-NULL, but the structure may be uninitialized or incorrect.
  */
-struct esp_rom_spiflash_chip *stub_target_flash_get_config(void);
+esp_rom_spiflash_chip_t *stub_target_flash_get_config(void);
 
 /**
  * @brief Set correct values to the internal SPI flash config in ROM
@@ -122,7 +130,7 @@ uint32_t stub_target_get_max_supported_flash_size(void);
  * @return Result:
  * - STUB_LIB_OK if success
  * - STUB_LIB_ERR_FLASH_READ_UNALIGNED
- * - STUB_LIB_ERR_FLASH_READ_ROM_ERR
+ * - STUB_LIB_ERR_FLASH_READ
  */
 int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
 
@@ -139,7 +147,7 @@ int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
  * @return Result:
  * - STUB_LIB_OK if success
  * - STUB_LIB_ERR_FLASH_WRITE_UNALIGNED
- * - STUB_LIB_FAIL on ROM write error
+ * - STUB_LIB_ERR_FLASH_WRITE
  */
 int stub_target_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt);
 
