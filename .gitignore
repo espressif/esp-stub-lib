@@ -1,2 +1,6 @@
 example/build/
 example/toolchain/
+
+# A compile_commands.json can be generated for helping tools such
+# as clangd to locate header files and use correct $CFLAGS
+compile_commands.json
