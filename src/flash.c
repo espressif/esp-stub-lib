@@ -4,16 +4,19 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <flash.h>
-#include <err.h>
-#include <log.h>
-#include <bit_utils.h>
 #include <stddef.h>
+
+#include <bit_utils.h>
+#include <err.h>
+#include <flash.h>
+#include <log.h>
+#include <rom_wrappers.h>
+
 #include <target/flash.h>
 #include <target/flash_4byte.h>
-#include <private/rom_flash_config.h>
+
 #include <private/rom_flash.h>
-#include <rom_wrappers.h>
+#include <private/rom_flash_config.h>
 
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;

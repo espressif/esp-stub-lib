@@ -5,11 +5,15 @@
  */
 
 #include <stdint.h>
-#include <log.h>
+
 #include <err.h>
+#include <log.h>
+
 #include <target/flash.h>
+
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
+
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
 #include <soc/spi_mem_reg.h>

@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #include <mem_utils.h>
+
 #include <target/mem_utils.h>
 
 bool stub_lib_mem_is_irom(uintptr_t addr)

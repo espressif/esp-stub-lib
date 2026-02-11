@@ -5,6 +5,7 @@
  */
 
 #include <stdint.h>
+
 #include <target/uart.h>
 
 // ROM functions for targets using common implementation

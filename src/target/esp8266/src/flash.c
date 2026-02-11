@@ -4,13 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include <target/flash.h>
+
 #include <private/rom_flash.h>
-#include <esp-stub-lib/log.h>
-#include <esp-stub-lib/err.h>
+
 #include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/err.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 // ESP8266 uses SPI0 as the flash interface

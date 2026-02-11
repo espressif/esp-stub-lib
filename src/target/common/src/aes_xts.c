@@ -5,7 +5,9 @@
  */
 
 #include <stdint.h>
+
 #include <target/aes_xts.h>
+
 #include <esp-stub-lib/err.h>
 
 void __attribute__((weak)) stub_target_aes_xts_init(void)

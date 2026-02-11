@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 struct esp_rom_spiflash_chip;
 

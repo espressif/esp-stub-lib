@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 #include <stdint.h>
+
 #include <esp-stub-lib/rom_wrappers.h>
 
 extern void ets_delay_us(uint32_t us);

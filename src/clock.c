@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <target/clock.h>
 #include <rom_wrappers.h>
+
+#include <target/clock.h>
 
 void stub_lib_clock_init(void)
 {

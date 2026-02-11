@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 #include <stdint.h>
+
 #include <target/md5.h>
 
 void stub_lib_md5_init(void *ctx)

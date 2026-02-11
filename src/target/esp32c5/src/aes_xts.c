@@ -4,13 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
+
 #include <target/aes_xts.h>
-#include <esp-stub-lib/soc_utils.h>
+
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/rom_wrappers.h>
+#include <esp-stub-lib/soc_utils.h>
 #include <soc/spi_mem_c_reg.h>
 
 #define INTERNAL_SPI_NUM      0
