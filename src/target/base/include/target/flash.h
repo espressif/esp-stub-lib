@@ -30,6 +30,15 @@ typedef enum {
 } spi_flash_mode_t;
 
 /**
+ * @brief Reset default SPI IOMUX pins to GPIO mode
+ *
+ * This function configures the default SPI flash IOMUX pins as GPIOs.
+ * This is needed when switching from default IOMUX routing to GPIO matrix routing
+ * to avoid bus conflicts. Should be called before attaching with custom SPI pins.
+ */
+void stub_target_reset_default_spi_pins(void);
+
+/**
  * @brief Initialize SPI Flash hardware.
  *
  * Configure SPI pins, registers, mode, etc.
@@ -89,6 +98,17 @@ int stub_target_flash_update_config(uint32_t flash_id,
  * - 0 if flash_id is unknown
  */
 uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id);
+
+/**
+ * @brief Get maximum supported flash size for the target chip
+ *
+ * Returns the maximum flash size that the target chip can support,
+ * taking into account addressing limitations and hardware capabilities.
+ * This is used as a fallback when flash ID is unknown.
+ *
+ * @return Maximum supported flash size in bytes
+ */
+uint32_t stub_target_get_max_supported_flash_size(void);
 
 /**
  * @brief Read data.

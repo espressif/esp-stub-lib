@@ -11,9 +11,9 @@
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
 #include <esp-stub-lib/err.h>
+#include <soc/io_mux_reg.h>
 
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_chip(void);
-extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_sector(uint32_t addr);
@@ -23,6 +23,17 @@ extern esp_rom_spiflash_result_t esp_rom_spiflash_write_enable(struct esp_rom_sp
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
 extern esp_rom_spiflash_result_t esp_rom_spiflash_unlock(void);
+extern void esp_rom_gpio_pad_select_gpio(uint32_t gpio_num);
+
+void __attribute__((weak)) stub_target_reset_default_spi_pins(void)
+{
+#ifdef SPI_CLK_GPIO_NUM
+    esp_rom_gpio_pad_select_gpio(SPI_CLK_GPIO_NUM);
+    esp_rom_gpio_pad_select_gpio(SPI_Q_GPIO_NUM);
+    esp_rom_gpio_pad_select_gpio(SPI_D_GPIO_NUM);
+    esp_rom_gpio_pad_select_gpio(SPI_CS0_GPIO_NUM);
+#endif
+}
 
 int stub_target_flash_update_config(uint32_t flash_id,
                                     uint32_t flash_size,
@@ -64,10 +75,22 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
     return 0;
 }
 
+uint32_t __attribute__((weak)) stub_target_get_max_supported_flash_size(void)
+{
+    /* Default: chips without 4-byte addressing support (16MB max) */
+    return 16 * 1024 * 1024;
+}
+
+uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
+{
+    return 0;
+}
+
 void __attribute__((weak)) stub_target_flash_init(void *state)
 {
     (void)state;
-    esp_rom_spiflash_attach(0, 0);
+    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+    stub_target_flash_attach(spiconfig, 0);
 }
 
 struct esp_rom_spiflash_chip *__attribute__((weak)) stub_target_flash_get_config(void)
@@ -145,11 +168,6 @@ int stub_target_flash_erase_area(uint32_t addr, uint32_t size)
         return STUB_LIB_OK;
     }
     return STUB_LIB_FAIL;
-}
-
-void stub_target_flash_attach(uint32_t ishspi, bool legacy)
-{
-    esp_rom_spiflash_attach(ishspi, legacy);
 }
 
 void __attribute__((weak)) stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)

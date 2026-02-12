@@ -17,7 +17,7 @@
 
 /* ECO version from ROM - used to route to correct ROM functions */
 extern uint32_t _rom_eco_version;
-
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 extern void esp_rom_opiflash_exec_cmd_eco1(int spi_num,
                                            spi_flash_mode_t mode,
                                            uint32_t cmd,
@@ -135,6 +135,16 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
     }
 }
 
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
+
+void stub_target_reset_default_spi_pins(void)
+{
+    /* ESP32-P4 uses dedicated pins for SPI flash. */
+}
+
 static void spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI1_MEM_C_CMD_REG, SPI1_MEM_C_MST_ST) ||
@@ -180,4 +190,10 @@ void stub_target_flash_erase_block_start(uint32_t addr)
     }
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
+}
+
+uint32_t stub_target_get_max_supported_flash_size(void)
+{
+    /* ESP32-P4 supports up to 64MB with 4-byte addressing */
+    return 64 * 1024 * 1024;
 }

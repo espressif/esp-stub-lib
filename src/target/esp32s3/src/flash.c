@@ -5,6 +5,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <log.h>
 #include <err.h>
 #include <target/flash.h>
@@ -19,6 +20,8 @@
 
 extern uint32_t ets_efuse_get_spiconfig(void);
 extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
+extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
+extern void esp_rom_spiflash_attach(uint32_t spiconfig, bool legacy);
 extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       spi_flash_mode_t mode,
                                       uint32_t cmd,
@@ -32,6 +35,16 @@ extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       int miso_bit_len,
                                       uint32_t cs_mask,
                                       bool is_write_erase_operation);
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
+
+uint32_t stub_target_flash_get_spiconfig_efuse(void)
+{
+    return esp_rom_efuse_get_flash_gpio_info();
+}
 
 static void stub_target_flash_init_funcs(void)
 {
@@ -49,7 +62,7 @@ static void stub_target_flash_init_funcs(void)
 void stub_target_flash_init(void *state)
 {
     (void)state;
-    uint32_t spiconfig = ets_efuse_get_spiconfig();
+    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
     esp_rom_spiflash_attach(spiconfig, 0);
     if (ets_efuse_flash_octal_mode()) {
         STUB_LOGD("octal mode is on\n");
@@ -128,4 +141,10 @@ void stub_target_flash_erase_block_start(uint32_t addr)
     }
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
+}
+
+uint32_t stub_target_get_max_supported_flash_size(void)
+{
+    /* ESP32-S3 supports up to 1GB with 4-byte addressing */
+    return 1024 * 1024 * 1024;
 }

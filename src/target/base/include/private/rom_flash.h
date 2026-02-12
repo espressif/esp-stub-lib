@@ -25,28 +25,6 @@ typedef enum {
 } esp_rom_spiflash_result_t;
 
 /**
- * @brief SPI Flash init
- *
- * @param spiconfig
- * (for ESP32 chip)
- * - 0 for default SPI pins
- * - 1 for default HSPI pins
- * - other for custom pin configuration
- *
- * (for S2, C3, S3 chips)
- * - 0 for auto SPI configuration from eFuse is supported
- * - value for custom pin configuration
- *
- * (others chips)
- * - 0 is only a compatibility value, auto SPI configuration is not supported
- *
- * @param legacy
- * - false is only a deprecated compatibility API value, for all chips
- *
- */
-extern void esp_rom_spiflash_attach(uint32_t spiconfig, bool legacy);
-
-/**
  * @brief Initialize internal ROM config's flash_id from hw registers
  *
  */

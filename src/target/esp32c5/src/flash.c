@@ -19,6 +19,12 @@
 
 /* ECO version from ROM - used to route to correct ROM functions */
 extern uint32_t _rom_eco_version;
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
 
 /* ECO-specific ROM function declarations */
 extern void esp_rom_opiflash_exec_cmd_eco2(int spi_num,
@@ -124,4 +130,10 @@ void stub_target_flash_erase_block_start(uint32_t addr)
     }
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
+}
+
+uint32_t stub_target_get_max_supported_flash_size(void)
+{
+    /* ESP32-C5 supports up to 32MB with 4-byte addressing */
+    return 32 * 1024 * 1024;
 }
