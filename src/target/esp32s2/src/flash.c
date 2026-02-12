@@ -41,6 +41,10 @@ static void spi_wait_ready(void)
     while (REG_GET_FIELD(SPI_MEM_FSM_REG(SPI_NUM), SPI_MEM_ST)) {
         /* busy wait */
     }
+    /* There is no HW arbiter on SPI0, so we need to wait for it to be ready */
+    while ((REG_READ(SPI_MEM_FSM_REG(0)) & SPI_MEM_ST)) {
+        /* busy wait */
+    }
 }
 
 bool stub_target_flash_is_busy(void)

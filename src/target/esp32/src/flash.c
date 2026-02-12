@@ -36,20 +36,13 @@ struct esp_rom_spiflash_chip *stub_target_flash_get_config(void)
     return &g_rom_flashchip;
 }
 
-static uint32_t get_flash_id(void)
+uint32_t stub_target_flash_get_flash_id(void)
 {
     WRITE_PERI_REG(SPI_W0_REG(SPI_NUM), 0); // clear register
     WRITE_PERI_REG(SPI_CMD_REG(SPI_NUM), SPI_FLASH_RDID);
     while (READ_PERI_REG(SPI_CMD_REG(SPI_NUM)) != 0)
         ;
     return REG_READ(SPI_W0_REG(SPI_NUM)) & 0xffffff;
-}
-
-uint32_t stub_target_flash_get_flash_id(void)
-{
-    struct esp_rom_spiflash_chip *chip = stub_target_flash_get_config();
-    chip->flash_id = get_flash_id();
-    return chip->flash_id;
 }
 
 static void spi_wait_ready(void)

@@ -15,6 +15,7 @@
 #include <esp-stub-lib/soc_utils.h>
 #include <soc/spi_mem_reg.h>
 
+#define SPI_INTERNAL    0
 #define SPI_NUM         1
 #define STATUS_BUSY_BIT BIT(0)
 
@@ -100,6 +101,10 @@ int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 static void spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI_MEM_FSM_REG(SPI_NUM), SPI_MEM_ST)) {
+        /* busy wait */
+    }
+    /* There is no HW arbiter on SPI_INTERNAL, so we need to wait for it to be ready */
+    while ((REG_READ(SPI_MEM_FSM_REG(SPI_INTERNAL)) & SPI_MEM_ST)) {
         /* busy wait */
     }
 }
