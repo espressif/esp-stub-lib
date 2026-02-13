@@ -46,12 +46,20 @@ extern "C" {
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-#ifndef KB
-#define KB(bytes) ((bytes) / 1024)
+#ifndef KIB
+#define KIB(x) ((uint32_t)(x) * 1024U)
 #endif
 
-#ifndef MB
-#define MB(bytes) ((bytes) / (1024 * 1024))
+#ifndef MIB
+#define MIB(x) ((uint32_t)(x) * 1024U * 1024U)
+#endif
+
+#ifndef BYTES_TO_KIB
+#define BYTES_TO_KIB(x) ((x) / 1024U)
+#endif
+
+#ifndef BYTES_TO_MIB
+#define BYTES_TO_MIB(x) ((x) / (1024U * 1024U))
 #endif
 
 #ifdef __cplusplus

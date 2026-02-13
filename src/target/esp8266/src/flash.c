@@ -34,8 +34,8 @@
 
 #define STATUS_BUSY_BIT   BIT(0)
 
-extern struct esp_rom_spiflash_chip g_rom_flashchip;
-extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
+extern esp_rom_spiflash_chip_t g_rom_flashchip;
+extern int esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
 extern void esp_rom_spiflash_attach(void);
 extern void esp_rom_spiflash_select_padsfunc(void);
 
@@ -47,7 +47,7 @@ void stub_target_reset_default_spi_pins(void)
      * See: https://github.com/espressif/esptool/issues/98 */
 }
 
-struct esp_rom_spiflash_chip *stub_target_flash_get_config(void)
+esp_rom_spiflash_chip_t *stub_target_flash_get_config(void)
 {
     return &g_rom_flashchip;
 }
@@ -75,7 +75,7 @@ int stub_target_flash_write_buff(uint32_t addr, const void *buffer, uint32_t siz
     if (encrypt) {
         return STUB_LIB_ERR_NOT_SUPPORTED;
     }
-    esp_rom_spiflash_result_t res = esp_rom_spiflash_write(addr, buffer, size);
+    int res = esp_rom_spiflash_write(addr, buffer, size);
     STUB_LOG_TRACEF("(0x%x, 0x%x, %u, %d) results: %d\n", addr, (uint32_t)buffer, size, encrypt, res);
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_FAIL;
 }
