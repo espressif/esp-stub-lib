@@ -68,6 +68,10 @@ build_target() {
 
     cmake $cmake_args ../..
     ninja
+
+    # Symlink compile_commands.json to the esp-stub-lib root for IDE support (clangd)
+    ln -sf "$PWD/compile_commands.json" ../../../compile_commands.json
+
     cd ../..
 }
 
