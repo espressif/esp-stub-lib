@@ -47,20 +47,29 @@ typedef enum {
 void stub_target_reset_default_spi_pins(void);
 
 /**
+ * @brief This function saves the state of the SPI flash
+ *
+ * @param state State pointer.
+ *
+ * @return true if attach is required, false if not
+ */
+bool stub_target_flash_state_save(void **state);
+
+/**
  * @brief Initialize SPI Flash hardware.
  *
  * Configure SPI pins, registers, mode, etc.
  *
  * @param state Unused.
  */
-void stub_target_flash_init(void *state);
+void stub_target_flash_init(void **state);
 
 /**
- * @brief Not implemented. Intended for restoring the state
+ * @brief Restore the state of the SPI flash
  *
- * @param state Unused.
+ * @param state State pointer.
  */
-void stub_target_flash_deinit(const void *state);
+void stub_target_flash_state_restore(const void *state);
 
 /**
  * @brief Retrieve Flash ID (aka flash device id, aka flash chip id) from internal hw.
