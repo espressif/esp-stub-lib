@@ -124,13 +124,11 @@ static int __attribute__((unused)) handle_test_uart(void)
 static int __attribute__((unused)) handle_test_flash(void)
 {
     void *flash_state = NULL;
-    stub_lib_flash_info_t flash_info;
     stub_lib_flash_config_t flash_config;
     uint8_t buffer[256];
 
     (void)stub_lib_flash_init(&flash_state);
-    stub_lib_flash_get_info(&flash_info);
-    stub_lib_flash_info_print(&flash_info);
+    stub_lib_flash_get_config(&flash_config);
     (void)stub_lib_flash_update_config(&flash_config);
     stub_lib_flash_attach(0, false);
     (void)stub_lib_flash_read_buff(0x1000, buffer, sizeof(buffer));

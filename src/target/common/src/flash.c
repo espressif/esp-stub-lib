@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <bit_utils.h>
 #include <log.h>
 #include <target/flash.h>
 #include <private/rom_flash.h>
@@ -13,16 +14,18 @@
 #include <esp-stub-lib/err.h>
 #include <soc/io_mux_reg.h>
 
-extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_chip(void);
-extern esp_rom_spiflash_result_t esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
-extern esp_rom_spiflash_result_t esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
-extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_sector(uint32_t addr);
-extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_block(uint32_t addr);
-extern esp_rom_spiflash_result_t esp_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
-extern esp_rom_spiflash_result_t esp_rom_spiflash_write_enable(struct esp_rom_spiflash_chip *flash_chip);
+extern int esp_rom_spiflash_erase_chip(void);
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+extern int esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
+extern int esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
+extern int esp_rom_spiflash_erase_sector(uint32_t addr);
+extern int esp_rom_spiflash_erase_block(uint32_t addr);
+extern int esp_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
+extern int esp_rom_spiflash_write_enable(esp_rom_spiflash_chip_t *flash_chip);
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
-extern esp_rom_spiflash_result_t esp_rom_spiflash_unlock(void);
+extern int esp_rom_spiflash_unlock(void);
+
 extern void esp_rom_gpio_pad_select_gpio(uint32_t gpio_num);
 
 void __attribute__((weak)) stub_target_reset_default_spi_pins(void)
@@ -42,8 +45,7 @@ int stub_target_flash_update_config(uint32_t flash_id,
                                     uint32_t page_size,
                                     uint32_t status_mask)
 {
-    esp_rom_spiflash_result_t res =
-        esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size, status_mask);
+    int res = esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size, status_mask);
     if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
         STUB_LOGE("Failed to update flash config: %d\n", res);
         return STUB_LIB_FAIL;
@@ -53,7 +55,7 @@ int stub_target_flash_update_config(uint32_t flash_id,
 
 uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
 {
-    const uint32_t id = flash_id & 0xff;
+    const uint8_t id = flash_id & 0xff;
     switch (id) {
     case 0x12: // 256 KB
     case 0x13:
@@ -68,7 +70,7 @@ uint32_t stub_target_flash_id_to_flash_size(uint32_t flash_id)
     case 0x1C: // 256 MB
         return 1u << id;
     case 0x39:
-        return 32 * 1024 * 1024;
+        return MIB(32);
     }
 
     STUB_LOGE("Unknown flash_id: 0x%x\n", flash_id);
@@ -93,7 +95,7 @@ void __attribute__((weak)) stub_target_flash_init(void *state)
     stub_target_flash_attach(spiconfig, 0);
 }
 
-struct esp_rom_spiflash_chip *__attribute__((weak)) stub_target_flash_get_config(void)
+esp_rom_spiflash_chip_t *__attribute__((weak)) stub_target_flash_get_config(void)
 {
     extern esp_rom_spiflash_legacy_data_t *rom_spiflash_legacy_data;
     return &rom_spiflash_legacy_data->chip;
@@ -112,30 +114,27 @@ void __attribute__((weak)) stub_target_flash_deinit(const void *state)
 
 void __attribute__((weak)) stub_target_flash_write_enable(void)
 {
-    struct esp_rom_spiflash_chip *chip = stub_target_flash_get_config();
+    esp_rom_spiflash_chip_t *chip = stub_target_flash_get_config();
     esp_rom_spiflash_write_enable(chip);
 }
 
 int __attribute__((weak)) stub_target_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    esp_rom_spiflash_result_t res;
+    int res;
     if (encrypt) {
         res = esp_rom_spiflash_write_encrypted(addr, buffer, size);
     } else {
         res = esp_rom_spiflash_write(addr, buffer, size);
     }
-    STUB_LOG_TRACEF("(0x%x, 0x%x, %u, %d) results: %d\n", addr, (uint32_t)buffer, size, encrypt, res);
-    return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_FAIL;
+    STUB_LOG_TRACEF("results: %d\n", res);
+    return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_WRITE;
 }
 
 int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
-    esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t *)buffer, (int32_t)size);
-    STUB_LOG_TRACEF("esp_rom_spiflash_read(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
-    if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
-        return STUB_LIB_ERR_FLASH_READ_ROM_ERR;
-    }
-    return STUB_LIB_OK;
+    int res = esp_rom_spiflash_read(addr, buffer, (int32_t)size);
+    STUB_LOG_TRACEF("results: %d\n", res);
+    return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_READ;
 }
 
 int stub_target_flash_erase_chip(void)

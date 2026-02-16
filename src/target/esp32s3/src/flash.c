@@ -14,9 +14,10 @@
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
 #include <soc/spi_mem_reg.h>
+#include <soc/io_mux_reg.h>
 
 #define SPI_INTERNAL    0
-#define SPI_NUM         1
+#define FLASH_SPI_NUM   1
 #define STATUS_BUSY_BIT BIT(0)
 
 extern uint32_t ets_efuse_get_spiconfig(void);
@@ -88,19 +89,9 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
                               params->is_write_erase_operation);
 }
 
-int stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
-{
-    esp_rom_spiflash_result_t res = esp_rom_spiflash_read(addr, (uint32_t *)buffer, (int32_t)size);
-    STUB_LOG_TRACEF("esp_rom_spiflash_read(0x%x, 0x%x, %u) results: %d\n", addr, (uint32_t)buffer, size, res);
-    if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
-        return STUB_LIB_ERR_FLASH_READ_ROM_ERR;
-    }
-    return STUB_LIB_OK;
-}
-
 static void spi_wait_ready(void)
 {
-    while (REG_GET_FIELD(SPI_MEM_FSM_REG(SPI_NUM), SPI_MEM_ST)) {
+    while (REG_GET_FIELD(SPI_MEM_FSM_REG(FLASH_SPI_NUM), SPI_MEM_ST)) {
         /* busy wait */
     }
     /* There is no HW arbiter on SPI_INTERNAL, so we need to wait for it to be ready */
@@ -113,11 +104,11 @@ bool stub_target_flash_is_busy(void)
 {
     spi_wait_ready();
 
-    REG_WRITE(SPI_MEM_RD_STATUS_REG(SPI_NUM), 0);
-    REG_WRITE(SPI_MEM_CMD_REG(SPI_NUM), SPI_MEM_FLASH_RDSR);
-    while (REG_READ(SPI_MEM_CMD_REG(SPI_NUM)) != 0) {
+    REG_WRITE(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM), 0);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_RDSR);
+    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
     }
-    uint32_t status_value = REG_READ(SPI_MEM_RD_STATUS_REG(SPI_NUM));
+    uint32_t status_value = REG_READ(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM));
 
     return (status_value & STATUS_BUSY_BIT) != 0;
 }
@@ -127,9 +118,9 @@ void stub_target_flash_erase_sector_start(uint32_t addr)
     stub_target_flash_write_enable();
     spi_wait_ready();
 
-    REG_WRITE(SPI_MEM_ADDR_REG(SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(SPI_NUM), SPI_MEM_FLASH_SE);
-    while (REG_READ(SPI_MEM_CMD_REG(SPI_NUM)) != 0) {
+    REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_SE);
+    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
     }
 
     STUB_LOG_TRACEF("Started sector erase at 0x%x\n", addr);
@@ -140,9 +131,9 @@ void stub_target_flash_erase_block_start(uint32_t addr)
     stub_target_flash_write_enable();
     spi_wait_ready();
 
-    REG_WRITE(SPI_MEM_ADDR_REG(SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(SPI_NUM), SPI_MEM_FLASH_BE);
-    while (REG_READ(SPI_MEM_CMD_REG(SPI_NUM)) != 0) {
+    REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_BE);
+    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
     }
 
     STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);

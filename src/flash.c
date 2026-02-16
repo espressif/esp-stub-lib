@@ -18,10 +18,14 @@
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
-#define SPI_NUM 1
+#define FLASH_SPI_NUM 1
 
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
+    if (config == NULL) {
+        return STUB_LIB_ERR_INVALID_ARG;
+    }
+
     return stub_target_flash_update_config(config->flash_id,
                                            config->flash_size,
                                            config->block_size,
@@ -39,23 +43,24 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
 int stub_lib_flash_init(void **state)
 {
     stub_target_flash_init(state);
+
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);
 
     int return_code = STUB_LIB_OK;
 
+    STUB_LOG_TRACEF("Flash size: %d MB, flash_id: 0x%x\n", BYTES_TO_MIB(flash_size), flash_id);
+
     if (flash_size == 0) {
         /* Unknown flash ID - use target-specific maximum supported size as fallback */
         flash_size = stub_target_get_max_supported_flash_size();
-        STUB_LOGI("Unknown flash ID, assuming %d MB (chip max)\n", MB(flash_size));
+        STUB_LOGI("Unknown flash ID, assuming %d MB (chip max)\n", BYTES_TO_MIB(flash_size));
         return_code = STUB_LIB_ERR_UNKNOWN_FLASH_ID;
     }
 
-    if (flash_size > 16 * 1024 * 1024) {
+    if (flash_size > MIB(16)) {
         large_flash_mode = true;
-        STUB_LOGI("Large flash mode enabled (>16MB)\n");
     }
-    STUB_LOG_TRACEF("Flash size: %d MB\n", MB(flash_size));
 
     int config_ret = stub_target_flash_update_config(flash_id,
                                                      flash_size,
@@ -75,73 +80,47 @@ void stub_lib_flash_deinit(const void *state)
     stub_target_flash_deinit(state);
 }
 
-void stub_lib_flash_get_info(stub_lib_flash_info_t *info)
+void stub_lib_flash_get_config(stub_lib_flash_config_t *cfg)
 {
     const esp_rom_spiflash_chip_t *chip = stub_target_flash_get_config();
 
-    info->id = chip->flash_id;
-    info->size = chip->chip_size;
-    info->block_size = chip->block_size;
-    info->sector_size = chip->sector_size;
-    info->page_size = chip->page_size;
-    info->mode = 0;      // TODO: Implement
-    info->encrypted = 0; // TODO: Implement
-}
-
-void stub_lib_flash_info_print(const stub_lib_flash_info_t *info)
-{
-    (void)info; // to avoid the 'unused-parameter' warning when LOG is disabled
-    STUB_LOGI("Flash info:\n"
-              "\tid: 0x%x, size: %d KB,\n"
-              "\tblock: %d KB (0x%x), sector: %d B (0x%x), page: %d B (0x%x),\n"
-              "\tmode: %d, enc: %d\n",
-              info->id,
-              KB(info->size),
-              KB(info->block_size),
-              info->block_size,
-              info->sector_size,
-              info->sector_size,
-              info->page_size,
-              info->page_size,
-              info->mode,
-              info->encrypted);
+    cfg->flash_id = chip->flash_id;
+    cfg->flash_size = chip->chip_size;
+    cfg->block_size = chip->block_size;
+    cfg->sector_size = chip->sector_size;
+    cfg->page_size = chip->page_size;
+    cfg->status_mask = chip->status_mask;
 }
 
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
+    STUB_LOG_TRACEF("addr: 0x%x, size: %u, large_flash_mode: %d\n", addr, size, large_flash_mode);
+
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
-        STUB_LOGE("Unaligned read: 0x%x, %u\n", addr, size);
+        STUB_LOGE("Flash read unaligned!\n");
         return STUB_LIB_ERR_FLASH_READ_UNALIGNED;
     }
 
     if (large_flash_mode) {
-        int res = stub_target_flash_4byte_read(SPI_NUM, addr, (uint8_t *)buffer, size);
-        STUB_LOG_TRACEF("stub_target_flash_4byte_read(0x%x, 0x%x, %u) results: %d\n",
-                        addr,
-                        (uint32_t)buffer,
-                        size,
-                        res);
-        return (res == 0) ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_READ_ROM_ERR;
+        return stub_target_flash_4byte_read(FLASH_SPI_NUM, addr, buffer, size);
     }
+
     return stub_target_flash_read_buff(addr, buffer, size);
 }
 
-int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt)
+int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
+    STUB_LOG_TRACEF("addr: 0x%x, size: %u, large_flash_mode: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
+
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
-        STUB_LOGE("Unaligned write: 0x%x, %u\n", addr, size);
+        STUB_LOGE("Flash write unaligned!\n");
         return STUB_LIB_ERR_FLASH_WRITE_UNALIGNED;
     }
 
     if (large_flash_mode) {
-        int res = stub_target_flash_4byte_write(SPI_NUM, addr, buffer, size, encrypt);
-        STUB_LOG_TRACEF("stub_target_flash_4byte_write(0x%x, 0x%x, %u) results: %d\n",
-                        addr,
-                        (uint32_t)buffer,
-                        size,
-                        res);
-        return (res == 0) ? STUB_LIB_OK : STUB_LIB_FAIL;
+        return stub_target_flash_4byte_write(FLASH_SPI_NUM, addr, buffer, size, encrypt);
     }
+
     return stub_target_flash_write_buff(addr, buffer, size, encrypt);
 }
 
@@ -153,16 +132,18 @@ int stub_lib_flash_erase_chip(void)
 int stub_lib_flash_erase_sector(uint32_t addr)
 {
     if (large_flash_mode) {
-        return stub_target_flash_4byte_erase_sector(SPI_NUM, addr);
+        return stub_target_flash_4byte_erase_sector(FLASH_SPI_NUM, addr);
     }
+
     return stub_target_flash_erase_sector(addr);
 }
 
 int stub_lib_flash_erase_block(uint32_t addr)
 {
     if (large_flash_mode) {
-        return stub_target_flash_4byte_erase_block(SPI_NUM, addr);
+        return stub_target_flash_4byte_erase_block(FLASH_SPI_NUM, addr);
     }
+
     return stub_target_flash_erase_block(addr);
 }
 
@@ -180,6 +161,7 @@ int stub_lib_flash_wait_ready(uint64_t timeout_us)
         }
         stub_lib_delay_us(1);
     } while (++elapsed_us < timeout_us);
+
     return STUB_LIB_ERR_TIMEOUT;
 }
 
@@ -190,7 +172,7 @@ int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaini
     }
 
     if (stub_lib_flash_wait_ready(0) != STUB_LIB_OK) {
-        return STUB_LIB_ERR_FLASH_BUSY;
+        return STUB_LIB_ERR_TIMEOUT;
     }
 
     if (*remaining_size == 0) {
@@ -219,12 +201,12 @@ int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaini
     if (large_flash_mode) {
         /* Use 4-byte addressing for large flash */
         if (block_erase) {
-            int res = stub_target_flash_4byte_erase_block_start(SPI_NUM, addr);
+            int res = stub_target_flash_4byte_erase_block_start(FLASH_SPI_NUM, addr);
             if (res != STUB_LIB_OK) {
                 return res;
             }
         } else {
-            int res = stub_target_flash_4byte_erase_sector_start(SPI_NUM, addr);
+            int res = stub_target_flash_4byte_erase_sector_start(FLASH_SPI_NUM, addr);
             if (res != STUB_LIB_OK) {
                 return res;
             }

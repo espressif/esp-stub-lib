@@ -9,22 +9,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* Flash geometry constants */
-#define STUB_FLASH_SECTOR_SIZE 0x1000U
-#define STUB_FLASH_BLOCK_SIZE  0x10000U
-#define STUB_FLASH_PAGE_SIZE   0x100U
-#define STUB_FLASH_STATUS_MASK 0xFFFFU
-
-typedef struct stub_lib_flash_info {
-    uint32_t id;
-    uint32_t size;
-    uint32_t block_size;
-    uint32_t sector_size;
-    uint32_t page_size;
-    uint32_t mode; // SPI, Octal, Dual, Quad
-    uint32_t encrypted;
-} stub_lib_flash_info_t;
-
 typedef struct stub_lib_flash_config {
     uint32_t flash_id;
     uint32_t flash_size;
@@ -44,8 +28,9 @@ extern "C" {
  * @param config Flash configuration
  *
  * @return Result:
- * - STUB_LIB_OK if success
- * - STUB_LIB_FAIL on ROM config error
+ * - STUB_LIB_OK
+ * - STUB_LIB_FAIL
+ * - STUB_LIB_ERR_INVALID_ARG
  */
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config);
 
@@ -65,8 +50,8 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy);
  * @param state Unused
  *
  * @return Error code:
- * - STUB_LIB_OK    - success
- * - STUB_LIB_ERR_UNKNOWN_FLASH_ID   - can't get size from flash id
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_UNKNOWN_FLASH_ID
  */
 int stub_lib_flash_init(void **state);
 
@@ -82,9 +67,7 @@ void stub_lib_flash_deinit(const void *state);
  *
  * @param[out] info Pointer to receive the result.
  */
-void stub_lib_flash_get_info(stub_lib_flash_info_t *info);
-
-void stub_lib_flash_info_print(const stub_lib_flash_info_t *info);
+void stub_lib_flash_get_config(stub_lib_flash_config_t *config);
 
 /**
  * @brief Read data from SPI flash into a buffer.
@@ -94,15 +77,70 @@ void stub_lib_flash_info_print(const stub_lib_flash_info_t *info);
  * @param size Number of bytes to read. Should be 4 bytes aligned.
  *
  * @return Result:
- * - STUB_LIB_OK if success
+ * - STUB_LIB_OK
  * - STUB_LIB_ERR_FLASH_READ_UNALIGNED
- * - STUB_LIB_ERR_FLASH_READ_ROM_ERR
+ * - STUB_LIB_ERR_FLASH_READ
  */
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
-int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, int encrypt);
+
+/**
+ * @brief Write data to SPI flash from a buffer.
+ *
+ * @param addr Address to write to. Should be 4 bytes aligned.
+ * @param buffer Source buffer
+ * @param size Number of bytes to write. Should be 4 bytes aligned.
+ * @param encrypt Whether to use encrypted write
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_FLASH_WRITE_UNALIGNED
+ * - STUB_LIB_ERR_FLASH_WRITE
+ */
+int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt);
+
+/**
+ * @brief Erase a region of flash.
+ *
+ * @param addr Address to start erasing from.
+ * @param size Number of bytes to erase.
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_FAIL
+ */
 int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
+
+/**
+ * @brief Erase a sector of flash.
+ *
+ * @param addr Address of the sector to erase.
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_FAIL
+ * - STUB_LIB_ERR_TIMEOUT
+ */
 int stub_lib_flash_erase_sector(uint32_t addr);
+
+/**
+ * @brief Erase a block of flash.
+ *
+ * @param addr Address of the block to erase.
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_FAIL
+ * - STUB_LIB_ERR_TIMEOUT
+ */
 int stub_lib_flash_erase_block(uint32_t addr);
+
+/**
+ * @brief Erase the entire flash chip.
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_FAIL
+ */
 int stub_lib_flash_erase_chip(void);
 
 /**
@@ -112,7 +150,9 @@ int stub_lib_flash_erase_chip(void);
  * Use timeout_us 0 for a single non-blocking check (returns STUB_LIB_ERR_TIMEOUT if busy).
  *
  * @param timeout_us Maximum time to wait in microseconds
- * @return STUB_LIB_OK on success (flash ready), STUB_LIB_ERR_TIMEOUT on timeout
+ * @return Result:
+ * - STUB_LIB_OK if flash is ready
+ * - STUB_LIB_ERR_TIMEOUT
  */
 int stub_lib_flash_wait_ready(uint64_t timeout_us);
 
@@ -127,9 +167,9 @@ int stub_lib_flash_wait_ready(uint64_t timeout_us);
  * @param remaining_size Pointer to remaining bytes to erase (will be updated)
  *
  * @return Result:
- * - STUB_LIB_OK if success
- * - STUB_LIB_ERR_INVALID_ARG if invalid arguments
- * - STUB_LIB_ERR_FLASH_BUSY if flash is busy
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_INVALID_ARG
+ * - STUB_LIB_ERR_TIMEOUT if flash is busy
  */
 int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size);
 

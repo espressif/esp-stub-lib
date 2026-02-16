@@ -135,6 +135,7 @@ static int stub_target_flash_4byte_write_unencrypted(
         flash_addr += chunk_size;
         size -= chunk_size;
     }
+
     return STUB_LIB_OK;
 }
 
@@ -205,8 +206,10 @@ int stub_target_flash_4byte_write(int spi_num, uint32_t flash_addr, const uint8_
 int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size)
 {
     if (stub_lib_flash_wait_ready(DEFAULT_TIMEOUT_US) != STUB_LIB_OK) {
+        STUB_LOG_TRACEF("Flash wait ready timeout\n");
         return STUB_LIB_ERR_TIMEOUT;
     }
+
     while (size > 0) {
         uint32_t chunk_size = (size > FLASH_READ_CHUNK_SIZE) ? FLASH_READ_CHUNK_SIZE : size;
         exec_read_cmd_4b(spi_num, flash_addr, buffer, (int)(8 * chunk_size));
@@ -215,7 +218,8 @@ int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buff
         buffer += chunk_size;
         flash_addr += chunk_size;
     }
-    return 0;
+
+    return STUB_LIB_OK;
 }
 
 static int erase_start_4b(int spi_num, uint32_t flash_addr, uint8_t erase_cmd)
@@ -226,6 +230,7 @@ static int erase_start_4b(int spi_num, uint32_t flash_addr, uint8_t erase_cmd)
 
     stub_target_flash_write_enable();
     exec_erase_cmd_4b(spi_num, flash_addr, erase_cmd);
+
     return STUB_LIB_OK;
 }
 
@@ -250,6 +255,7 @@ int stub_target_flash_4byte_erase_sector(int spi_num, uint32_t flash_addr)
     if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
     }
+
     return STUB_LIB_OK;
 }
 
@@ -264,5 +270,6 @@ int stub_target_flash_4byte_erase_block(int spi_num, uint32_t flash_addr)
     if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
     }
+
     return STUB_LIB_OK;
 }

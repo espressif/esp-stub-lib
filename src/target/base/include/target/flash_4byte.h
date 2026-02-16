@@ -17,7 +17,12 @@
  * @param data Source data buffer
  * @param size Length of data to write
  * @param encrypt Whether to use encrypted write
- * @return 0 on success, non-zero on error
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_FLASH_WRITE_UNALIGNED
+ * - STUB_LIB_ERR_TIMEOUT
+ * - STUB_LIB_FAIL
+
  */
 int stub_target_flash_4byte_write(int spi_num, uint32_t flash_addr, const uint8_t *data, uint32_t size, bool encrypt);
 
@@ -28,7 +33,9 @@ int stub_target_flash_4byte_write(int spi_num, uint32_t flash_addr, const uint8_
  * @param flash_addr Flash address to read from
  * @param buffer Buffer to read data into
  * @param size Length of data to read
- * @return 0 on success, non-zero on error
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_TIMEOUT
  */
 int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size);
 
@@ -40,7 +47,9 @@ int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buff
  *
  * @param spi_num SPI peripheral number (typically 1)
  * @param flash_addr Sector address to erase
- * @return 0 on success, non-zero on error
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_TIMEOUT
  */
 int stub_target_flash_4byte_erase_sector_start(int spi_num, uint32_t flash_addr);
 
@@ -52,7 +61,9 @@ int stub_target_flash_4byte_erase_sector_start(int spi_num, uint32_t flash_addr)
  *
  * @param spi_num SPI peripheral number (typically 1)
  * @param flash_addr Block address to erase
- * @return 0 on success, non-zero on error
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_TIMEOUT
  */
 int stub_target_flash_4byte_erase_block_start(int spi_num, uint32_t flash_addr);
 
@@ -63,7 +74,9 @@ int stub_target_flash_4byte_erase_block_start(int spi_num, uint32_t flash_addr);
  *
  * @param spi_num SPI peripheral number (typically 1)
  * @param flash_addr Sector address to erase
- * @return 0 on success, non-zero on error
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_TIMEOUT
  */
 int stub_target_flash_4byte_erase_sector(int spi_num, uint32_t flash_addr);
 
@@ -74,6 +87,8 @@ int stub_target_flash_4byte_erase_sector(int spi_num, uint32_t flash_addr);
  *
  * @param spi_num SPI peripheral number (typically 1)
  * @param flash_addr Block address to erase
- * @return 0 on success, non-zero on error
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_TIMEOUT
  */
 int stub_target_flash_4byte_erase_block(int spi_num, uint32_t flash_addr);

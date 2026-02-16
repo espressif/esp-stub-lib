@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct esp_rom_spiflash_chip {
+typedef struct {
     uint32_t flash_id;
     uint32_t chip_size; // chip size in bytes
     uint32_t block_size;
@@ -18,11 +18,7 @@ typedef struct esp_rom_spiflash_chip {
     uint32_t status_mask;
 } esp_rom_spiflash_chip_t;
 
-typedef enum {
-    ESP_ROM_SPIFLASH_RESULT_OK,
-    ESP_ROM_SPIFLASH_RESULT_ERR,
-    ESP_ROM_SPIFLASH_RESULT_TIMEOUT
-} esp_rom_spiflash_result_t;
+enum { ESP_ROM_SPIFLASH_RESULT_OK, ESP_ROM_SPIFLASH_RESULT_ERR, ESP_ROM_SPIFLASH_RESULT_TIMEOUT };
 
 /**
  * @brief Initialize internal ROM config's flash_id from hw registers
@@ -53,7 +49,7 @@ extern int esp_rom_spiflash_config_param(uint32_t flash_id,
  * - ESP_ROM_SPIFLASH_RESULT_OK
  * - ESP_ROM_SPIFLASH_RESULT_ERR
  */
-esp_rom_spiflash_result_t esp_rom_spiflash_read(uint32_t src_addr, uint32_t *dest, int32_t len);
+int esp_rom_spiflash_read(uint32_t src_addr, uint32_t *dest, int32_t len);
 
 /**
  * @brief Unlock SPI Flash
@@ -62,7 +58,7 @@ esp_rom_spiflash_result_t esp_rom_spiflash_read(uint32_t src_addr, uint32_t *des
  * - ESP_ROM_SPIFLASH_RESULT_OK
  * - ESP_ROM_SPIFLASH_RESULT_ERR
  */
-esp_rom_spiflash_result_t esp_rom_spiflash_unlock(void);
+int esp_rom_spiflash_unlock(void);
 
 /**
  * @brief Check if Flash is OPI.
