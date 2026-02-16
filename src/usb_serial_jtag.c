@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -8,9 +8,11 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <esp-stub-lib/usb_serial_jtag.h>
+#include <esp-stub-lib/err.h>
 #include <target/usb_serial_jtag.h>
 #include <esp_rom_caps.h>
 #include <soc_utils.h>
+#include <private/helpers.h>
 
 #if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
 #include <soc/usb_serial_jtag_reg.h>
@@ -86,12 +88,27 @@ uint8_t stub_lib_usb_serial_jtag_read_rxfifo_byte(void)
 
 uint8_t stub_lib_usb_serial_jtag_tx_one_char(uint8_t c)
 {
-    return esp_rom_uart_tx_one_char(c);
+#if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
+    // Wait for space in TX FIFO with timeout
+    // This is necessary because it is not guaranteed that the host is connected and ready to receive the data.
+    // 50ms timeout is same as ROM uses, should be enough for a host to pick up the data.
+    uint64_t timeout_us = 50000;
+    int ret =
+        stub_target_wait_reg_bit_set(USB_SERIAL_JTAG_EP1_CONF_REG, USB_SERIAL_JTAG_SERIAL_IN_EP_DATA_FREE, &timeout_us);
+    if (ret != STUB_LIB_OK) {
+        return 1;
+    }
+    WRITE_PERI_REG(USB_SERIAL_JTAG_EP1_REG, c);
+    return 0;
+#else
+    (void)c;
+    return 1;
+#endif
 }
 
 void stub_lib_usb_serial_jtag_tx_flush(void)
 {
 #if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
-    esp_rom_uart_flush_tx(ESP_ROM_USB_SERIAL_DEVICE_NUM);
+    SET_PERI_REG_MASK(USB_SERIAL_JTAG_EP1_CONF_REG, USB_SERIAL_JTAG_WR_DONE);
 #endif
 }

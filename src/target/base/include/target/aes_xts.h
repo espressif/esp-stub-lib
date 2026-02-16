@@ -8,38 +8,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <esp-stub-lib/soc_utils.h>
 #include <esp-stub-lib/err.h>
-#include <esp-stub-lib/rom_wrappers.h>
 
 /* Maximum size of an encryption block */
 #define MAX_ENCRYPT_BLOCK 64
-
-/**
- * @brief Wait for a register to reach an expected state
- *
- * Polls a register until it matches the expected state or times out.
- * This is a general-purpose utility for polling register state transitions.
- *
- * @param reg Register address to poll
- * @param expected_state Expected register value
- * @param timeout_us Pointer to timeout in microseconds (decremented on each iteration)
- * @return STUB_LIB_OK on success, STUB_LIB_ERR_TIMEOUT on timeout
- */
-static inline int stub_target_wait_reg_state(uint32_t reg, uint32_t expected_state, uint64_t *timeout_us)
-{
-    if (!timeout_us || *timeout_us == 0) {
-        return REG_READ(reg) == expected_state ? STUB_LIB_OK : STUB_LIB_ERR_TIMEOUT;
-    }
-
-    while ((*timeout_us)--) {
-        stub_lib_delay_us(1);
-        if (REG_READ(reg) == expected_state) {
-            return STUB_LIB_OK;
-        }
-    }
-    return STUB_LIB_ERR_TIMEOUT;
-}
 
 /**
  * @brief Initialize AES-XTS

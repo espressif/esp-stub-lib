@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <private/helpers.h>
 #include <target/aes_xts.h>
 #include <esp-stub-lib/soc_utils.h>
 #include <esp-stub-lib/err.h>

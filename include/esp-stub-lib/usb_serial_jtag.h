@@ -65,6 +65,10 @@ uint8_t stub_lib_usb_serial_jtag_tx_one_char(uint8_t c);
 
 /**
  * @brief Flush any buffered USB-Serial/JTAG transmit data
+ *
+ * This function flushes the buffered transmit data to the USB-Serial/JTAG interface.
+ * It is automatically done when the FIFO is full, but this function needs to be called anyway to
+ * signal end of the transmission.
  */
 void stub_lib_usb_serial_jtag_tx_flush(void);
 
