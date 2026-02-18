@@ -5,7 +5,41 @@
  */
 #include <stdarg.h>
 
+#include <esp-stub-lib/log.h>
+
 extern void ets_printf(const char *fmt, ...);
+extern void stub_lib_log_backend_init(void);
+
+static stub_lib_log_level_t g_stub_lib_log_level = STUB_LIB_LOG_LEVEL;
+
+static stub_lib_log_level_t stub_lib_log_level_normalize(stub_lib_log_level_t level)
+{
+    if (level < STUB_LOG_LEVEL_NONE) {
+        return STUB_LOG_LEVEL_NONE;
+    }
+
+    if (level > STUB_LOG_LEVEL_V) {
+        return STUB_LOG_LEVEL_V;
+    }
+
+    return level;
+}
+
+void stub_lib_log_set_level(stub_lib_log_level_t level)
+{
+    g_stub_lib_log_level = stub_lib_log_level_normalize(level);
+}
+
+int stub_lib_log_level_enabled(stub_lib_log_level_t level)
+{
+    return g_stub_lib_log_level >= level;
+}
+
+void stub_lib_log_init(stub_lib_log_level_t level)
+{
+    stub_lib_log_set_level(level);
+    stub_lib_log_backend_init();
+}
 
 // This function is designed to avoid implementing vprintf() to reduce code size.
 // It only supports a subset of format specifiers: %s, %d, %u, %x, %X, %c.

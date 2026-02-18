@@ -12,7 +12,7 @@ extern void ets_install_putc1(void (*p)(char c));
 extern void ets_install_putc2(void (*p)(char c));
 extern void ets_install_uart_printf(void);
 
-void stub_lib_log_init()
+void stub_lib_log_backend_init(void)
 {
     stub_target_uart_init(0);
     ets_install_putc1(NULL);
