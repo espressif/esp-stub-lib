@@ -1,11 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 /**
@@ -31,3 +32,10 @@ uint32_t stub_target_security_info_size(void);
  * - STUB_LIB_FAIL if the operation failed
  */
 int stub_target_get_security_info(uint8_t *buffer, uint32_t buffer_size);
+
+/**
+ * @brief Check whether flash encryption is enabled.
+ *
+ * @return true if flash encryption is enabled, false otherwise.
+ */
+bool stub_target_security_flash_is_encrypted(void);

@@ -16,6 +16,7 @@ PROVIDE ( esp_rom_gpio_connect_out_signal = rom_gpio_matrix_out );
 
 PROVIDE ( esp_rom_efuse_mac_address_crc8       = esp_crc8 );
 PROVIDE ( esp_rom_efuse_is_secure_boot_enabled = ets_efuse_secure_boot_enabled );
+PROVIDE ( esp_rom_efuse_flash_encryption_enabled = ets_efuse_cache_encryption_enabled );
 
 PROVIDE ( esp_rom_uart_flush_tx       = uart_tx_flush );
 PROVIDE ( esp_rom_uart_tx_one_char    = uart_tx_one_char2 );

@@ -46,6 +46,9 @@ static void example_mem_utils(void)
 
 static void example_security(void)
 {
+    bool encryption_enabled = stub_lib_security_flash_is_encrypted();
+    STUB_LOGI("Flash encryption enabled: %d\n", encryption_enabled);
+
     uint32_t size = stub_lib_security_info_size();
     STUB_LOGI("Security info size: %u bytes\n", size);
 

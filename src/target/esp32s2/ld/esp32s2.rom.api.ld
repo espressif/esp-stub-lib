@@ -31,6 +31,7 @@ PROVIDE ( esp_rom_efuse_get_flash_gpio_info    = ets_efuse_get_spiconfig );
 PROVIDE ( esp_rom_efuse_get_flash_wp_gpio      = ets_efuse_get_wp_pad );
 PROVIDE ( esp_rom_efuse_get_opiconfig          = ets_efuse_get_opiconfig );
 PROVIDE ( esp_rom_efuse_is_secure_boot_enabled = ets_efuse_secure_boot_enabled );
+PROVIDE ( esp_rom_efuse_flash_encryption_enabled = ets_efuse_cache_encryption_enabled );
 
 PROVIDE ( esp_rom_uart_flush_tx       = uart_tx_flush );
 PROVIDE ( esp_rom_uart_tx_one_char    = uart_tx_one_char );
