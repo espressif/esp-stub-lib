@@ -26,7 +26,7 @@ static void stub_lib_log_buf_write_char(char c)
     g_stub_lib_log_buf.count = (g_stub_lib_log_buf.count + 1) % STUB_LIB_LOG_BUF_SIZE;
 }
 
-void stub_lib_log_init()
+void stub_lib_log_backend_init(void)
 {
     ets_install_putc1(stub_lib_log_buf_write_char);
     ets_install_putc2(NULL);

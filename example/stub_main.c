@@ -155,11 +155,13 @@ static __attribute__((unused)) int handle_test1(va_list ap)
     STUB_LOG("stub command test:%c\n", 'A');
     STUB_LOG("stub command test:%l\n", 10); // not supported
 
-    STUB_LOGE("stub command test\n");
-    STUB_LOGW("stub command test\n");
-    STUB_LOGI("stub command test\n");
-    STUB_LOGD("stub command test\n");
-    STUB_LOGV("stub command test\n");
+    STUB_LOGE("This is an error message\n");
+    STUB_LOGW("This is a warning message\n");
+    STUB_LOGI("This is an info message\n");
+
+    stub_lib_log_set_level(STUB_LOG_LEVEL_V);
+    STUB_LOGD("This is a debug message\n");
+    STUB_LOGV("This is a verbose message\n");
     STUB_LOG_TRACE();
     STUB_LOG_TRACEF("foo:%u\n", 0x2A);
 
@@ -230,7 +232,7 @@ int stub_main(int cmd, ...)
 
     va_start(ap, cmd);
 
-    STUB_LOG_INIT();
+    STUB_LOG_INIT(STUB_LIB_LOG_LEVEL);
 
     STUB_LOGI("Command: 0x%x\n", cmd);
 
