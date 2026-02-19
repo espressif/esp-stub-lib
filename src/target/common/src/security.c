@@ -1,16 +1,18 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <target/security.h>
 #include <err.h>
 
 /* GetSecurityInfoProc function from ROM */
 extern uint32_t GetSecurityInfoProc(int *pMsg, int *pnErr, uint8_t *buf);
+extern bool esp_rom_efuse_flash_encryption_enabled(void);
 
 #define SECURITY_INFO_BYTES_DEFAULT 20
 
@@ -36,4 +38,9 @@ int __attribute__((weak)) stub_target_get_security_info(uint8_t *buffer, uint32_
     }
 
     return STUB_LIB_FAIL;
+}
+
+bool __attribute__((weak)) stub_target_security_flash_is_encrypted(void)
+{
+    return esp_rom_efuse_flash_encryption_enabled();
 }
