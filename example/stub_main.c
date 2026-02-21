@@ -136,8 +136,6 @@ static int __attribute__((unused)) handle_test_flash(void)
     stub_lib_flash_attach(0, false);
     (void)stub_lib_flash_read_buff(0x1000, buffer, sizeof(buffer));
     (void)stub_lib_flash_write_buff(0x10000, buffer, sizeof(buffer), 0);
-    (void)stub_lib_flash_erase_sector(0x10000);
-    (void)stub_lib_flash_erase_block(0x10000);
     (void)stub_lib_flash_erase_area(0x20000, 0x10000);
     (void)stub_lib_flash_erase_chip();
     (void)stub_lib_flash_start_next_erase(NULL, NULL);

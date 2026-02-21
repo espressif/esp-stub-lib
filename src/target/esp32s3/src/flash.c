@@ -67,7 +67,7 @@ void stub_target_flash_init(void *state)
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
     esp_rom_spiflash_attach(spiconfig, 0);
     if (ets_efuse_flash_octal_mode()) {
-        STUB_LOGI("octal mode is on\n");
+        STUB_LOGD("octal mode is on\n");
         stub_target_flash_init_funcs();
     }
 }

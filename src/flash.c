@@ -54,7 +54,7 @@ int stub_lib_flash_init(void **state)
     if (flash_size == 0) {
         /* Unknown flash ID - use target-specific maximum supported size as fallback */
         flash_size = stub_target_get_max_supported_flash_size();
-        STUB_LOGW("Unknown flash ID, assuming %d MB (chip max)\n", BYTES_TO_MIB(flash_size));
+        STUB_LOGI("Unknown flash ID, assuming %d MB (chip max)\n", BYTES_TO_MIB(flash_size));
         return_code = STUB_LIB_ERR_UNKNOWN_FLASH_ID;
     }
 
@@ -127,24 +127,6 @@ int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, 
 int stub_lib_flash_erase_chip(void)
 {
     return stub_target_flash_erase_chip();
-}
-
-int stub_lib_flash_erase_sector(uint32_t addr)
-{
-    if (large_flash_mode) {
-        return stub_target_flash_4byte_erase_sector(FLASH_SPI_NUM, addr);
-    }
-
-    return stub_target_flash_erase_sector(addr);
-}
-
-int stub_lib_flash_erase_block(uint32_t addr)
-{
-    if (large_flash_mode) {
-        return stub_target_flash_4byte_erase_block(FLASH_SPI_NUM, addr);
-    }
-
-    return stub_target_flash_erase_block(addr);
 }
 
 int stub_lib_flash_wait_ready(uint64_t timeout_us)
@@ -229,10 +211,14 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
         return STUB_LIB_ERR_INVALID_ARG;
     }
 
-    const uint32_t timeout_us = 1000000; // 1 second
+    const uint32_t timeout_us = 1000000; // 1 second per block or sector
 
     while (size > 0) {
-        stub_lib_flash_start_next_erase(&addr, &size);
+        int res = stub_lib_flash_start_next_erase(&addr, &size);
+        if (res != STUB_LIB_OK) {
+            STUB_LOGE("Failed to start next erase: %d\n", res);
+            return res;
+        }
         if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
             STUB_LOGE("Erase area timeout at 0x%x, remaining %u\n", addr, size);
             return STUB_LIB_ERR_TIMEOUT;

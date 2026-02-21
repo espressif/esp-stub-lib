@@ -143,22 +143,6 @@ int stub_target_flash_erase_chip(void)
     return STUB_LIB_FAIL;
 }
 
-int stub_target_flash_erase_sector(uint32_t addr)
-{
-    if (esp_rom_spiflash_erase_sector(addr) == ESP_ROM_SPIFLASH_RESULT_OK) {
-        return STUB_LIB_OK;
-    }
-    return STUB_LIB_FAIL;
-}
-
-int stub_target_flash_erase_block(uint32_t addr)
-{
-    if (esp_rom_spiflash_erase_block(addr) == ESP_ROM_SPIFLASH_RESULT_OK) {
-        return STUB_LIB_OK;
-    }
-    return STUB_LIB_FAIL;
-}
-
 void __attribute__((weak)) stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
 {
     /* Empty implementation for targets without large flash support */
