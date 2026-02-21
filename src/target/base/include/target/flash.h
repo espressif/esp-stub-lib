@@ -181,17 +181,6 @@ int stub_target_flash_erase_sector(uint32_t addr);
 int stub_target_flash_erase_block(uint32_t addr);
 
 /**
- * @brief Erase an area.
- *
- * @param addr Address of the area to erase.
- * @param size Size of the area to erase.
- * @return Result:
- * - STUB_LIB_OK if success
- * - STUB_LIB_FAIL on ROM erase error
- */
-int stub_target_flash_erase_area(uint32_t addr, uint32_t size);
-
-/**
  * @brief Attach SPI Flash to the hardware.
  *
  * @param ishspi SPI Flash configuration

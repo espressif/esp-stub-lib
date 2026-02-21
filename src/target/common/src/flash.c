@@ -161,14 +161,6 @@ int stub_target_flash_erase_block(uint32_t addr)
     return STUB_LIB_FAIL;
 }
 
-int stub_target_flash_erase_area(uint32_t addr, uint32_t size)
-{
-    if (esp_rom_spiflash_erase_area(addr, size) == ESP_ROM_SPIFLASH_RESULT_OK) {
-        return STUB_LIB_OK;
-    }
-    return STUB_LIB_FAIL;
-}
-
 void __attribute__((weak)) stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
 {
     /* Empty implementation for targets without large flash support */
