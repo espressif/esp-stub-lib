@@ -88,11 +88,26 @@ uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
     return 0;
 }
 
-void __attribute__((weak)) stub_target_flash_init(void *state)
+bool __attribute__((weak)) stub_target_flash_state_save(void **state)
 {
-    (void)state;
-    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
-    stub_target_flash_attach(spiconfig, 0);
+    if (state == NULL) {
+        return true;
+    }
+
+    /* Until all targets have state saving implemented, we need to return true */
+    return true;
+}
+
+void __attribute__((weak)) stub_target_flash_init(void **state)
+{
+    bool attach_required = stub_target_flash_state_save(state);
+
+    STUB_LOG_TRACEF("attach_required: %d\n", attach_required);
+
+    if (attach_required) {
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        stub_target_flash_attach(spiconfig, 0);
+    }
 }
 
 esp_rom_spiflash_chip_t *__attribute__((weak)) stub_target_flash_get_config(void)
@@ -107,7 +122,7 @@ uint32_t __attribute__((weak)) stub_target_flash_get_flash_id(void)
     return stub_target_flash_get_config()->flash_id;
 }
 
-void __attribute__((weak)) stub_target_flash_deinit(const void *state)
+void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
 {
     (void)state;
 }
@@ -126,14 +141,12 @@ int __attribute__((weak)) stub_target_flash_write_buff(uint32_t addr, const void
     } else {
         res = esp_rom_spiflash_write(addr, buffer, size);
     }
-    STUB_LOG_TRACEF("results: %d\n", res);
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_WRITE;
 }
 
 int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
     int res = esp_rom_spiflash_read(addr, buffer, (int32_t)size);
-    STUB_LOG_TRACEF("results: %d\n", res);
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_READ;
 }
 
