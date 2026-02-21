@@ -75,7 +75,6 @@ int stub_target_flash_write_buff(uint32_t addr, const void *buffer, uint32_t siz
         return STUB_LIB_ERR_NOT_SUPPORTED;
     }
     int res = esp_rom_spiflash_write(addr, buffer, size);
-    STUB_LOG_TRACEF("(0x%x, 0x%x, %u, %d) results: %d\n", addr, (uint32_t)buffer, size, encrypt, res);
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_FAIL;
 }
 
@@ -118,7 +117,7 @@ void stub_target_flash_erase_sector_start(uint32_t addr)
     while (REG_READ(SPI_CMD_REG) != 0) {
     }
 
-    STUB_LOG_TRACEF("Started sector erase at 0x%x\n", addr);
+    STUB_LOGV("Started sector erase at 0x%x\n", addr);
 }
 
 void stub_target_flash_erase_block_start(uint32_t addr)
@@ -131,7 +130,7 @@ void stub_target_flash_erase_block_start(uint32_t addr)
     while (REG_READ(SPI_CMD_REG) != 0) {
     }
 
-    STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
+    STUB_LOGV("Started block erase at 0x%x\n", addr);
 }
 
 void stub_target_flash_write_encrypted_enable(void)

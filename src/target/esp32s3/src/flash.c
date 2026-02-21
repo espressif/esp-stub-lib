@@ -67,7 +67,7 @@ void stub_target_flash_init(void *state)
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
     esp_rom_spiflash_attach(spiconfig, 0);
     if (ets_efuse_flash_octal_mode()) {
-        STUB_LOGD("octal mode is on\n");
+        STUB_LOGI("octal mode is on\n");
         stub_target_flash_init_funcs();
     }
 }
@@ -123,7 +123,7 @@ void stub_target_flash_erase_sector_start(uint32_t addr)
     while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
     }
 
-    STUB_LOG_TRACEF("Started sector erase at 0x%x\n", addr);
+    STUB_LOGV("Started sector erase at 0x%x\n", addr);
 }
 
 void stub_target_flash_erase_block_start(uint32_t addr)
@@ -136,7 +136,7 @@ void stub_target_flash_erase_block_start(uint32_t addr)
     while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
     }
 
-    STUB_LOG_TRACEF("Started block erase at 0x%x\n", addr);
+    STUB_LOGV("Started block erase at 0x%x\n", addr);
 }
 
 uint32_t stub_target_get_max_supported_flash_size(void)

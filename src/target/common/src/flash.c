@@ -126,14 +126,12 @@ int __attribute__((weak)) stub_target_flash_write_buff(uint32_t addr, const void
     } else {
         res = esp_rom_spiflash_write(addr, buffer, size);
     }
-    STUB_LOG_TRACEF("results: %d\n", res);
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_WRITE;
 }
 
 int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
     int res = esp_rom_spiflash_read(addr, buffer, (int32_t)size);
-    STUB_LOG_TRACEF("results: %d\n", res);
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_READ;
 }
 

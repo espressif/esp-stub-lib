@@ -54,7 +54,7 @@ int stub_lib_flash_init(void **state)
     if (flash_size == 0) {
         /* Unknown flash ID - use target-specific maximum supported size as fallback */
         flash_size = stub_target_get_max_supported_flash_size();
-        STUB_LOGI("Unknown flash ID, assuming %d MB (chip max)\n", BYTES_TO_MIB(flash_size));
+        STUB_LOGW("Unknown flash ID, assuming %d MB (chip max)\n", BYTES_TO_MIB(flash_size));
         return_code = STUB_LIB_ERR_UNKNOWN_FLASH_ID;
     }
 
@@ -94,7 +94,7 @@ void stub_lib_flash_get_config(stub_lib_flash_config_t *cfg)
 
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
-    STUB_LOG_TRACEF("addr: 0x%x, size: %u, large_flash_mode: %d\n", addr, size, large_flash_mode);
+    STUB_LOGV("Flash read: addr: 0x%x, size: %u, large: %d\n", addr, size, large_flash_mode);
 
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
         STUB_LOGE("Flash read unaligned!\n");
@@ -110,7 +110,7 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    STUB_LOG_TRACEF("addr: 0x%x, size: %u, large_flash_mode: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
+    STUB_LOGV("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
 
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
         STUB_LOGE("Flash write unaligned!\n");
