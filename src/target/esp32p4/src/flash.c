@@ -7,17 +7,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <target/flash.h>
-#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
-#include <esp-stub-lib/err.h>
-#include <soc/spi1_mem_c_reg.h>
-
-#define STATUS_BUSY_BIT BIT(0)
+#include <soc/spi_mem_compat.h>
 
 /* ECO version from ROM - used to route to correct ROM functions */
 extern uint32_t _rom_eco_version;
-extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 extern void esp_rom_opiflash_exec_cmd_eco1(int spi_num,
                                            spi_flash_mode_t mode,
                                            uint32_t cmd,
@@ -135,17 +130,12 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
     }
 }
 
-void stub_target_flash_attach(uint32_t ishspi, bool legacy)
-{
-    esp_rom_spiflash_attach(ishspi, legacy);
-}
-
 void stub_target_reset_default_spi_pins(void)
 {
     /* ESP32-P4 uses dedicated pins for SPI flash. */
 }
 
-static void spi_wait_ready(void)
+void stub_target_spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI1_MEM_C_CMD_REG, SPI1_MEM_C_MST_ST) ||
            REG_GET_FIELD(SPI1_MEM_C_CMD_REG, SPI1_MEM_C_SLV_ST)) {
@@ -153,47 +143,8 @@ static void spi_wait_ready(void)
     }
 }
 
-bool stub_target_flash_is_busy(void)
-{
-    spi_wait_ready();
-
-    REG_WRITE(SPI1_MEM_C_RD_STATUS_REG, 0);
-    REG_WRITE(SPI1_MEM_C_CMD_REG, SPI1_MEM_C_FLASH_RDSR);
-    while (REG_READ(SPI1_MEM_C_CMD_REG) != 0) {
-    }
-    uint32_t status_value = REG_READ(SPI1_MEM_C_RD_STATUS_REG);
-
-    return (status_value & STATUS_BUSY_BIT) != 0;
-}
-
-void stub_target_flash_erase_sector_start(uint32_t addr)
-{
-    stub_target_flash_write_enable();
-    spi_wait_ready();
-
-    REG_WRITE(SPI1_MEM_C_ADDR_REG, addr & 0xffffff);
-    REG_WRITE(SPI1_MEM_C_CMD_REG, SPI1_MEM_C_FLASH_SE);
-    while (REG_READ(SPI1_MEM_C_CMD_REG) != 0) {
-    }
-
-    STUB_LOGV("Started sector erase at 0x%x\n", addr);
-}
-
-void stub_target_flash_erase_block_start(uint32_t addr)
-{
-    stub_target_flash_write_enable();
-    spi_wait_ready();
-
-    REG_WRITE(SPI1_MEM_C_ADDR_REG, addr & 0xffffff);
-    REG_WRITE(SPI1_MEM_C_CMD_REG, SPI1_MEM_C_FLASH_BE);
-    while (REG_READ(SPI1_MEM_C_CMD_REG) != 0) {
-    }
-
-    STUB_LOGV("Started block erase at 0x%x\n", addr);
-}
-
 uint32_t stub_target_get_max_supported_flash_size(void)
 {
     /* ESP32-P4 supports up to 64MB with 4-byte addressing */
-    return 64 * 1024 * 1024;
+    return MIB(64);
 }
