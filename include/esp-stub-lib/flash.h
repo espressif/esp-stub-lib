@@ -142,13 +142,14 @@ int stub_lib_flash_wait_ready(uint64_t timeout_us);
  *
  * @param next_erase_addr Pointer to the next address to erase (will be updated)
  * @param remaining_size Pointer to remaining bytes to erase (will be updated)
+ * @param timeout_us Maximum time to wait in microseconds
  *
  * @return Result:
  * - STUB_LIB_OK
  * - STUB_LIB_ERR_INVALID_ARG
  * - STUB_LIB_ERR_TIMEOUT if flash is busy
  */
-int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size);
+int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size, uint32_t timeout_us);
 
 #ifdef __cplusplus
 }

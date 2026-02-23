@@ -142,13 +142,13 @@ int stub_lib_flash_wait_ready(uint64_t timeout_us)
     return STUB_LIB_ERR_TIMEOUT;
 }
 
-int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size)
+int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size, uint32_t timeout_us)
 {
     if (next_erase_addr == NULL || remaining_size == NULL) {
         return STUB_LIB_ERR_INVALID_ARG;
     }
 
-    if (stub_lib_flash_wait_ready(0) != STUB_LIB_OK) {
+    if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
     }
 
@@ -214,14 +214,10 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
     const uint32_t timeout_us = 1000000; // 1 second per block or sector
 
     while (size > 0) {
-        int res = stub_lib_flash_start_next_erase(&addr, &size);
+        int res = stub_lib_flash_start_next_erase(&addr, &size, timeout_us);
         if (res != STUB_LIB_OK) {
-            STUB_LOGE("Failed to start next erase: %d\n", res);
+            STUB_LOGE("Erase area failed at 0x%x, remaining %u with error 0x%x\n", addr, size, res);
             return res;
-        }
-        if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
-            STUB_LOGE("Erase area timeout at 0x%x, remaining %u\n", addr, size);
-            return STUB_LIB_ERR_TIMEOUT;
         }
     }
 
