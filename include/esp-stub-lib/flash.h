@@ -101,38 +101,15 @@ int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, 
 /**
  * @brief Erase a region of flash.
  *
- * @param addr Address to start erasing from.
- * @param size Number of bytes to erase.
+ * @param addr Address to start erasing from. Must be sector-aligned (4KB).
+ * @param size Number of bytes to erase. Must be sector-aligned (4KB).
  *
  * @return Result:
  * - STUB_LIB_OK
- * - STUB_LIB_FAIL
+ * - STUB_LIB_ERR_INVALID_ARG if addr or size is not sector-aligned
+ * - STUB_LIB_ERR_TIMEOUT if flash erase does not complete in time
  */
 int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
-
-/**
- * @brief Erase a sector of flash.
- *
- * @param addr Address of the sector to erase.
- *
- * @return Result:
- * - STUB_LIB_OK
- * - STUB_LIB_FAIL
- * - STUB_LIB_ERR_TIMEOUT
- */
-int stub_lib_flash_erase_sector(uint32_t addr);
-
-/**
- * @brief Erase a block of flash.
- *
- * @param addr Address of the block to erase.
- *
- * @return Result:
- * - STUB_LIB_OK
- * - STUB_LIB_FAIL
- * - STUB_LIB_ERR_TIMEOUT
- */
-int stub_lib_flash_erase_block(uint32_t addr);
 
 /**
  * @brief Erase the entire flash chip.
@@ -165,13 +142,14 @@ int stub_lib_flash_wait_ready(uint64_t timeout_us);
  *
  * @param next_erase_addr Pointer to the next address to erase (will be updated)
  * @param remaining_size Pointer to remaining bytes to erase (will be updated)
+ * @param timeout_us Maximum time to wait in microseconds
  *
  * @return Result:
  * - STUB_LIB_OK
  * - STUB_LIB_ERR_INVALID_ARG
  * - STUB_LIB_ERR_TIMEOUT if flash is busy
  */
-int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size);
+int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size, uint32_t timeout_us);
 
 #ifdef __cplusplus
 }

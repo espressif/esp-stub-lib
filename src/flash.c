@@ -94,7 +94,7 @@ void stub_lib_flash_get_config(stub_lib_flash_config_t *cfg)
 
 int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
-    STUB_LOG_TRACEF("addr: 0x%x, size: %u, large_flash_mode: %d\n", addr, size, large_flash_mode);
+    STUB_LOGV("Flash read: addr: 0x%x, size: %u, large: %d\n", addr, size, large_flash_mode);
 
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
         STUB_LOGE("Flash read unaligned!\n");
@@ -110,7 +110,7 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    STUB_LOG_TRACEF("addr: 0x%x, size: %u, large_flash_mode: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
+    STUB_LOGV("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
 
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
         STUB_LOGE("Flash write unaligned!\n");
@@ -129,29 +129,6 @@ int stub_lib_flash_erase_chip(void)
     return stub_target_flash_erase_chip();
 }
 
-int stub_lib_flash_erase_sector(uint32_t addr)
-{
-    if (large_flash_mode) {
-        return stub_target_flash_4byte_erase_sector(FLASH_SPI_NUM, addr);
-    }
-
-    return stub_target_flash_erase_sector(addr);
-}
-
-int stub_lib_flash_erase_block(uint32_t addr)
-{
-    if (large_flash_mode) {
-        return stub_target_flash_4byte_erase_block(FLASH_SPI_NUM, addr);
-    }
-
-    return stub_target_flash_erase_block(addr);
-}
-
-int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
-{
-    return stub_target_flash_erase_area(addr, size);
-}
-
 int stub_lib_flash_wait_ready(uint64_t timeout_us)
 {
     uint64_t elapsed_us = 0;
@@ -165,13 +142,13 @@ int stub_lib_flash_wait_ready(uint64_t timeout_us)
     return STUB_LIB_ERR_TIMEOUT;
 }
 
-int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size)
+int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size, uint32_t timeout_us)
 {
     if (next_erase_addr == NULL || remaining_size == NULL) {
         return STUB_LIB_ERR_INVALID_ARG;
     }
 
-    if (stub_lib_flash_wait_ready(0) != STUB_LIB_OK) {
+    if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
     }
 
@@ -223,6 +200,26 @@ int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaini
     // Update state
     *next_erase_addr = addr + erase_size;
     *remaining_size = (remaining >= erase_size) ? (remaining - erase_size) : 0;
+
+    return STUB_LIB_OK;
+}
+
+int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
+{
+    if (!IS_ALIGNED(addr, STUB_FLASH_SECTOR_SIZE) || !IS_ALIGNED(size, STUB_FLASH_SECTOR_SIZE)) {
+        STUB_LOGE("Erase area addr 0x%x or size 0x%x not sector-aligned\n", addr, size);
+        return STUB_LIB_ERR_INVALID_ARG;
+    }
+
+    const uint32_t timeout_us = 1000000; // 1 second per block or sector
+
+    while (size > 0) {
+        int res = stub_lib_flash_start_next_erase(&addr, &size, timeout_us);
+        if (res != STUB_LIB_OK) {
+            STUB_LOGE("Erase area failed at 0x%x, remaining %u with error 0x%x\n", addr, size, res);
+            return res;
+        }
+    }
 
     return STUB_LIB_OK;
 }
