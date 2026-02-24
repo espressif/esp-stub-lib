@@ -37,6 +37,8 @@ typedef enum {
     SPI_FLASH_QPI_MODE,
 } spi_flash_mode_t;
 
+#define FLASH_SPI_NUM 1
+
 /**
  * @brief Reset default SPI IOMUX pins to GPIO mode
  *
@@ -176,6 +178,8 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy);
  * @return true if flash is busy, false if ready
  */
 bool stub_target_flash_is_busy(void);
+
+void stub_target_spi_wait_ready(void);
 
 /**
  * @brief Start erasing a 4KB sector without blocking

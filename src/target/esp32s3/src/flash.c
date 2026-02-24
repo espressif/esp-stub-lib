@@ -6,24 +6,20 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <log.h>
-#include <err.h>
 #include <target/flash.h>
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
-#include <soc/spi_mem_reg.h>
+#include <soc/spi_mem_compat.h>
 #include <soc/io_mux_reg.h>
 
-#define SPI_INTERNAL    0
-#define FLASH_SPI_NUM   1
-#define STATUS_BUSY_BIT BIT(0)
+#define SPI_INTERNAL 0
 
 extern uint32_t ets_efuse_get_spiconfig(void);
 extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
-extern void esp_rom_spiflash_attach(uint32_t spiconfig, bool legacy);
 extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       spi_flash_mode_t mode,
                                       uint32_t cmd,
@@ -37,11 +33,6 @@ extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       int miso_bit_len,
                                       uint32_t cs_mask,
                                       bool is_write_erase_operation);
-
-void stub_target_flash_attach(uint32_t ishspi, bool legacy)
-{
-    esp_rom_spiflash_attach(ishspi, legacy);
-}
 
 uint32_t stub_target_flash_get_spiconfig_efuse(void)
 {
@@ -65,7 +56,7 @@ void stub_target_flash_init(void *state)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
-    esp_rom_spiflash_attach(spiconfig, 0);
+    stub_target_flash_attach(spiconfig, 0);
     if (ets_efuse_flash_octal_mode()) {
         STUB_LOGD("octal mode is on\n");
         stub_target_flash_init_funcs();
@@ -89,7 +80,7 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
                               params->is_write_erase_operation);
 }
 
-static void spi_wait_ready(void)
+void stub_target_spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI_MEM_FSM_REG(FLASH_SPI_NUM), SPI_MEM_ST)) {
         /* busy wait */
@@ -100,47 +91,8 @@ static void spi_wait_ready(void)
     }
 }
 
-bool stub_target_flash_is_busy(void)
-{
-    spi_wait_ready();
-
-    REG_WRITE(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM), 0);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_RDSR);
-    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
-    }
-    uint32_t status_value = REG_READ(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM));
-
-    return (status_value & STATUS_BUSY_BIT) != 0;
-}
-
-void stub_target_flash_erase_sector_start(uint32_t addr)
-{
-    stub_target_flash_write_enable();
-    spi_wait_ready();
-
-    REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_SE);
-    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
-    }
-
-    STUB_LOGV("Started sector erase at 0x%x\n", addr);
-}
-
-void stub_target_flash_erase_block_start(uint32_t addr)
-{
-    stub_target_flash_write_enable();
-    spi_wait_ready();
-
-    REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_BE);
-    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
-    }
-
-    STUB_LOGV("Started block erase at 0x%x\n", addr);
-}
-
 uint32_t stub_target_get_max_supported_flash_size(void)
 {
     /* ESP32-S3 supports up to 1GB with 4-byte addressing */
-    return 1024 * 1024 * 1024;
+    return GIB(1);
 }

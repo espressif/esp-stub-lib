@@ -18,8 +18,6 @@
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
-#define FLASH_SPI_NUM 1
-
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
     if (config == NULL) {

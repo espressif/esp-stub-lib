@@ -54,6 +54,10 @@ extern "C" {
 #define MIB(x) ((uint32_t)(x) * 1024U * 1024U)
 #endif
 
+#ifndef GIB
+#define GIB(x) ((uint64_t)(x) * 1024U * 1024U * 1024U)
+#endif
+
 #ifndef BYTES_TO_KIB
 #define BYTES_TO_KIB(x) ((x) / 1024U)
 #endif

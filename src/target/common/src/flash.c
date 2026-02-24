@@ -13,6 +13,8 @@
 #include <private/rom_flash_config.h>
 #include <esp-stub-lib/err.h>
 #include <soc/io_mux_reg.h>
+#include <soc/spi_mem_compat.h>
+#include <esp-stub-lib/soc_utils.h>
 
 extern int esp_rom_spiflash_erase_chip(void);
 extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
@@ -95,6 +97,11 @@ void __attribute__((weak)) stub_target_flash_init(void *state)
     stub_target_flash_attach(spiconfig, 0);
 }
 
+void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
+
 esp_rom_spiflash_chip_t *__attribute__((weak)) stub_target_flash_get_config(void)
 {
     extern esp_rom_spiflash_legacy_data_t *rom_spiflash_legacy_data;
@@ -135,12 +142,54 @@ int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffe
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_READ;
 }
 
-int stub_target_flash_erase_chip(void)
+int __attribute__((weak)) stub_target_flash_erase_chip(void)
 {
     if (esp_rom_spiflash_erase_chip() == ESP_ROM_SPIFLASH_RESULT_OK) {
         return STUB_LIB_OK;
     }
     return STUB_LIB_FAIL;
+}
+
+bool __attribute__((weak)) stub_target_flash_is_busy(void)
+{
+    stub_target_spi_wait_ready();
+
+    REG_WRITE(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM), 0);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_RDSR);
+    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
+        /* busy wait */
+    }
+    uint32_t status_value = REG_READ(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM));
+
+    return (status_value & BIT(0)) != 0;
+}
+
+void __attribute__((weak)) stub_target_flash_erase_sector_start(uint32_t addr)
+{
+    stub_target_flash_write_enable();
+    stub_target_spi_wait_ready();
+
+    REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_SE);
+    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
+        /* busy wait */
+    }
+
+    STUB_LOGV("Started sector erase at 0x%x\n", addr);
+}
+
+void __attribute__((weak)) stub_target_flash_erase_block_start(uint32_t addr)
+{
+    stub_target_flash_write_enable();
+    stub_target_spi_wait_ready();
+
+    REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_BE);
+    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
+        /* busy wait */
+    }
+
+    STUB_LOGV("Started block erase at 0x%x\n", addr);
 }
 
 void __attribute__((weak)) stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
@@ -159,7 +208,7 @@ void __attribute__((weak)) stub_target_flash_write_encrypted_disable(void)
     esp_rom_spiflash_write_encrypted_disable();
 }
 
-int stub_target_flash_unlock(void)
+int __attribute__((weak)) stub_target_flash_unlock(void)
 {
     if (esp_rom_spiflash_unlock() == ESP_ROM_SPIFLASH_RESULT_OK) {
         return STUB_LIB_OK;
