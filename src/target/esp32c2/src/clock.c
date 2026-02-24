@@ -5,8 +5,11 @@
  */
 
 #include <stdint.h>
-#include <target/clock.h>
+
 #include <soc_utils.h>
+
+#include <target/clock.h>
+
 #include <soc/rtc_cntl_reg.h>
 #include <soc/system_reg.h>
 #include <soc/timer_group_reg.h>

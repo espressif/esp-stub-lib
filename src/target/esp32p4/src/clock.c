@@ -1,15 +1,18 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
 #include <stdint.h>
-#include <target/clock.h>
+
 #include <soc_utils.h>
+
+#include <target/clock.h>
+
 #include <soc/lp_clkrst_reg.h>
-#include <soc/soc.h>
 #include <soc/lp_wdt_reg.h>
+#include <soc/soc.h>
 
 #define CPU_FREQ_MHZ 320
 

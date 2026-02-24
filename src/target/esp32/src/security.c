@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <target/security.h>
+
 #include <err.h>
+
 #include <esp-stub-lib/soc_utils.h>
+
+#include <target/security.h>
+
 #include <soc/reg_base.h>
 
 #define EFUSE_BLK0_RDATA0_REG      (DR_REG_EFUSE_BASE + 0x0)

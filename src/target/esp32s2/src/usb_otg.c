@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -7,12 +7,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <target/usb_otg.h>
+
 #include <esp_rom_caps.h>
 #include <soc_utils.h>
+
+#include <target/usb_otg.h>
+
 #include <soc/reg_base.h>
-#include <soc/usb_reg.h>
 #include <soc/rtc_cntl_reg.h>
+#include <soc/usb_reg.h>
 
 typedef void cdc_acm_device;
 extern cdc_acm_device *uart_acm_dev;

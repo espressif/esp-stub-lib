@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <private/rom_flash.h>
 
