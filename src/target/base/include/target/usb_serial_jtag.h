@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @brief Attach interrupt handler to USB-Serial/JTAG and configure interrupts

@@ -4,11 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stdbool.h>
-#include <target/flash.h>
+#include <stdint.h>
+
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
+
+#include <target/flash.h>
+
 #include <soc/spi_mem_compat.h>
 
 /* ECO version from ROM - used to route to correct ROM functions */

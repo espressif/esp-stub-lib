@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -7,11 +7,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <target/usb_serial_jtag.h>
-#include <soc/usb_serial_jtag_reg.h>
-#include <soc/interrupt_core0_reg.h>
-#include <soc/clic_reg.h>
+
 #include <soc_utils.h>
+
+#include <target/usb_serial_jtag.h>
+
+#include <soc/clic_reg.h>
+#include <soc/interrupt_core0_reg.h>
+#include <soc/usb_serial_jtag_reg.h>
 
 // External ROM functions
 extern void esp_rom_isr_attach(int int_num, void *handler, void *arg);

@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stddef.h>
-#include <esp-stub-lib/rom_wrappers.h>
-#include <target/uart.h>
-#include <target/clock.h>
+#include <stdint.h>
+
 #include <soc_utils.h>
+
+#include <esp-stub-lib/rom_wrappers.h>
+
+#include <target/clock.h>
+#include <target/uart.h>
+
 #include <soc/uart_reg.h>
 
 // These functions are defined in the ROM

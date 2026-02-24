@@ -5,13 +5,17 @@
  */
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
-#include <esp-stub-lib/usb_serial_jtag.h>
-#include <esp-stub-lib/err.h>
-#include <target/usb_serial_jtag.h>
+#include <stdint.h>
+
 #include <esp_rom_caps.h>
 #include <soc_utils.h>
+
+#include <esp-stub-lib/err.h>
+#include <esp-stub-lib/usb_serial_jtag.h>
+
+#include <target/usb_serial_jtag.h>
+
 #include <private/helpers.h>
 
 #if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)

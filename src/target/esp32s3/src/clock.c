@@ -5,11 +5,14 @@
  */
 
 #include <stdint.h>
-#include <target/clock.h>
+
 #include <soc_utils.h>
-#include <soc/system_reg.h>
-#include <soc/soc.h>
+
+#include <target/clock.h>
+
 #include <soc/rtc_cntl_reg.h>
+#include <soc/soc.h>
+#include <soc/system_reg.h>
 
 #define CPU_FREQ_MHZ 40
 

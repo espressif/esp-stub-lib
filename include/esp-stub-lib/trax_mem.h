@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include <target/trax.h>
+
 #include "bit_utils.h"
 
 #define ERI_DEBUG_OFFSET   0x100000

@@ -4,16 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/log.h>
+#include <esp-stub-lib/soc_utils.h>
+
 #include <target/flash.h>
+
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
-#include <esp-stub-lib/log.h>
-#include <esp-stub-lib/bit_utils.h>
-#include <esp-stub-lib/soc_utils.h>
-#include <soc/spi_mem_compat.h>
+
 #include <soc/io_mux_reg.h>
+#include <soc/spi_mem_compat.h>
 
 #define SPI_INTERNAL 0
 
