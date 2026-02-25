@@ -105,16 +105,16 @@ void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
     (void)state;
 }
 
+void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+}
+
 void __attribute__((weak)) stub_target_flash_init(void **state)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
     stub_target_flash_attach(spiconfig, 0);
-}
-
-void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)
-{
-    esp_rom_spiflash_attach(ishspi, legacy);
 }
 
 esp_rom_spiflash_chip_t *__attribute__((weak)) stub_target_flash_get_config(void)
