@@ -27,7 +27,6 @@ extern int esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_
 extern int esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
 extern int esp_rom_spiflash_erase_sector(uint32_t addr);
 extern int esp_rom_spiflash_erase_block(uint32_t addr);
-extern int esp_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
 extern int esp_rom_spiflash_write_enable(esp_rom_spiflash_chip_t *flash_chip);
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
