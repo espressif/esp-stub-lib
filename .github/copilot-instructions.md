@@ -24,8 +24,8 @@ Base (src/target/base/) - Interface headers only
 ```
 
 **Key Directories:**
-- `include/esp-stub-lib/` - Public API headers (16 total: bit_utils.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, rom_wrappers.h, security.h, sha256.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
-- `src/` - Top-level implementation layer (clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, md5.c, mem_utils.c, rom_wrappers.c, security.c, sha256.c, uart.c, usb_otg.c, usb_serial_jtag.c)
+- `include/esp-stub-lib/` - Public API headers (18 total: bit_utils.h, cache.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, mmu.h, rom_wrappers.h, security.h, sha256.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
+- `src/` - Top-level implementation layer (cache.c, clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, md5.c, mem_utils.c, mmu.c, rom_wrappers.c, security.c, sha256.c, uart.c, usb_otg.c, usb_serial_jtag.c)
 - `src/target/base/include/` - Internal interface headers split into:
   - `target/` - Internal API between common/target layers
   - `private/` - Internal ROM/hardware details
@@ -227,9 +227,10 @@ cd example
 
 ### Public API Modules
 
-The library provides 16 public API headers in `include/esp-stub-lib/`:
+The library provides 18 public API headers in `include/esp-stub-lib/`:
 
 - **bit_utils.h** - Bit manipulation macros (BIT, BIT64, ALIGN_UP, ALIGN_DOWN, IS_ALIGNED, MIN, MAX)
+- **cache.h** - Cache control (init, suspend/resume, invalidate, writeback) and capability flags
 - **clock.h** - Clock initialization and watchdog control
 - **err.h** - Error code definitions (STUB_LIB_OK, STUB_LIB_ERR_*)
 - **flash.h** - Flash memory operations (read, write, erase)
@@ -237,6 +238,7 @@ The library provides 16 public API headers in `include/esp-stub-lib/`:
 - **md5.h** - MD5 hashing operations
 - **mem_utils.h** - Memory region classification (irom, drom, iram, dram, rtc, tcm)
 - **miniz.h** - Deflate/inflate compression (zlib-compatible)
+- **mmu.h** - Read flash through the cache via a transient MMU mapping
 - **rom_wrappers.h** - ROM function wrappers (delay_us, crc16_le)
 - **security.h** - Security information retrieval
 - **sha256.h** - SHA256 hardware hashing operations

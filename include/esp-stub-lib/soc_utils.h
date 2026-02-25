@@ -91,3 +91,8 @@
     } while (0)
 
 #define GET_PERI_REG_BITS2(reg, mask, shift) ({ ((READ_PERI_REG(reg) >> (shift)) & (mask)); })
+
+#define DPORT_REG_READ(_r)                   (*(volatile uint32_t *)(_r))
+#define DPORT_REG_WRITE(_r, _v)              (*(volatile uint32_t *)(_r)) = (_v)
+#define DPORT_REG_GET_BIT(_r, _b)            (DPORT_REG_READ(_r) & (_b))
+#define DPORT_REG_CLR_BIT(_r, _b)            (DPORT_REG_WRITE((_r), (DPORT_REG_READ(_r) & (~(_b)))))
