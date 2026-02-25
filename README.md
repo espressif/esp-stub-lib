@@ -36,6 +36,17 @@ See the [example README](example/README.md) for build instructions.
 
 Functions that contain `rominit` (e.g., `stub_target_uart_rominit_intr_attach`) require ROM preinitialization by entering download mode to work correctly. These functions are simplified compared to full implementation and expect some initialization done by ROM. They should only be called in contexts where the ROM download mode has been entered.
 
+## Code Conventions
+
+**Include style:** Use angle brackets for project and library headers so that [.clang-format](.clang-format) can sort and group them correctly:
+
+- **`#include <esp-stub-lib/...>`** — public API
+- **`#include <target/...>`** — internal target interface
+- **`#include <private/...>`** — internal private headers
+- **`#include <system_header.h>`** — system/C library headers
+
+Use quoted includes **`#include "..."`** only for truly local headers (e.g. in the same directory). Quoted includes are treated as “internal” and sorted last; using `""` for project headers breaks the intended include order and is easy to miss in review.
+
 ## Project Structure
 
 The library uses a three-layer architecture to eliminate circular dependencies and maximize code reuse:
