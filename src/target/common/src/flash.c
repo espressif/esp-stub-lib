@@ -95,16 +95,31 @@ uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
     return 0;
 }
 
-void __attribute__((weak)) stub_target_flash_init(void *state)
+bool __attribute__((weak)) stub_target_flash_state_save(void **state)
 {
-    (void)state;
-    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
-    stub_target_flash_attach(spiconfig, 0);
+    if (state == NULL) {
+        return true;
+    }
+
+    /* Until all targets have state saving implemented, we need to return true */
+    return true;
 }
 
 void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
     esp_rom_spiflash_attach(ishspi, legacy);
+}
+
+void __attribute__((weak)) stub_target_flash_init(void **state)
+{
+    bool attach_required = stub_target_flash_state_save(state);
+
+    STUB_LOG_TRACEF("attach_required: %d\n", attach_required);
+
+    if (attach_required) {
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        stub_target_flash_attach(spiconfig, 0);
+    }
 }
 
 esp_rom_spiflash_chip_t *__attribute__((weak)) stub_target_flash_get_config(void)
@@ -119,7 +134,7 @@ uint32_t __attribute__((weak)) stub_target_flash_get_flash_id(void)
     return stub_target_flash_get_config()->flash_id;
 }
 
-void __attribute__((weak)) stub_target_flash_deinit(const void *state)
+void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
 {
     (void)state;
 }
