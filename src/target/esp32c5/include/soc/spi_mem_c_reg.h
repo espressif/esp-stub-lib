@@ -5,9 +5,11 @@
  */
 #pragma once
 
-#include <stdint.h>
-#include <soc/reg_base.h>
 #include <esp-stub-lib/soc_utils.h>
+#include <esp-stub-lib/bit_utils.h>
+
+#include <soc/reg_base.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
