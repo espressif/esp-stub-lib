@@ -6,3 +6,4 @@
 #pragma once
 
 #include "spi1_mem_reg.h"
+#include "spi_mem_c_reg.h"

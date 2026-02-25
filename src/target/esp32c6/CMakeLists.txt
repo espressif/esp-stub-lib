@@ -1,8 +1,9 @@
 set(srcs
+    src/cache.c
+    src/clock.c
     src/flash.c
     src/uart.c
     src/usb_serial_jtag.c
-    src/clock.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
