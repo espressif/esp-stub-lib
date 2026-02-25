@@ -18,18 +18,29 @@
 
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 
-/* Save/restore SPI registers. Can be extended to more registers if needed. */
+extern uint8_t g_rom_spiflash_dummy_len_plus[];
+
 enum {
     SPI_USER_REG_ID = 0,
+    SPI_USER1_REG_ID,
+    SPI_USER2_REG_ID,
+    SPI_SLAVE_REG_ID,
+    SPI_CLOCK_REG_ID,
+    SPI_CTRL_REG_ID,
     SPI_REGS_NUM,
 };
 
 typedef struct {
     uint32_t spi_regs[SPI_REGS_NUM];
+    uint8_t dummy_len_plus;
 } stub_esp32_flash_state_t;
 
-static stub_esp32_flash_state_t s_flash_state;
+size_t stub_target_flash_state_size(void)
+{
+    return sizeof(stub_esp32_flash_state_t);
+}
 
 uint32_t stub_target_flash_get_spiconfig_efuse(void)
 {
@@ -59,15 +70,24 @@ void stub_target_spi_wait_ready(void)
     }
 }
 
-void stub_target_flash_state_save(void **state)
+bool stub_target_flash_needs_attach(void)
 {
-    if (!state) {
+    return (READ_PERI_REG(SPI_CACHE_FCTRL_REG(0)) & SPI_CACHE_FLASH_USR_CMD) == 0;
+}
+
+void stub_target_flash_state_save(void *state)
+{
+    if (!state)
         return;
-    }
 
-    s_flash_state.spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM));
-
-    *state = &s_flash_state;
+    stub_esp32_flash_state_t *s = state;
+    s->spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_USER1_REG_ID] = READ_PERI_REG(SPI_USER1_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_USER2_REG_ID] = READ_PERI_REG(SPI_USER2_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_SLAVE_REG_ID] = READ_PERI_REG(SPI_SLAVE_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_CLOCK_REG_ID] = READ_PERI_REG(SPI_CLOCK_REG(1));
+    s->spi_regs[SPI_CTRL_REG_ID] = READ_PERI_REG(SPI_CTRL_REG(1));
+    s->dummy_len_plus = g_rom_spiflash_dummy_len_plus[1];
 }
 
 void stub_target_flash_state_restore(const void *state)
@@ -78,19 +98,30 @@ void stub_target_flash_state_restore(const void *state)
 
     const stub_esp32_flash_state_t *s = state;
 
-    STUB_LOGD("SPI_USER_REG(1) was:0x%x, restored to:0x%x\n",
-              READ_PERI_REG(SPI_USER_REG(1)),
-              s->spi_regs[SPI_USER_REG_ID]);
-
+    WRITE_PERI_REG(SPI_USER1_REG(1), s->spi_regs[SPI_USER1_REG_ID]);
+    WRITE_PERI_REG(SPI_USER2_REG(1), s->spi_regs[SPI_USER2_REG_ID]);
+    WRITE_PERI_REG(SPI_SLAVE_REG(1), s->spi_regs[SPI_SLAVE_REG_ID]);
+    WRITE_PERI_REG(SPI_CLOCK_REG(1), s->spi_regs[SPI_CLOCK_REG_ID]);
+    WRITE_PERI_REG(SPI_CTRL_REG(1), s->spi_regs[SPI_CTRL_REG_ID]);
     WRITE_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM), s->spi_regs[SPI_USER_REG_ID]);
+    g_rom_spiflash_dummy_len_plus[1] = s->dummy_len_plus;
 }
 
 /*
- * ESP32 ROM SPIEraseArea() switches flash read mode to slow read before erase.
- * That reprograms SPI0 read-mode bits and cache/XIP user registers, but ROM
- * does not restore the previous controller state before returning. Restore the
- * clobbered registers here so cache/XIP reads remain consistent after the ROM
- * erase call.
+ * ESP32 ROM SPIEraseArea() starts by forcing flash read mode to slow read via
+ * SPIReadModeCnfig(SPI_FLASH_SLOWRD_MODE, true).
+ *
+ * That ROM path does not restore the previous state before returning. It:
+ * - clears flash read-mode bits in PERIPHS_SPI_FLASH_CTRL / SPI_CTRL(0)
+ * - reprograms SPI0 cache/XIP user registers via spi_cache_mode_switch()
+ *   (SPI_USER(0), SPI_USER1(0), SPI_USER2(0), related cache-facing state)
+ * - with legacy=true, may also disable the flash chip QE bit when leaving
+ *   QIO/QOUT mode
+ *
+ * Restoring the controller registers here keeps cache/XIP reads consistent
+ * after the ROM erase call. Note that this only restores controller state;
+ * if QE preservation is required for the previous flash mode, that must be
+ * handled separately.
  */
 int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
 {
@@ -99,6 +130,7 @@ int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
     uint32_t spi0_user1 = READ_PERI_REG(SPI_USER1_REG(0));
     uint32_t spi0_user2 = READ_PERI_REG(SPI_USER2_REG(0));
     uint32_t spi1_ctrl = READ_PERI_REG(SPI_CTRL_REG(1));
+    uint32_t spi0_cache_sctrl = READ_PERI_REG(SPI_CACHE_SCTRL_REG(0));
 
     int rom_res = esp_rom_spiflash_erase_area(addr, size);
 
@@ -106,28 +138,46 @@ int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
     WRITE_PERI_REG(SPI_USER_REG(0), spi0_user);
     WRITE_PERI_REG(SPI_USER1_REG(0), spi0_user1);
     WRITE_PERI_REG(SPI_USER2_REG(0), spi0_user2);
+    WRITE_PERI_REG(SPI_CACHE_SCTRL_REG(0), spi0_cache_sctrl);
     WRITE_PERI_REG(SPI_CTRL_REG(1), spi1_ctrl);
 
     return rom_res;
 }
 
-bool stub_target_flash_needs_attach(void)
+static void stub_target_spi_init(void)
 {
-    return (READ_PERI_REG(SPI_CACHE_FCTRL_REG(0)) & SPI_CACHE_FLASH_USR_CMD) == 0;
+    /*
+     * Trimmed version of ROM SPI_init(SLOWRD_MODE, 4).
+     * We skip the module reset to avoid breaking communication with PSRAM.
+     */
+    WRITE_PERI_REG(SPI_CTRL_REG(1), SPI_WP_REG | SPI_RESANDRES);
+    WRITE_PERI_REG(SPI_CLOCK_REG(1), 0x3043U); /* precalculated for SPI_CLK_DIV(4) */
+
+    WRITE_PERI_REG(SPI_USER1_REG(1), 0);
+    REG_SET_FIELD(SPI_USER1_REG(1), SPI_USR_ADDR_BITLEN, 23);
+    REG_SET_FIELD(SPI_USER1_REG(1), SPI_USR_DUMMY_CYCLELEN, 7);
+
+    g_rom_spiflash_dummy_len_plus[1] = 0;
 }
 
-void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
 {
-    (void)state;
-    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+    if (state) {
+        stub_target_flash_state_save(state);
+    }
 
     if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
-        stub_target_flash_attach(spiconfig, 0);
-        /*
-         * Command phase is always set in download mode.
-         * But in reset-run case, it seems to be not set.
-         * So we need to set it here before sending any command.
-         */
-        REG_SET_BIT(SPI_USER_REG(1), SPI_USR_COMMAND);
+        STUB_LOGD("Attach spi flash...\n");
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        esp_rom_spiflash_attach(spiconfig, 0);
+    } else {
+        stub_target_spi_init();
     }
+
+    /*
+     * Command phase is always set in download mode.
+     * But in reset-run case, it seems to be not set.
+     * So we need to set it here before sending any command.
+     */
+    REG_SET_BIT(SPI_USER_REG(1), SPI_USR_COMMAND);
 }

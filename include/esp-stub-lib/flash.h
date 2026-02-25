@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 typedef struct stub_lib_flash_config {
@@ -48,31 +49,42 @@ int stub_lib_flash_update_config(stub_lib_flash_config_t *config);
 void stub_lib_flash_attach(uint32_t ishspi, bool legacy);
 
 /**
+ * @brief Return the size in bytes of the target-specific flash state buffer.
+ *
+ * The caller must allocate at least this many bytes (aligned to uint32_t) and
+ * pass the buffer to stub_lib_flash_init() / stub_lib_flash_init_ex().
+ * Returns 0 if the target does not require any state save/restore.
+ */
+size_t stub_lib_flash_state_size(void) __attribute__((const));
+
+/**
  * @brief Initialize SPI Flash before any use.
  *
- * Configure SPI, Flash ID, flash size, and the internal ROM's config
+ * Configure SPI, Flash ID, flash size, and the internal ROM's config.
  *
- * @param state If non-NULL, the state is saved to this pointer to be restored later.
+ * @param state Pre-allocated buffer of at least stub_lib_flash_state_size() bytes,
+ *              or NULL if no state save is needed.
  *
  * @return Error code:
  * - STUB_LIB_OK
  * - STUB_LIB_ERR_UNKNOWN_FLASH_ID
  */
-int stub_lib_flash_init(void **state);
+int stub_lib_flash_init(void *state);
 
 /**
  * @brief Initialize SPI Flash before any use with explicit attach policy.
  *
  * Configure SPI, Flash ID, flash size, and the internal ROM's config.
  *
- * @param state If non-NULL, the state is saved to this pointer to be restored later.
+ * @param state Pre-allocated buffer of at least stub_lib_flash_state_size() bytes,
+ *              or NULL if no state save is needed.
  * @param attach_policy Whether to always perform ROM flash attach or skip it when not needed.
  *
  * @return Error code:
  * - STUB_LIB_OK
  * - STUB_LIB_ERR_UNKNOWN_FLASH_ID
  */
-int stub_lib_flash_init_ex(void **state, stub_lib_flash_attach_policy_t attach_policy);
+int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy);
 
 /**
  * @brief Restore flash state at the end of the stub.
@@ -80,6 +92,16 @@ int stub_lib_flash_init_ex(void **state, stub_lib_flash_attach_policy_t attach_p
  * @param state If non-NULL, the state is restored from the state that was saved by stub_lib_flash_init().
  */
 void stub_lib_flash_deinit(const void *state);
+
+/**
+ * @brief Check whether the flash hardware needs to be attached (ROM spiflash_attach called).
+ *
+ * Most targets always need attach. Targets where attach would clobber live MMU state
+ * (e.g. ESP32-C6 when cache is running) return false to skip it.
+ *
+ * @return true if stub_lib_flash_init() should perform a full SPI attach, false otherwise.
+ */
+bool stub_lib_flash_needs_attach(void);
 
 /**
  * @brief Retrieve SPI Flash information.

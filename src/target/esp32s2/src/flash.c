@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/flash.h>
@@ -19,6 +20,34 @@
 
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
+extern void spi_cache_mode_switch(uint32_t modebit);
+extern void spi_common_set_flash_cs_timing(void);
+
+/*
+ * Save/restore SPI1 only. stub_target_spi_init() no longer touches SPI0 on the
+ * non-attach path — we trust the pre-stub SPI0/cache configuration (it was
+ * serving XIP before we ran). Keep this set in sync with the SPI1 writes in
+ * stub_target_spi_init() and the USR_COMMAND bit written in
+ * stub_target_flash_init(); ROM spi_common_set_flash_cs_timing() writes the CS
+ * bits of USER and the CS_HOLD/SETUP_TIME fields of CTRL2 on SPI1.
+ */
+enum {
+    SPI_USER_REG_ID = 0,
+    SPI_CTRL_REG_ID,
+    SPI_CTRL2_REG_ID,
+    SPI_CLOCK_REG_ID,
+    SPI_DDR_REG_ID,
+    SPI_REGS_NUM,
+};
+
+typedef struct {
+    uint32_t spi_regs[SPI_REGS_NUM];
+} stub_esp32s2_flash_state_t;
+
+size_t stub_target_flash_state_size(void)
+{
+    return sizeof(stub_esp32s2_flash_state_t);
+}
 
 uint32_t stub_target_flash_get_spiconfig_efuse(void)
 {
@@ -45,4 +74,75 @@ void stub_target_spi_wait_ready(void)
 bool stub_target_flash_needs_attach(void)
 {
     return (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0)) & SPI_MEM_CACHE_FLASH_USR_CMD) == 0;
+}
+
+void stub_target_flash_state_save(void *state)
+{
+    if (!state) {
+        return;
+    }
+
+    stub_esp32s2_flash_state_t *s = (stub_esp32s2_flash_state_t *)state;
+    s->spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_MEM_USER_REG(1));
+    s->spi_regs[SPI_CLOCK_REG_ID] = READ_PERI_REG(SPI_MEM_CLOCK_REG(1));
+    s->spi_regs[SPI_CTRL_REG_ID] = READ_PERI_REG(SPI_MEM_CTRL_REG(1));
+}
+
+void stub_target_flash_state_restore(const void *state)
+{
+    if (!state) {
+        return;
+    }
+
+    const stub_esp32s2_flash_state_t *s = state;
+
+    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), s->spi_regs[SPI_CLOCK_REG_ID]);
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), s->spi_regs[SPI_CTRL_REG_ID]);
+    WRITE_PERI_REG(SPI_MEM_USER_REG(1), s->spi_regs[SPI_USER_REG_ID]);
+}
+
+static void stub_target_spi_init(void)
+{
+    const uint32_t freqbits = 0x30103; /* precalculated for SPI_CLK_DIV(4) */
+
+    /* Trimmed version of ROM SPI_init(SLOWRD_MODE, 4).
+     * We skip the module reset to avoid breaking communication with PSRAM. */
+
+    REG_CLR_BIT(SPI_MEM_MISC_REG(0), SPI_MEM_CS0_DIS);
+    REG_SET_BIT(SPI_MEM_MISC_REG(0), SPI_MEM_CS1_DIS);
+
+    spi_common_set_flash_cs_timing();
+
+    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), freqbits);
+    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(0), freqbits);
+
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), SPI_MEM_WP_REG | SPI_MEM_RESANDRES);
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(0), SPI_MEM_WP_REG);
+
+    REG_SET_FIELD(SPI_MEM_MISO_DLEN_REG(0), SPI_MEM_USR_MISO_DBITLEN, 0xff);
+    REG_SET_FIELD(SPI_MEM_MOSI_DLEN_REG(0), SPI_MEM_USR_MOSI_DBITLEN, 0xff);
+    REG_SET_FIELD(SPI_MEM_USER2_REG(0), SPI_MEM_USR_COMMAND_BITLEN, 0x7);
+    REG_SET_BIT(SPI_MEM_CACHE_FCTRL_REG(0), SPI_MEM_CACHE_REQ_EN);
+
+    WRITE_PERI_REG(SPI_MEM_DDR_REG(0), 0);
+    WRITE_PERI_REG(SPI_MEM_DDR_REG(1), 0);
+    spi_cache_mode_switch(0);
+    REG_SET_BIT(SPI_MEM_CACHE_FCTRL_REG(0), SPI_MEM_CACHE_FLASH_USR_CMD);
+}
+
+void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    if (state) {
+        stub_target_flash_state_save(state);
+    }
+
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        STUB_LOGD("Attach spi flash...\n");
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        stub_target_flash_attach(spiconfig, 0);
+    } else {
+        stub_target_spi_init();
+    }
+
+    REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);
 }

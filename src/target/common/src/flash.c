@@ -27,7 +27,6 @@ extern int esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_
 extern int esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
 extern int esp_rom_spiflash_erase_sector(uint32_t addr);
 extern int esp_rom_spiflash_erase_block(uint32_t addr);
-extern int esp_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
 extern int esp_rom_spiflash_write_enable(esp_rom_spiflash_chip_t *flash_chip);
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
@@ -95,7 +94,12 @@ uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
     return 0;
 }
 
-void __attribute__((weak)) stub_target_flash_state_save(void **state)
+size_t __attribute__((weak)) stub_target_flash_state_size(void)
+{
+    return 0;
+}
+
+void __attribute__((weak)) stub_target_flash_state_save(void *state)
 {
     (void)state;
 }
@@ -105,7 +109,7 @@ void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
     (void)state;
 }
 
-void __attribute__((weak)) stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+void __attribute__((weak)) stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
 {
     (void)state;
 

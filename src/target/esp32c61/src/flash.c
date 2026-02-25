@@ -7,8 +7,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <target/cache.h>
 #include <target/flash.h>
 
 #include <soc/spi_mem_compat.h>
@@ -56,4 +58,21 @@ uint32_t stub_target_get_max_supported_flash_size(void)
 {
     /* ESP32-C61 supports up to 32MB with 4-byte addressing */
     return MIB(32);
+}
+
+bool stub_target_flash_needs_attach(void)
+{
+    return !stub_target_cache_is_enabled();
+}
+
+void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    (void)state;
+
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        STUB_LOGD("Attach spi flash...\n");
+        stub_target_flash_attach(0, 0);
+    }
+
+    REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);
 }
