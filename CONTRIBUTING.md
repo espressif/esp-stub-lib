@@ -223,9 +223,20 @@ No heap. The stub runs in limited target RAM.
 
 - No `malloc`, `free`, `calloc`, `realloc`.
 - Use stack variables for temporaries.
-- Avoid large `static` variables. The library serves both OpenOCD and esptool. They
-  have different needs. Pass state through function parameters (`void **state`) so the
-  caller decides where it lives.
+- Avoid large `static` variables. The library serves both OpenOCD and esptool, and
+  they have different needs. Modules that need persistent state expose a
+  `stub_lib_<module>_state_size()` query so the caller sizes a buffer at runtime
+  and passes it in via a `void *state` parameter. A size of `0` means "no state
+  needed" and the caller may pass `NULL`. Callers own the buffer's lifetime and
+  alignment (at least `sizeof(uint32_t)`); the library only reads/writes through
+  the pointer.
+
+  ```c
+  size_t sz = stub_lib_cache_state_size();
+  uint8_t __attribute__((aligned(sizeof(uint32_t)))) buf[sz ? sz : 1];
+  void *state = sz ? buf : NULL;
+  stub_lib_cache_init(state);
+  ```
 
 ---
 

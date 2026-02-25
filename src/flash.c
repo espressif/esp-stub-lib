@@ -50,10 +50,10 @@ size_t stub_lib_flash_state_size(void)
 
 int stub_lib_flash_init(void *state)
 {
-    return stub_lib_flash_init_ex(state, STUB_LIB_FLASH_ATTACH_ALWAYS);
+    return stub_lib_flash_init_ex(state, STUB_LIB_FLASH_ATTACH_ALWAYS, false);
 }
 
-int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy)
+int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy, bool enable_4byte_cache_mode)
 {
     stub_target_flash_init(state, attach_policy);
 
@@ -62,7 +62,7 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
 
     int return_code = STUB_LIB_OK;
 
-    STUB_LOG_TRACEF("Flash size: %d MB, flash_id: 0x%x\n", BYTES_TO_MIB(flash_size), flash_id);
+    STUB_LOGD("Flash size: %d MB, flash_id: 0x%x\n", BYTES_TO_MIB(flash_size), flash_id);
 
     if (flash_size == 0) {
         /* Unknown flash ID - use target-specific maximum supported size as fallback */
@@ -73,6 +73,9 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
 
     if (flash_size > MIB(16)) {
         large_flash_mode = true;
+        if (enable_4byte_cache_mode) {
+            stub_target_flash_set_4byte_cache_mode(true);
+        }
     }
 
     int config_ret = stub_target_flash_update_config(flash_id,
@@ -90,6 +93,10 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
 
 void stub_lib_flash_deinit(const void *state)
 {
+    if (large_flash_mode) {
+        stub_target_flash_set_4byte_cache_mode(false);
+        large_flash_mode = false;
+    }
     stub_target_flash_deinit(state);
 }
 
@@ -123,7 +130,7 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    STUB_LOGV("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
+    STUB_LOGD("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
 
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
         STUB_LOGE("Flash write unaligned!\n");

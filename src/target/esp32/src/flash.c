@@ -70,9 +70,8 @@ void stub_target_spi_wait_ready(void)
 
 void stub_target_flash_state_save(void *state)
 {
-    if (!state) {
+    if (!state)
         return;
-    }
 
     stub_esp32_flash_state_t *s = state;
     s->spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM));
@@ -102,11 +101,20 @@ void stub_target_flash_state_restore(const void *state)
 }
 
 /*
- * ESP32 ROM SPIEraseArea() switches flash read mode to slow read before erase.
- * That reprograms SPI0 read-mode bits and cache/XIP user registers, but ROM
- * does not restore the previous controller state before returning. Restore the
- * clobbered registers here so cache/XIP reads remain consistent after the ROM
- * erase call.
+ * ESP32 ROM SPIEraseArea() starts by forcing flash read mode to slow read via
+ * SPIReadModeCnfig(SPI_FLASH_SLOWRD_MODE, true).
+ *
+ * That ROM path does not restore the previous state before returning. It:
+ * - clears flash read-mode bits in PERIPHS_SPI_FLASH_CTRL / SPI_CTRL(0)
+ * - reprograms SPI0 cache/XIP user registers via spi_cache_mode_switch()
+ *   (SPI_USER(0), SPI_USER1(0), SPI_USER2(0), related cache-facing state)
+ * - with legacy=true, may also disable the flash chip QE bit when leaving
+ *   QIO/QOUT mode
+ *
+ * Restoring the controller registers here keeps cache/XIP reads consistent
+ * after the ROM erase call. Note that this only restores controller state;
+ * if QE preservation is required for the previous flash mode, that must be
+ * handled separately.
  */
 int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
 {

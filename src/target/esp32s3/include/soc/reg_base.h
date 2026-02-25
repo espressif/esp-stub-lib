@@ -60,6 +60,7 @@
 #define DR_REG_SENSITIVE_BASE                   0x600C1000
 #define DR_REG_INTERRUPT_BASE                   0x600C2000
 #define DR_REG_EXTMEM_BASE                      0x600C4000
+#define DR_REG_MMU_TABLE                        0x600C5000
 #define DR_REG_ASSIST_DEBUG_BASE                0x600CE000
 #define DR_REG_WORLD_CNTL_BASE                  0x600D0000
 #define DR_REG_USB_BASE                         0x60080000

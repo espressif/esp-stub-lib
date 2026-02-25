@@ -312,3 +312,10 @@ void stub_target_flash_write_encrypted_disable(void);
  * Each target that supports large flash must implement this.
  */
 int stub_target_flash_unlock(void);
+
+/**
+ * @brief Enable or disable 4-byte cache addressing for cache reads when flash size exceeds 16MB.
+ *
+ * @param enable true to enable 4-byte cache addressing, false to restore.
+ */
+void stub_target_flash_set_4byte_cache_mode(bool enable);
