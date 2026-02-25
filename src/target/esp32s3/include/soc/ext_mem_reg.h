@@ -10,8 +10,6 @@
 
 #include "reg_base.h"
 
-#define DR_REG_MMU_TABLE                        0x600C5000
-
 /* DCache control registers */
 #define EXTMEM_DCACHE_CTRL_REG              (DR_REG_EXTMEM_BASE + 0x000)
 #define EXTMEM_DCACHE_ENABLE                BIT(0)

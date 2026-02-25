@@ -7,8 +7,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <target/cache.h>
 #include <target/flash.h>
 
 #include <soc/spi_mem_compat.h>
@@ -56,4 +58,63 @@ uint32_t stub_target_get_max_supported_flash_size(void)
 {
     /* ESP32-C61 supports up to 32MB with 4-byte addressing */
     return MIB(32);
+}
+
+enum { SPI_CTRL_REG_ID, SPI_REGS_MAX };
+
+typedef struct {
+    uint32_t spi_regs[SPI_REGS_MAX];
+} stub_esp32c61_flash_state_t;
+
+static stub_esp32c61_flash_state_t s_flash_state;
+
+void stub_target_flash_state_save(void **state)
+{
+    if (!state) {
+        return;
+    }
+
+    s_flash_state.spi_regs[SPI_CTRL_REG_ID] = READ_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM));
+
+    *state = &s_flash_state;
+}
+
+void stub_target_flash_state_restore(const void *state)
+{
+    if (!state) {
+        return;
+    }
+
+    const stub_esp32c61_flash_state_t *s = state;
+
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), s->spi_regs[SPI_CTRL_REG_ID]);
+}
+
+bool stub_target_flash_needs_attach(void)
+{
+    return !stub_target_cache_is_enabled();
+}
+
+void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    if (state)
+        stub_target_flash_state_save(state);
+
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        STUB_LOGD("Attach spi flash...\n");
+        stub_target_flash_attach(0, 0);
+    } else {
+        /*
+         * When we skip esp_rom_spiflash_attach(), we must reproduce the minimum SPI1 setup.
+         * SYNC_RESET clears a stuck MSPI state machine.
+         * Clearing SPI_MEM_FLASH_SUS drops any suspend status that could block
+         * a new erase or program sequence.
+         * Writing SPI_MEM_CTRL with WP and RESANDRES drives /WP high to release hardware write protect.
+         */
+        // REG_SET_BIT(SPI_MEM_CTRL2_REG(FLASH_SPI_NUM), SPI_MEM_SYNC_RESET);
+        // CLEAR_PERI_REG_MASK(SPI_MEM_SUS_STATUS_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_SUS_M);
+        // WRITE_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_WP_REG | SPI_MEM_RESANDRES);
+    }
+
+    REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);
 }

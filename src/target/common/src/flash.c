@@ -27,7 +27,6 @@ extern int esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_
 extern int esp_rom_spiflash_write_encrypted(uint32_t flash_addr, const void *data, uint32_t size);
 extern int esp_rom_spiflash_erase_sector(uint32_t addr);
 extern int esp_rom_spiflash_erase_block(uint32_t addr);
-extern int esp_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
 extern int esp_rom_spiflash_write_enable(esp_rom_spiflash_chip_t *flash_chip);
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
@@ -105,16 +104,25 @@ void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
     (void)state;
 }
 
-void __attribute__((weak)) stub_target_flash_init(void **state)
-{
-    (void)state;
-    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
-    stub_target_flash_attach(spiconfig, 0);
-}
-
 void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
     esp_rom_spiflash_attach(ishspi, legacy);
+}
+
+bool __attribute__((weak)) stub_target_flash_needs_attach(void)
+{
+    return true;
+}
+
+void __attribute__((weak)) stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    (void)state;
+
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        STUB_LOGD("Flash attach with spiconfig: 0x%x\n", spiconfig);
+        stub_target_flash_attach(spiconfig, 0);
+    }
 }
 
 esp_rom_spiflash_chip_t *__attribute__((weak)) stub_target_flash_get_config(void)
@@ -229,4 +237,9 @@ int __attribute__((weak)) stub_target_flash_unlock(void)
         return STUB_LIB_OK;
     }
     return STUB_LIB_FAIL;
+}
+
+int __attribute__((weak)) stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
+{
+    return esp_rom_spiflash_erase_area(addr, size);
 }

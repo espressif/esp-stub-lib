@@ -18,6 +18,11 @@ typedef struct stub_lib_flash_config {
     uint32_t status_mask;
 } stub_lib_flash_config_t;
 
+typedef enum {
+    STUB_LIB_FLASH_ATTACH_ALWAYS = 0,
+    STUB_LIB_FLASH_ATTACH_IF_NEEDED,
+} stub_lib_flash_attach_policy_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -56,11 +61,35 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy);
 int stub_lib_flash_init(void **state);
 
 /**
+ * @brief Initialize SPI Flash before any use with an explicit attach policy.
+ *
+ * Configure SPI, Flash ID, flash size, and the internal ROM's config.
+ *
+ * @param state If non-NULL, the state is saved to this pointer to be restored later.
+ * @param attach_policy Whether to always call ROM flash attach, or only attach when needed.
+ *
+ * @return Error code:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_UNKNOWN_FLASH_ID
+ */
+int stub_lib_flash_init_ex(void **state, stub_lib_flash_attach_policy_t attach_policy);
+
+/**
  * @brief Restore flash state at the end of the stub.
  *
  * @param state If non-NULL, the state is restored from the state that was saved by stub_lib_flash_init().
  */
 void stub_lib_flash_deinit(const void *state);
+
+/**
+ * @brief Check whether the flash hardware needs to be attached (ROM spiflash_attach called).
+ *
+ * Most targets always need attach. Targets where attach would clobber live MMU state
+ * (e.g. ESP32-C6 when cache is running) return false to skip it.
+ *
+ * @return true if stub_lib_flash_init() should perform a full SPI attach, false otherwise.
+ */
+bool stub_lib_flash_needs_attach(void);
 
 /**
  * @brief Retrieve SPI Flash information.
@@ -110,6 +139,24 @@ int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, 
  * - STUB_LIB_ERR_TIMEOUT if flash erase does not complete in time
  */
 int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
+
+/**
+ * @brief ROM SPIEraseArea path for a flash region
+ *
+ * For internal flash <= 16MB only. Callers that need the ROM routine explicitly
+ * (e.g. OpenOCD stub) use this. For > 16MB flash, returns STUB_LIB_ERR_NOT_SUPPORTED
+ * and stub_lib_flash_erase_area must be used instead.
+ *
+ * @param addr Sector-aligned start address.
+ * @param size Sector-aligned size.
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_INVALID_ARG
+ * - STUB_LIB_ERR_NOT_SUPPORTED (large-flash / 4-byte mode)
+ * - STUB_LIB_FAIL if ROM erase fails
+ */
+int stub_lib_flash_rom_erase_area(uint32_t addr, uint32_t size);
 
 /**
  * @brief Erase the entire flash chip.

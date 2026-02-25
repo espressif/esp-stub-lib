@@ -8,6 +8,8 @@
 #include <esp-stub-lib/bit_utils.h>
 #include "reg_base.h"
 
+#define REG_SPI_MEM_BASE(i)  (DR_REG_SPIMEM0_BASE + (i) * 0x1000)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

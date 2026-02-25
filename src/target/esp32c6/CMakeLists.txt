@@ -4,6 +4,7 @@ set(srcs
     src/flash.c
     src/uart.c
     src/usb_serial_jtag.c
+    src/mmu.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

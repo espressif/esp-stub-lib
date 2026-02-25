@@ -21,6 +21,8 @@
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
+#define STUB_FLASH_ERASE_TIMEOUT_US 1000000U
+
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
     if (config == NULL) {
@@ -43,14 +45,19 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
 
 int stub_lib_flash_init(void **state)
 {
-    stub_target_flash_init(state);
+    return stub_lib_flash_init_ex(state, STUB_LIB_FLASH_ATTACH_ALWAYS);
+}
+
+int stub_lib_flash_init_ex(void **state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    stub_target_flash_init(state, attach_policy);
 
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);
 
     int return_code = STUB_LIB_OK;
 
-    STUB_LOG_TRACEF("Flash size: %d MB, flash_id: 0x%x\n", BYTES_TO_MIB(flash_size), flash_id);
+    STUB_LOGD("Flash size: %d MB, flash_id: 0x%x\n", BYTES_TO_MIB(flash_size), flash_id);
 
     if (flash_size == 0) {
         /* Unknown flash ID - use target-specific maximum supported size as fallback */
@@ -78,7 +85,12 @@ int stub_lib_flash_init(void **state)
 
 void stub_lib_flash_deinit(const void *state)
 {
-    stub_target_flash_deinit(state);
+    stub_target_flash_state_restore(state);
+}
+
+bool stub_lib_flash_needs_attach(void)
+{
+    return stub_target_flash_needs_attach();
 }
 
 void stub_lib_flash_get_config(stub_lib_flash_config_t *cfg)
@@ -111,7 +123,7 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    STUB_LOGV("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
+    STUB_LOGD("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
 
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
         STUB_LOGE("Flash write unaligned!\n");
@@ -205,22 +217,50 @@ int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaini
     return STUB_LIB_OK;
 }
 
-int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
+static int validate_erase_area_args(uint32_t addr, uint32_t size)
 {
     if (!IS_ALIGNED(addr, STUB_FLASH_SECTOR_SIZE) || !IS_ALIGNED(size, STUB_FLASH_SECTOR_SIZE)) {
         STUB_LOGE("Erase area addr 0x%x or size 0x%x not sector-aligned\n", addr, size);
         return STUB_LIB_ERR_INVALID_ARG;
     }
+    return STUB_LIB_OK;
+}
 
-    const uint32_t timeout_us = 1000000; // 1 second per block or sector
+int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
+{
+    int res = validate_erase_area_args(addr, size);
+    if (res != STUB_LIB_OK) {
+        return res;
+    }
 
     while (size > 0) {
-        int res = stub_lib_flash_start_next_erase(&addr, &size, timeout_us);
+        res = stub_lib_flash_start_next_erase(&addr, &size, STUB_FLASH_ERASE_TIMEOUT_US);
         if (res != STUB_LIB_OK) {
             STUB_LOGE("Erase area failed at 0x%x, remaining %u with error 0x%x\n", addr, size, res);
             return res;
         }
     }
 
-    return stub_lib_flash_wait_ready(timeout_us);
+    return stub_lib_flash_wait_ready(STUB_FLASH_ERASE_TIMEOUT_US);
+}
+
+int stub_lib_flash_rom_erase_area(uint32_t addr, uint32_t size)
+{
+    if (large_flash_mode) {
+        return STUB_LIB_ERR_NOT_SUPPORTED;
+    }
+
+    int res = validate_erase_area_args(addr, size);
+    if (res != STUB_LIB_OK) {
+        return res;
+    }
+
+    res = stub_target_rom_spiflash_erase_area(addr, size);
+    if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
+        STUB_LOGE("esp_rom_spiflash_erase_area(0x%x, %u) failed (%d)\n", addr, size, res);
+        return STUB_LIB_FAIL;
+    }
+
+    /* ROM waits for IDLE before returning. No extra wait_ready needed. */
+    return STUB_LIB_OK;
 }

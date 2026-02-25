@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/cache.h>
@@ -17,12 +19,21 @@ extern void Cache_Suspend_ICache(void);
 extern void Cache_Resume_ICache(uint32_t autoload);
 extern void Cache_Invalidate_ICache_All(void);
 extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
+extern void ROM_Boot_Cache_Init(void);
+extern void Cache_Disable_ICache(void);
 
 typedef struct {
     uint32_t mmu_page_size;
+    uint32_t ctrl1;
+    bool cache_was_enabled;
 } esp32c2_cache_state_t;
 
 static esp32c2_cache_state_t s_cache_state;
+
+uint32_t stub_target_cache_get_caps(void)
+{
+    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR | STUB_CACHE_CAP_SHARED_IDCACHE;
+}
 
 void stub_target_cache_invalidate_all(void)
 {
@@ -54,13 +65,42 @@ void stub_target_cache_resume(uint32_t autoload)
     }
 }
 
-void stub_target_cache_save(void)
+int stub_target_cache_is_enabled(void)
 {
-    s_cache_state.mmu_page_size = REG_GET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE);
+    uint32_t ctrl1 = REG_READ(EXTMEM_ICACHE_CTRL1_REG);
+    return REG_GET_BIT(EXTMEM_ICACHE_CTRL_REG, EXTMEM_ICACHE_ENABLE) && !(ctrl1 & EXTMEM_ICACHE_SHUT_DBUS);
 }
 
-void stub_target_cache_restore(void)
+void stub_target_cache_init(void **state)
 {
-    /* Restore MMU page size */
-    REG_SET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE, s_cache_state.mmu_page_size);
+    s_cache_state.mmu_page_size = REG_GET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE);
+    s_cache_state.ctrl1 = REG_READ(EXTMEM_ICACHE_CTRL1_REG);
+    s_cache_state.cache_was_enabled = stub_target_cache_is_enabled();
+
+    STUB_LOGD("mmu_page_size: %d cache_ctrl: 0x%x\n", s_cache_state.mmu_page_size, s_cache_state.ctrl1);
+
+    if (!s_cache_state.cache_was_enabled) {
+        STUB_LOGD("ICache not enabled, initializing for DROM\n");
+        ROM_Boot_Cache_Init();
+    }
+
+    if (state)
+        *state = &s_cache_state;
+}
+
+void stub_target_cache_deinit(const void *state)
+{
+    if (!state)
+        return;
+
+    const esp32c2_cache_state_t *s = state;
+
+    if (!s->cache_was_enabled) {
+        STUB_LOGD("Disabling ICache\n");
+        Cache_Disable_ICache();
+        REG_WRITE(EXTMEM_ICACHE_CTRL1_REG, s->ctrl1);
+    } else {
+        /* Restore MMU page size */
+        REG_SET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE, s->mmu_page_size);
+    }
 }

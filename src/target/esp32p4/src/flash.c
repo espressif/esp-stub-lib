@@ -5,11 +5,13 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
-#include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <target/cache.h>
 #include <target/flash.h>
 
 #include <soc/efuse_reg.h>
@@ -171,6 +173,35 @@ void stub_target_reset_default_spi_pins(void)
     /* ESP32-P4 uses dedicated pins for SPI flash. */
 }
 
+bool stub_target_flash_needs_attach(void)
+{
+    return !stub_target_cache_is_enabled();
+}
+
+typedef struct {
+    uint32_t ctrl;
+} esp32p4_flash_state_t;
+
+static esp32p4_flash_state_t s_flash_state;
+
+void stub_target_flash_state_save(void **state)
+{
+    if (!state)
+        return;
+
+    s_flash_state.ctrl = READ_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM));
+    *state = &s_flash_state;
+}
+
+void stub_target_flash_state_restore(const void *state)
+{
+    if (!state)
+        return;
+
+    const esp32p4_flash_state_t *s = state;
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), s->ctrl);
+}
+
 void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
     if (_rom_eco_version >= 7) {
@@ -197,4 +228,17 @@ uint32_t stub_target_get_max_supported_flash_size(void)
 {
     /* ESP32-P4 supports up to 64MB with 4-byte addressing */
     return MIB(64);
+}
+
+void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    if (state)
+        stub_target_flash_state_save(state);
+
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        STUB_LOGD("Attach spi flash...\n");
+        stub_target_flash_attach(0, false);
+    }
+
+    REG_SET_BIT(SPI_MEM_USER_REG(FLASH_SPI_NUM), SPI_MEM_USR_COMMAND);
 }

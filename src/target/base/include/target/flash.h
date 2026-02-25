@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/flash.h>
+
 #include <private/rom_flash.h>
 
 /**
@@ -55,7 +57,7 @@ void stub_target_reset_default_spi_pins(void);
  *
  * @param state If non-NULL, the state is saved.
  */
-void stub_target_flash_init(void **state);
+void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy);
 
 /**
  * @brief Restore SPI Flash hardware state.
@@ -63,6 +65,16 @@ void stub_target_flash_init(void **state);
  * @param state If non-NULL, the state is restored.
  */
 void stub_target_flash_deinit(const void *state);
+
+/**
+ * @brief Check whether ROM spiflash_attach() should be called during flash init.
+ *
+ * The default weak implementation returns true (always attach).
+ * Targets where attach would clobber live MMU state provide a strong override.
+ *
+ * @return true if attach is needed, false to skip it.
+ */
+bool stub_target_flash_needs_attach(void);
 
 /**
  * @brief Save SPI Flash hardware state before sending any command.
@@ -77,6 +89,13 @@ void stub_target_flash_state_save(void **state);
  * @param state If non-NULL, the state is restored.
  */
 void stub_target_flash_state_restore(const void *state);
+
+/**
+ * @brief Target wrapper for esp_rom_spiflash_erase_area().
+ *
+ * @return STUB_LIB_OK or STUB_LIB_FAIL
+ */
+int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
 
 /**
  * @brief Retrieve Flash ID (aka flash device id, aka flash chip id) from internal hw.

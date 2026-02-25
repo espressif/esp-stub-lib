@@ -8,6 +8,8 @@
 
 #include <esp-stub-lib/bit_utils.h>
 
+#define SOC_MMU_ACCESS_FLASH            0
+#define SOC_MMU_FLASH_SENSITIVE         BIT(13)
 #define SOC_MMU_ENTRY_NUM               1024
 
 #define SOC_MMU_FLASH_VALID             BIT(12)

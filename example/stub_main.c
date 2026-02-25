@@ -113,8 +113,9 @@ static __attribute__((unused)) void test_sha256(void)
 
 static __attribute__((unused)) void test_cache(void)
 {
-    stub_lib_cache_save();
-    stub_lib_cache_restore();
+    void *cache_state = NULL;
+    stub_lib_cache_init(&cache_state);
+    stub_lib_cache_deinit(cache_state);
     stub_lib_cache_writeback_all();
     stub_lib_cache_invalidate_all();
     stub_lib_cache_writeback_addr(0x1000, 0x1000);

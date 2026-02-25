@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/cache.h>
@@ -17,6 +19,20 @@ extern uint32_t Cache_Suspend_ICache(void);
 extern void Cache_Resume_ICache(uint32_t autoload);
 extern void Cache_Invalidate_ICache_All(void);
 extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
+extern void ROM_Boot_Cache_Init(void);
+extern void Cache_Disable_ICache(void);
+
+typedef struct {
+    uint32_t ctrl1;
+    bool cache_was_enabled;
+} esp32c3_cache_state_t;
+
+static esp32c3_cache_state_t s_cache_state;
+
+uint32_t stub_target_cache_get_caps(void)
+{
+    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR | STUB_CACHE_CAP_SHARED_IDCACHE;
+}
 
 void stub_target_cache_invalidate_all(void)
 {
@@ -46,5 +62,39 @@ void stub_target_cache_resume(uint32_t autoload)
 {
     if (autoload & BIT(0)) {
         Cache_Resume_ICache(autoload & BIT(1) ? EXTMEM_ICACHE_AUTOLOAD_ENA : 0);
+    }
+}
+
+int stub_target_cache_is_enabled(void)
+{
+    uint32_t ctrl1 = REG_READ(EXTMEM_ICACHE_CTRL1_REG);
+    return REG_GET_BIT(EXTMEM_ICACHE_CTRL_REG, EXTMEM_ICACHE_ENABLE) && !(ctrl1 & EXTMEM_ICACHE_SHUT_DBUS);
+}
+
+void stub_target_cache_init(void **state)
+{
+    s_cache_state.ctrl1 = REG_READ(EXTMEM_ICACHE_CTRL1_REG);
+    s_cache_state.cache_was_enabled = stub_target_cache_is_enabled();
+
+    if (!s_cache_state.cache_was_enabled) {
+        STUB_LOGD("ICache not enabled, initializing for DROM\n");
+        ROM_Boot_Cache_Init();
+    }
+
+    if (state)
+        *state = &s_cache_state;
+}
+
+void stub_target_cache_deinit(const void *state)
+{
+    if (!state)
+        return;
+
+    const esp32c3_cache_state_t *s = state;
+
+    if (!s->cache_was_enabled) {
+        STUB_LOGD("Disabling ICache\n");
+        Cache_Disable_ICache();
+        REG_WRITE(EXTMEM_ICACHE_CTRL1_REG, s->ctrl1);
     }
 }
