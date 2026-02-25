@@ -6,6 +6,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include <target/usb_otg.h>
 
 // Weak implementations for chips that don't support USB-OTG

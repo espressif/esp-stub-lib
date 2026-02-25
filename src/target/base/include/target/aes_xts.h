@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include <esp-stub-lib/err.h>
 
 /* Maximum size of an encryption block */

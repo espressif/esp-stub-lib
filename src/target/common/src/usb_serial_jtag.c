@@ -6,6 +6,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include <target/usb_serial_jtag.h>
 
 bool __attribute__((weak)) stub_target_usb_serial_jtag_is_supported(void)

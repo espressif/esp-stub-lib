@@ -5,11 +5,14 @@
  */
 
 #include <stdint.h>
-#include <target/clock.h>
+
 #include <soc_utils.h>
+
+#include <target/clock.h>
+
+#include <soc/lp_wdt_reg.h>
 #include <soc/pcr_reg.h>
 #include <soc/soc.h>
-#include <soc/lp_wdt_reg.h>
 
 #define CPU_FREQ_MHZ 64
 

@@ -4,14 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <esp-stub-lib/usb_otg.h>
-#include <target/usb_otg.h>
+#include <stdint.h>
+
 #include <esp_rom_caps.h>
-#include <soc_utils.h>
 #include <rom_wrappers.h>
+#include <soc_utils.h>
+
+#include <esp-stub-lib/usb_otg.h>
+
+#include <target/usb_otg.h>
 
 #if (ESP_ROM_USB_OTG_NUM >= 0)
 

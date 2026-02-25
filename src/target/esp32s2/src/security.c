@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+
 #include <target/security.h>
 
 #define SECURITY_INFO_BYTES 12

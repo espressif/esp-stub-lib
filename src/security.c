@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
-#include <stddef.h>
 #include <stdbool.h>
-#include <esp-stub-lib/security.h>
+#include <stddef.h>
+
 #include <esp-stub-lib/err.h>
+#include <esp-stub-lib/security.h>
+
 #include <target/security.h>
 
 uint32_t stub_lib_security_info_size(void)
