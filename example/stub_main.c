@@ -18,6 +18,7 @@
 #include <esp-stub-lib/miniz.h>
 #include <esp-stub-lib/rom_wrappers.h>
 #include <esp-stub-lib/security.h>
+#include <esp-stub-lib/sha.h>
 #include <esp-stub-lib/uart.h>
 #include <esp-stub-lib/usb_serial_jtag.h>
 
@@ -101,6 +102,14 @@ static __attribute__((unused)) void test_md5(void)
     stub_lib_md5_init(&ctx);
     stub_lib_md5_update(&ctx, NULL, 0);
     stub_lib_md5_final(&ctx, NULL);
+}
+
+static __attribute__((unused)) void test_sha256(void)
+{
+    uint8_t digest[32];
+    stub_lib_sha256_start();
+    stub_lib_sha256_data(NULL, 0);
+    stub_lib_sha256_finish(digest);
 }
 
 static int __attribute__((unused)) handle_test_uart(void)
