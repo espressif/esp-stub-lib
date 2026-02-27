@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <esp-stub-lib/cache.h>
 #include <esp-stub-lib/clock.h>
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/flash.h>
@@ -112,6 +113,12 @@ static __attribute__((unused)) void test_sha256(void)
     stub_lib_sha256_finish(digest);
 }
 
+static __attribute__((unused)) void test_cache(void)
+{
+    stub_lib_cache_writeback_invalidate_all();
+    stub_lib_cache_invalidate_all();
+}
+
 static int __attribute__((unused)) handle_test_uart(void)
 {
     void *uart_rx_interrupt_handler = NULL;
@@ -192,6 +199,8 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     char buf[10];
     strcpy(buf, "test2\n");
     STUB_LOG(buf);
+
+    test_cache();
 
     return 0;
 }
