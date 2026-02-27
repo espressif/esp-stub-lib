@@ -1,5 +1,6 @@
 set(common_srcs
     src/aes_xts.c
+    src/cache.c
     src/flash.c
     src/flash_4byte.c
     src/mem_utils.c
