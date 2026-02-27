@@ -191,7 +191,7 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     test_md5();
     test_usb_serial_jtag();
     test_miniz();
-    // test_clock_init(); // TODO: Not implemented in ESP32-H21
+    test_clock_init();
 
     return 0;
 }
