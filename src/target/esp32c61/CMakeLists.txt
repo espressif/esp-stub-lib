@@ -1,4 +1,5 @@
 set(srcs
+    src/cache.c
     src/flash.c
     src/uart.c
     src/usb_serial_jtag.c
