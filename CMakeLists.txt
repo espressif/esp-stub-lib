@@ -21,6 +21,7 @@ set(srcs
     src/mem_utils.c
     src/rom_wrappers.c
     src/security.c
+    src/sha.c
     src/uart.c
     src/usb_serial_jtag.c
     src/usb_otg.c
