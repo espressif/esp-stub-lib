@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <esp-stub-lib/cache.h>
 #include <esp-stub-lib/clock.h>
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/flash.h>
@@ -18,6 +19,7 @@
 #include <esp-stub-lib/miniz.h>
 #include <esp-stub-lib/rom_wrappers.h>
 #include <esp-stub-lib/security.h>
+#include <esp-stub-lib/sha.h>
 #include <esp-stub-lib/uart.h>
 #include <esp-stub-lib/usb_serial_jtag.h>
 
@@ -103,6 +105,20 @@ static __attribute__((unused)) void test_md5(void)
     stub_lib_md5_final(&ctx, NULL);
 }
 
+static __attribute__((unused)) void test_sha256(void)
+{
+    uint8_t digest[32];
+    stub_lib_sha256_start();
+    stub_lib_sha256_data(NULL, 0);
+    stub_lib_sha256_finish(digest);
+}
+
+static __attribute__((unused)) void test_cache(void)
+{
+    stub_lib_cache_writeback_invalidate_all();
+    stub_lib_cache_invalidate_all();
+}
+
 static int __attribute__((unused)) handle_test_uart(void)
 {
     void *uart_rx_interrupt_handler = NULL;
@@ -183,6 +199,8 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     char buf[10];
     strcpy(buf, "test2\n");
     STUB_LOG(buf);
+
+    test_cache();
 
     return 0;
 }

@@ -78,7 +78,7 @@ int stub_lib_flash_init(void **state)
 
 void stub_lib_flash_deinit(const void *state)
 {
-    stub_target_flash_deinit(state);
+    stub_target_flash_state_restore(state);
 }
 
 void stub_lib_flash_get_config(stub_lib_flash_config_t *cfg)
@@ -222,5 +222,5 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
         }
     }
 
-    return STUB_LIB_OK;
+    return stub_lib_flash_wait_ready(timeout_us);
 }
