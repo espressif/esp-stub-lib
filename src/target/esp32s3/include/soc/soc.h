@@ -62,3 +62,5 @@
 // Start (highest address) of ROM boot stack, only relevant during early boot
 #define SOC_ROM_STACK_START 0x3fceb710
 #define SOC_ROM_STACK_SIZE 0x2000
+
+#define REG_SPI_BASE(i) (DR_REG_SPI2_BASE + ((i) - 2) * 0x1000)
