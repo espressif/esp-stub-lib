@@ -8,6 +8,7 @@
 
 /*-------------------------- COMMON CAPS ---------------------------------------*/
 #define SOC_UART_HP_NUM             (2)     /*!< HP UART number */
+#define SOC_GPIO_PIN_COUNT          (48)    /*!< Total number of GPIO pins */
 
 // Memory Caps
 #define SOC_RTC_FAST_MEM_SUPPORTED  1
