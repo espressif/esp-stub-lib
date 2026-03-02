@@ -9,12 +9,52 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/bit_utils.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* Maximum time (in microseconds) to wait for any NAND operation to complete.
+ * Worst-case per W25N01GV datasheet: block erase tBERS max = 10 ms. */
+#define NAND_ERASE_TIMEOUT_US        1000000U
+
+// SPI NAND Flash commands
+#define NAND_CMD_SET_REGISTER        0x1F
+#define NAND_CMD_READ_REGISTER       0x0F
+#define NAND_CMD_WRITE_ENABLE        0x06
+#define NAND_CMD_PAGE_READ           0x13
+#define NAND_CMD_PROGRAM_EXECUTE     0x10
+#define NAND_CMD_PROGRAM_LOAD        0x02
+#define NAND_CMD_PROGRAM_LOAD_RANDOM 0x84
+#define NAND_CMD_READ_FROM_CACHE     0x03
+#define NAND_CMD_ERASE_BLOCK         0xD8
+#define NAND_CMD_READ_ID             0x9F
+#define NAND_CMD_RESET               0xFF
+
+// NAND Flash registers
+#define NAND_REG_PROTECT             0xA0
+#define NAND_REG_CONFIG              0xB0
+#define NAND_REG_STATUS              0xC0
+
+// Status register bits
+#define NAND_STAT_BUSY               BIT(0)
+#define NAND_STAT_WRITE_ENABLED      BIT(1)
+#define NAND_STAT_ERASE_FAILED       BIT(2)
+#define NAND_STAT_PROGRAM_FAILED     BIT(3)
+
 // Error codes returned by NAND functions
-#define NAND_ERR_PROGRAM_FAILED (-3)
+#define NAND_ERR_NOT_INITIALIZED     (-1)
+#define NAND_ERR_ERASE_FAILED        (-2)
+#define NAND_ERR_PROGRAM_FAILED      (-3)
+#define NAND_ERR_TIMEOUT             (-5)
+#define NAND_ERR_PIN_INVALID         (-10)
+#define NAND_ERR_SPI_FAIL            (-11)
+#define NAND_ERR_PROTECTION          (-50)
+#define NAND_ERR_RESET_FAILED        (-100)
+
+// Extract a 6-bit pin number from a packed hspi_arg word
+#define HSPI_PIN_FIELD(arg, shift)   ((uint8_t)(((arg) >> (shift)) & 0x3FU))
 
 // NAND flash configuration
 typedef struct {
@@ -46,8 +86,9 @@ int stub_target_nand_attach(uint32_t hspi_arg);
 /**
  * @brief Read bad-block marker from the spare area of a page
  * @param page_number Page number to read bad-block marker from
- * @param spare_data Output buffer for spare data (at least 2 bytes)
- * @return 0 on success, negative on error
+ * @param spare_data Output buffer for spare data (at least 4 bytes, must be 4-byte aligned)
+ * @return 0 on success, STUB_LIB_ERR_INVALID_ARG if spare_data is not 4-byte aligned,
+ *         negative on other errors
  */
 int stub_target_nand_read_bbm(uint32_t page_number, uint8_t *spare_data);
 
@@ -77,12 +118,14 @@ int stub_target_nand_read_id(uint8_t *manufacturer_id, uint16_t *device_id);
 int stub_target_nand_read_page(uint32_t page_number, uint8_t *buf, uint32_t buf_size);
 
 /**
- * @brief Write full main area of a single NAND page (2048 bytes)
+ * @brief Write data into the main area of a single NAND page
  * @param page_number Page number to write
- * @param buf Data to write (must be at least page_size bytes)
+ * @param buf Data to write (must be at least buf_size bytes)
+ * @param buf_size Number of bytes to write; clamped to page_size internally.
+ *                 If 0, the function returns early without programming the page.
  * @return 0 on success, negative on error
  */
-int stub_target_nand_write_page(uint32_t page_number, const uint8_t *buf);
+int stub_target_nand_write_page(uint32_t page_number, const uint8_t *buf, uint32_t buf_size);
 
 /**
  * @brief Erase a block (64 pages, 128KB)
