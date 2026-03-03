@@ -45,12 +45,12 @@ void __attribute__((weak)) stub_target_reset_default_spi_pins(void)
 #endif
 }
 
-int stub_target_flash_update_config(uint32_t flash_id,
-                                    uint32_t flash_size,
-                                    uint32_t block_size,
-                                    uint32_t sector_size,
-                                    uint32_t page_size,
-                                    uint32_t status_mask)
+int __attribute__((weak)) stub_target_flash_update_config(uint32_t flash_id,
+                                                          uint32_t flash_size,
+                                                          uint32_t block_size,
+                                                          uint32_t sector_size,
+                                                          uint32_t page_size,
+                                                          uint32_t status_mask)
 {
     int res = esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size, status_mask);
     if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
