@@ -4,6 +4,7 @@ set(srcs
     src/security.c
     src/flash.c
     src/clock.c
+    src/sha256.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
