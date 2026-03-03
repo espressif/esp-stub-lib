@@ -13,3 +13,13 @@
 #define SPI_MEM_FLASH_SE          SPI_FLASH_SE
 #define SPI_MEM_FLASH_BE          SPI_FLASH_BE
 #define SPI_MEM_FLASH_RDSR        SPI_FLASH_RDSR
+
+enum {
+    SPI_USER_IDX = 0,
+    SPI_USER1_IDX,
+    SPI_USER2_IDX,
+    SPI_SLAVE_IDX,
+    SPI_CTRL_IDX,
+    SPI_CLOCK_IDX,
+    SPI_REGS_NUM,
+};
