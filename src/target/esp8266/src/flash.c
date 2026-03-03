@@ -16,7 +16,17 @@
 
 #include <soc/spi_mem_compat.h>
 
-extern esp_rom_spiflash_chip_t g_rom_flashchip;
+// ESP8266 contains g_rom_flashchip, but it is in different order than esp_rom_spiflash_chip_t,
+// esp_rom_spiflash_config_param might take also different order of parameters but due to missing
+// possibility to check in ROM code custom implementation seems like okay solution preventing
+// possible future issues.
+static esp_rom_spiflash_chip_t g_rom_flashchip_custom = {
+    .block_size = STUB_FLASH_BLOCK_SIZE,
+    .sector_size = STUB_FLASH_SECTOR_SIZE,
+    .page_size = STUB_FLASH_PAGE_SIZE,
+    .status_mask = STUB_FLASH_STATUS_MASK,
+};
+
 extern int esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
 extern void esp_rom_spiflash_attach(void);
 extern void esp_rom_spiflash_select_padsfunc(void);
@@ -31,7 +41,23 @@ void stub_target_reset_default_spi_pins(void)
 
 esp_rom_spiflash_chip_t *stub_target_flash_get_config(void)
 {
-    return &g_rom_flashchip;
+    return &g_rom_flashchip_custom;
+}
+
+int stub_target_flash_update_config(uint32_t flash_id,
+                                    uint32_t flash_size,
+                                    uint32_t block_size,
+                                    uint32_t sector_size,
+                                    uint32_t page_size,
+                                    uint32_t status_mask)
+{
+    g_rom_flashchip_custom.flash_id = flash_id;
+    g_rom_flashchip_custom.chip_size = flash_size;
+    g_rom_flashchip_custom.block_size = block_size;
+    g_rom_flashchip_custom.sector_size = sector_size;
+    g_rom_flashchip_custom.page_size = page_size;
+    g_rom_flashchip_custom.status_mask = status_mask;
+    return STUB_LIB_OK;
 }
 
 void stub_target_flash_attach(uint32_t ishspi, bool legacy)
