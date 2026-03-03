@@ -222,5 +222,5 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
         }
     }
 
-    return STUB_LIB_OK;
+    return stub_lib_flash_wait_ready(timeout_us);
 }
