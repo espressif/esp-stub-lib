@@ -105,11 +105,11 @@ int nand_attach(uint32_t hspi_arg)
 {
     int ret;
 
-    s_nand_config.page_size      = 2048;
+    s_nand_config.page_size = 2048;
     s_nand_config.pages_per_block = 64;
-    s_nand_config.block_size     = 128 * 1024;
-    s_nand_config.initialized    = false;
-    s_last_status_byte           = 0xFF;
+    s_nand_config.block_size = 128 * 1024;
+    s_nand_config.initialized = false;
+    s_last_status_byte = 0xFF;
 
     ret = spi_nand_init(hspi_arg);
     if (ret != 0) {
