@@ -14,16 +14,15 @@
 // Delay function
 extern void esp_rom_delay_us(uint32_t us);
 
-static nand_config_t s_nand_config = { .page_size = 2048,        // Default 2KB page size
-                                       .pages_per_block = 64,    // Default 64 pages per block
-                                       .block_size = 128 * 1024, // 128KB blocks
-                                       .initialized = false };
+// Zero-initialized so the plugin can live in BSS (no .data section needed).
+// All fields are set explicitly in nand_attach() before use.
+static nand_config_t s_nand_config;
 
 /**
  * @brief Wait for NAND to be ready by polling status register
  * @return 0 on success, negative on error or timeout
  */
-static uint8_t s_last_status_byte = 0xFF;
+static uint8_t s_last_status_byte;
 
 static int nand_wait_ready(void)
 {
@@ -106,6 +105,12 @@ int nand_attach(uint32_t hspi_arg)
 {
     int ret;
 
+    s_nand_config.page_size      = 2048;
+    s_nand_config.pages_per_block = 64;
+    s_nand_config.block_size     = 128 * 1024;
+    s_nand_config.initialized    = false;
+    s_last_status_byte           = 0xFF;
+
     ret = spi_nand_init(hspi_arg);
     if (ret != 0) {
         return ret;
@@ -126,7 +131,6 @@ int nand_attach(uint32_t hspi_arg)
     }
 
     s_nand_config.initialized = true;
-    s_nand_config.page_size = 2048;
 
     uint8_t dummy = 0x00;
     spi_nand_transaction(0x9F, &dummy, 8, NULL, 0, s_debug_id, 24);
