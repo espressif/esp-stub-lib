@@ -9,6 +9,8 @@ set(common_srcs
     src/usb_serial_jtag.c
     src/usb_otg.c
     src/md5.c
+    src/spi_nand.c
+    src/nand.c
 )
 
 add_library(${ESP_COMMON_LIB} STATIC ${common_srcs})
