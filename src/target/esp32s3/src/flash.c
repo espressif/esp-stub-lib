@@ -56,7 +56,12 @@ static void stub_target_flash_init_funcs(void)
     rom_spiflash_legacy_funcs = &funcs;
 }
 
-void stub_target_flash_init(void *state)
+/* TODO: the common stub_target_flash_attach() calls esp_rom_spiflash_attach()
+ * which internally resets SPI0+SPI1 via SYSTEM_SPI01_RST, destroying the PSRAM configuration
+ * on SPI0. This breaks flash BP operations on boards with PSRAM.
+ * Fix: override stub_target_flash_attach() here with a version that replicates SPI_init() without the
+ * peripheral reset step. */
+void stub_target_flash_init(void **state)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
