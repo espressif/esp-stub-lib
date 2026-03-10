@@ -174,7 +174,8 @@ body (optional)
 - **API/File Changes:**
   - Adding/removing public API headers → Update header lists (line 27 and lines 197-211)
   - Adding/removing source files → Update source file lists (line 28)
-  - New modules → Add descriptions in "Public API Modules" section
+  - New public modules → Add descriptions in "Public API Modules" section
+  - New internal-only modules → Add descriptions in "Internal Modules" section
 
 - **Build System Changes:**
   - Changes to build outputs, paths, or workflow → Update "Build System" and "GitHub Actions CI" sections
@@ -231,6 +232,12 @@ The library provides 15 public API headers in `include/esp-stub-lib/`:
 - **usb_otg.h** - USB-OTG detection and initialization
 - **usb_serial_jtag.h** - USB-Serial/JTAG operations
 
+### Internal Modules
+
+Some modules live entirely in the target layer and have no public API header in `include/esp-stub-lib/`. These are used internally by downstream projects (e.g., the flasher stub plugin system) and follow Variant B of the "Adding New Functionality" pattern.
+
+- **nand** (`src/target/base/include/target/nand.h`) - SPI NAND flash operations (attach, read/write page, erase block, read ID). Present only for ESP32-S3 (strong implementation). All other targets return "not supported" via weak defaults. NAND flash is for external flash chips connected to SPI2.
+
 ### Function Naming
 
 - **Public API:** `stub_lib_{module}_{action}()` - e.g., `stub_lib_flash_init()`, `stub_lib_uart_tx()`
@@ -239,6 +246,10 @@ The library provides 15 public API headers in `include/esp-stub-lib/`:
 
 ### Adding New Functionality
 
+#### Variant A: Full public API module
+
+For modules that expose a public API to library clients:
+
 1. **Add public header** to `include/esp-stub-lib/{module}.h`
 2. **Add implementation** to `src/{module}.c`
 3. **Add common weak implementation** to `src/target/common/src/{module}.c` using SOC_* macros
@@ -246,6 +257,16 @@ The library provides 15 public API headers in `include/esp-stub-lib/`:
 5. **Add target overrides** (if needed) to `src/target/{target}/src/{module}.c` with strong symbols
 6. **Update CMakeLists.txt** files as needed to include new sources
 7. **Update this file** (`.github/copilot-instructions.md`) to reflect added/removed files in the "Key Directories" section (lines 27-28)
+
+#### Variant B: Internal-only module (no public API)
+
+For hardware-only modules that are used internally by the target layer (e.g., downstream plugin systems) and do not need a public API header or top-level implementation:
+
+1. **Add internal interface** to `src/target/base/include/target/{module}.h`
+2. **Add common weak implementation** to `src/target/common/src/{module}.c` (returning error/unsupported)
+3. **Add target-specific strong implementation** to `src/target/{target}/src/{module}.c`
+4. **Update CMakeLists.txt** files for the common and target-specific directories
+5. **Update this file** (`.github/copilot-instructions.md`) to reflect the new internal module in the "Internal Modules" section
 
 ### Weak vs Strong Symbols
 
