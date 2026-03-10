@@ -53,16 +53,30 @@ void stub_target_reset_default_spi_pins(void);
  *
  * Configure SPI pins, registers, mode, etc.
  *
- * @param state Unused.
+ * @param state If non-NULL, the state is saved.
  */
-void stub_target_flash_init(void *state);
+void stub_target_flash_init(void **state);
 
 /**
- * @brief Not implemented. Intended for restoring the state
+ * @brief Restore SPI Flash hardware state.
  *
- * @param state Unused.
+ * @param state If non-NULL, the state is restored.
  */
 void stub_target_flash_deinit(const void *state);
+
+/**
+ * @brief Save SPI Flash hardware state before sending any command.
+ *
+ * @param state If non-NULL, the state is saved.
+ */
+void stub_target_flash_state_save(void **state);
+
+/**
+ * @brief Restore SPI Flash hardware state before leaving the stub.
+ *
+ * @param state If non-NULL, the state is restored.
+ */
+void stub_target_flash_state_restore(const void *state);
 
 /**
  * @brief Retrieve Flash ID (aka flash device id, aka flash chip id) from internal hw.

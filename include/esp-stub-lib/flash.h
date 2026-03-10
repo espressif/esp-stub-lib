@@ -47,7 +47,7 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy);
  *
  * Configure SPI, Flash ID, flash size, and the internal ROM's config
  *
- * @param state Unused
+ * @param state If non-NULL, the state is saved to this pointer to be restored later.
  *
  * @return Error code:
  * - STUB_LIB_OK
@@ -58,7 +58,7 @@ int stub_lib_flash_init(void **state);
 /**
  * @brief Restore flash state at the end of the stub.
  *
- * @param state Unused.
+ * @param state If non-NULL, the state is restored from the state that was saved by stub_lib_flash_init().
  */
 void stub_lib_flash_deinit(const void *state);
 

@@ -56,7 +56,7 @@ static void stub_target_flash_init_funcs(void)
     rom_spiflash_legacy_funcs = &funcs;
 }
 
-void stub_target_flash_init(void *state)
+void stub_target_flash_init(void **state)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();

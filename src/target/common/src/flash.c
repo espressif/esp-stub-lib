@@ -95,7 +95,17 @@ uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
     return 0;
 }
 
-void __attribute__((weak)) stub_target_flash_init(void *state)
+void __attribute__((weak)) stub_target_flash_state_save(void **state)
+{
+    (void)state;
+}
+
+void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
+{
+    (void)state;
+}
+
+void __attribute__((weak)) stub_target_flash_init(void **state)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
@@ -121,7 +131,7 @@ uint32_t __attribute__((weak)) stub_target_flash_get_flash_id(void)
 
 void __attribute__((weak)) stub_target_flash_deinit(const void *state)
 {
-    (void)state;
+    stub_target_flash_state_restore(state);
 }
 
 void __attribute__((weak)) stub_target_flash_write_enable(void)
