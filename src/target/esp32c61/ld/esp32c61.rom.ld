@@ -173,7 +173,6 @@ rom_spiflash_legacy_funcs = 0x4084fff0;
 rom_spiflash_legacy_data = 0x4084ffec;
 g_flash_guard_ops = 0x4084fff4;
 
-
 /***************************************
  Group cache
  ***************************************/
