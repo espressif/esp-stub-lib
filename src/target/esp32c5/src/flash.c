@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/flash.h>
@@ -15,6 +16,8 @@
 #include <private/rom_flash.h>
 
 #include <soc/spi_mem_compat.h>
+
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 
 /* ECO version from ROM - used to route to correct ROM functions */
 extern uint32_t _rom_eco_version;

@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/cache.h>
 #include <esp-stub-lib/clock.h>
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/flash.h>
@@ -110,6 +111,17 @@ static __attribute__((unused)) void test_sha256(void)
     stub_lib_sha256_finish(digest);
 }
 
+static __attribute__((unused)) void test_cache(void)
+{
+    const void *cache_state = NULL;
+    stub_lib_cache_save(&cache_state);
+    stub_lib_cache_restore(cache_state);
+    stub_lib_cache_writeback_all();
+    stub_lib_cache_invalidate_all();
+    stub_lib_cache_writeback_addr(0x1000, 0x1000);
+    stub_lib_cache_invalidate_addr(0x1000, 0x1000);
+}
+
 static int __attribute__((unused)) handle_test_uart(void)
 {
     void *uart_rx_interrupt_handler = NULL;
@@ -192,6 +204,8 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     test_usb_serial_jtag();
     test_miniz();
     test_clock_init();
+
+    test_cache();
 
     return 0;
 }
