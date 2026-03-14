@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/flash.h>
@@ -39,5 +40,38 @@ void stub_target_spi_wait_ready(void)
     /* There is no HW arbiter on SPI0, so we need to wait for it to be ready */
     while ((REG_READ(SPI_MEM_FSM_REG(SPI_INTERNAL)) & SPI_MEM_ST)) {
         /* busy wait */
+    }
+}
+
+void stub_target_flash_state_save(void **state)
+{
+    if (!state) {
+        return;
+    }
+}
+
+void stub_target_flash_state_restore(const void *state)
+{
+    if (!state) {
+        return;
+    }
+}
+
+void stub_target_flash_init(void **state)
+{
+    bool attach = true;
+
+    if (state) {
+        stub_target_flash_state_save(state);
+        if (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0)) & SPI_MEM_CACHE_FLASH_USR_CMD) {
+            attach = false;
+        }
+    }
+
+    if (attach) {
+        STUB_LOGI("Attach spi flash...\n");
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        stub_target_flash_attach(spiconfig, 0);
+    } else {
     }
 }
