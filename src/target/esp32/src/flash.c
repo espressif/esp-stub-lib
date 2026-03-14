@@ -20,14 +20,19 @@ extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 
+extern uint8_t g_rom_spiflash_dummy_len_plus[];
+
 /* Save/restore SPI registers. Can be extended to more registers if needed. */
 enum {
     SPI_USER_REG_ID = 0,
+    SPI_CLOCK_REG_ID,
+    SPI_CTRL_REG_ID,
     SPI_REGS_NUM,
 };
 
 typedef struct {
     uint32_t spi_regs[SPI_REGS_NUM];
+    uint8_t dummy_len_plus;
 } stub_esp32_flash_state_t;
 
 static stub_esp32_flash_state_t s_flash_state;
@@ -67,6 +72,9 @@ void stub_target_flash_state_save(void **state)
     }
 
     s_flash_state.spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM));
+    s_flash_state.spi_regs[SPI_CLOCK_REG_ID] = READ_PERI_REG(SPI_CLOCK_REG(1));
+    s_flash_state.spi_regs[SPI_CTRL_REG_ID] = READ_PERI_REG(SPI_CTRL_REG(1));
+    s_flash_state.dummy_len_plus = g_rom_spiflash_dummy_len_plus[1];
 
     *state = &s_flash_state;
 }
@@ -83,18 +91,32 @@ void stub_target_flash_state_restore(const void *state)
               READ_PERI_REG(SPI_USER_REG(1)),
               s->spi_regs[SPI_USER_REG_ID]);
 
+    WRITE_PERI_REG(SPI_CLOCK_REG(1), s->spi_regs[SPI_CLOCK_REG_ID]);
+    WRITE_PERI_REG(SPI_CTRL_REG(1), s->spi_regs[SPI_CTRL_REG_ID]);
     WRITE_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM), s->spi_regs[SPI_USER_REG_ID]);
+    g_rom_spiflash_dummy_len_plus[1] = s->dummy_len_plus;
 }
 
 void stub_target_flash_init(void **state)
 {
-    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+    bool attach = true;
 
     if (state) {
         stub_target_flash_state_save(state);
+        if (READ_PERI_REG(SPI_CACHE_FCTRL_REG(0)) & SPI_CACHE_FLASH_USR_CMD) {
+            attach = false;
+        }
     }
 
-    stub_target_flash_attach(spiconfig, 0);
+    if (attach) {
+        STUB_LOGI("Attach spi flash...\n");
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        stub_target_flash_attach(spiconfig, 0);
+    } else {
+        WRITE_PERI_REG(SPI_CTRL_REG(1), 0x208000);
+        WRITE_PERI_REG(SPI_CLOCK_REG(1), 0x3043);
+        g_rom_spiflash_dummy_len_plus[1] = 0;
+    }
 
     /*
      * Command phase is always set in download mode.
