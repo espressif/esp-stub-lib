@@ -123,6 +123,8 @@ pre-commit install -t pre-commit -t commit-msg
 
 # How To Release (For Maintainers Only)
 
+See [MAINTENANCE.md](MAINTENANCE.md) for the full maintenance and release policy (versioning, breaking changes, branch policy).
+
 ```bash
 pip install commitizen
 git fetch
