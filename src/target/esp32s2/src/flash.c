@@ -21,6 +21,20 @@
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 
+/* Save/restore SPI registers. Can be extended to more registers if needed. */
+enum {
+    SPI_USER_REG_ID = 0,
+    SPI_CLOCK_REG_ID,
+    SPI_CTRL_REG_ID,
+    SPI_REGS_NUM,
+};
+
+typedef struct {
+    uint32_t spi_regs[SPI_REGS_NUM];
+} stub_esp32s2_flash_state_t;
+
+static stub_esp32s2_flash_state_t s_flash_state;
+
 uint32_t stub_target_flash_get_spiconfig_efuse(void)
 {
     return esp_rom_efuse_get_flash_gpio_info();
@@ -48,6 +62,11 @@ void stub_target_flash_state_save(void **state)
     if (!state) {
         return;
     }
+    s_flash_state.spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_MEM_USER_REG(1));
+    s_flash_state.spi_regs[SPI_CLOCK_REG_ID] = READ_PERI_REG(SPI_MEM_CLOCK_REG(1));
+    s_flash_state.spi_regs[SPI_CTRL_REG_ID] = READ_PERI_REG(SPI_MEM_CTRL_REG(1));
+
+    *state = &s_flash_state;
 }
 
 void stub_target_flash_state_restore(const void *state)
@@ -55,6 +74,12 @@ void stub_target_flash_state_restore(const void *state)
     if (!state) {
         return;
     }
+
+    const stub_esp32s2_flash_state_t *s = state;
+
+    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), s->spi_regs[SPI_CLOCK_REG_ID]);
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), s->spi_regs[SPI_CTRL_REG_ID]);
+    WRITE_PERI_REG(SPI_MEM_USER_REG(1), s->spi_regs[SPI_USER_REG_ID]);
 }
 
 void stub_target_flash_init(void **state)
@@ -73,5 +98,12 @@ void stub_target_flash_init(void **state)
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
         stub_target_flash_attach(spiconfig, 0);
     } else {
+        WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), 0x208000);
+        WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), 0x30103);
     }
+
+    REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);
+
+    // STUB_LOGI("SPI_MEM_CLOCK_REG(1) was:0x%x\n", READ_PERI_REG(SPI_MEM_CLOCK_REG(1)));
+    // STUB_LOGI("SPI_MEM_CTRL_REG(1) was:0x%x\n", READ_PERI_REG(SPI_MEM_CTRL_REG(1)));
 }

@@ -25,8 +25,6 @@ extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
 
 void stub_target_cache_writeback_all(void)
 {
-    Cache_WriteBack_All();
-    Cache_Invalidate_DCache_All();
 }
 
 void stub_target_cache_writeback_addr(uint32_t vaddr, uint32_t size)
