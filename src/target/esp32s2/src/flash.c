@@ -103,7 +103,4 @@ void stub_target_flash_init(void **state)
     }
 
     REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);
-
-    // STUB_LOGI("SPI_MEM_CLOCK_REG(1) was:0x%x\n", READ_PERI_REG(SPI_MEM_CLOCK_REG(1)));
-    // STUB_LOGI("SPI_MEM_CTRL_REG(1) was:0x%x\n", READ_PERI_REG(SPI_MEM_CTRL_REG(1)));
 }
