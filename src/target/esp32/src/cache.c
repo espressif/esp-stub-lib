@@ -34,7 +34,7 @@ void stub_target_cache_writeback_all(void)
 
 void stub_target_cache_invalidate_all(void)
 {
-    /* Flush invalidates all cache lines but does not write back to PSRAM. */
+    /* Flush invalidates all cache lines without writing back to memory. */
     Cache_Flush_rom(0);
     Cache_Flush_rom(1);
 }

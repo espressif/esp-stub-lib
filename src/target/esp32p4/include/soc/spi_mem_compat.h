@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include "spi_mem_c_reg.h"
 #include "spi1_mem_c_reg.h"
 
 #define SPI_MEM_ADDR_REG(i)       SPI1_MEM_C_ADDR_REG

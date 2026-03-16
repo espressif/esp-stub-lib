@@ -35,7 +35,7 @@ extern void Cache_Resume_L2_Cache(uint32_t autoload);
 
 void stub_target_cache_writeback_all(void)
 {
-    Cache_WriteBack_All(CACHE_MAP_L1_DCACHE | CACHE_MAP_L2_CACHE);
+    // Cache_WriteBack_All(CACHE_MAP_L1_DCACHE | CACHE_MAP_L2_CACHE);
 }
 
 void stub_target_cache_writeback_addr(uint32_t vaddr, uint32_t size)
@@ -50,7 +50,8 @@ void stub_target_cache_invalidate_all(void)
 
 void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
 {
-    Cache_Invalidate_Addr(CACHE_MAP_ALL, vaddr, size);
+    Cache_Invalidate_Addr(CACHE_MAP_L2_CACHE, vaddr, size);
+    Cache_Invalidate_Addr(CACHE_MAP_L1_ICACHE, vaddr, size);
 }
 
 /* State packing:

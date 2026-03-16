@@ -7,7 +7,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/flash.h>

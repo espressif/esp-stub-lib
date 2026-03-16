@@ -41,27 +41,13 @@ extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       uint32_t cs_mask,
                                       bool is_write_erase_operation);
 
-/* Save/restore SPI registers. Can be extended to more registers if needed. */
-enum {
-    SPI_USER_REG_ID = 0,
-    SPI_USER1_REG_ID,
-    SPI_USER2_REG_ID,
-    SPI_CLOCK_REG0_ID,
-    SPI_CLOCK_REG1_ID,
-    SPI_CTRL_REG0_ID,
-    SPI_CTRL_REG1_ID,
-    SPI_CTRL2_REG_ID,
-    SPI_MISC_REG_ID,
-    SPI_DDR_REG0_ID,
-    SPI_DDR_REG1_ID,
-    SPI_MEM_MISO_DLEN_REG,
-    SPI_MEM_CACHE_FCTRL_REG,
-    SPI_SMEM_AC_REG_ID,
-    SPI_REGS_NUM,
-};
-
+/*
+ * Only save/restore the SPI1 CTRL register. SPI0 registers (cache controller,
+ * PSRAM SMEM config) are managed by the cache save/restore layer — touching
+ * them here causes conflicts during cache resume.
+ */
 typedef struct {
-    uint32_t spi_regs[SPI_REGS_NUM];
+    uint32_t spi1_ctrl;
 } stub_esp32s3_flash_state_t;
 
 static stub_esp32s3_flash_state_t s_flash_state;
@@ -120,49 +106,20 @@ uint32_t stub_target_get_max_supported_flash_size(void)
 
 void stub_target_flash_state_save(void **state)
 {
-    if (!state) {
+    if (!state)
         return;
-    }
-    s_flash_state.spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_MEM_USER_REG(1));
-    s_flash_state.spi_regs[SPI_USER1_REG_ID] = READ_PERI_REG(SPI_MEM_USER_REG(1));
-    s_flash_state.spi_regs[SPI_USER2_REG_ID] = READ_PERI_REG(SPI_MEM_USER_REG(2));
-    s_flash_state.spi_regs[SPI_CLOCK_REG0_ID] = READ_PERI_REG(SPI_MEM_CLOCK_REG(0));
-    s_flash_state.spi_regs[SPI_CLOCK_REG1_ID] = READ_PERI_REG(SPI_MEM_CLOCK_REG(1));
-    s_flash_state.spi_regs[SPI_CTRL_REG0_ID] = READ_PERI_REG(SPI_MEM_CTRL_REG(0));
-    s_flash_state.spi_regs[SPI_CTRL_REG1_ID] = READ_PERI_REG(SPI_MEM_CTRL_REG(1));
-    s_flash_state.spi_regs[SPI_MISC_REG_ID] = READ_PERI_REG(SPI_MEM_MISC_REG(0));
-    s_flash_state.spi_regs[SPI_DDR_REG0_ID] = READ_PERI_REG(SPI_MEM_DDR_REG(0));
-    s_flash_state.spi_regs[SPI_DDR_REG1_ID] = READ_PERI_REG(SPI_MEM_DDR_REG(1));
-    s_flash_state.spi_regs[SPI_MEM_MISO_DLEN_REG] = READ_PERI_REG(SPI_MEM_MISO_DLEN_REG(0));
-    s_flash_state.spi_regs[SPI_MEM_CACHE_FCTRL_REG] = READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0));
-    s_flash_state.spi_regs[SPI_CTRL2_REG_ID] = READ_PERI_REG(SPI_MEM_CTRL2_REG(0));
-    s_flash_state.spi_regs[SPI_SMEM_AC_REG_ID] = READ_PERI_REG(SPI_MEM_SPI_SMEM_AC_REG(0));
 
+    s_flash_state.spi1_ctrl = READ_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM));
     *state = &s_flash_state;
 }
 
 void stub_target_flash_state_restore(const void *state)
 {
-    if (!state) {
+    if (!state)
         return;
-    }
 
     const stub_esp32s3_flash_state_t *s = state;
-
-    WRITE_PERI_REG(SPI_MEM_USER_REG(1), s->spi_regs[SPI_USER_REG_ID]);
-    WRITE_PERI_REG(SPI_MEM_USER_REG(1), s->spi_regs[SPI_USER1_REG_ID]);
-    WRITE_PERI_REG(SPI_MEM_USER_REG(2), s->spi_regs[SPI_USER2_REG_ID]);
-    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(0), s->spi_regs[SPI_CLOCK_REG0_ID]);
-    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), s->spi_regs[SPI_CLOCK_REG1_ID]);
-    WRITE_PERI_REG(SPI_MEM_CTRL_REG(0), s->spi_regs[SPI_CTRL_REG0_ID]);
-    WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), s->spi_regs[SPI_CTRL_REG1_ID]);
-    WRITE_PERI_REG(SPI_MEM_MISC_REG(0), s->spi_regs[SPI_MISC_REG_ID]);
-    WRITE_PERI_REG(SPI_MEM_DDR_REG(0), s->spi_regs[SPI_DDR_REG0_ID]);
-    WRITE_PERI_REG(SPI_MEM_DDR_REG(1), s->spi_regs[SPI_DDR_REG1_ID]);
-    WRITE_PERI_REG(SPI_MEM_MISO_DLEN_REG(0), s->spi_regs[SPI_MEM_MISO_DLEN_REG]);
-    WRITE_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0), s->spi_regs[SPI_MEM_CACHE_FCTRL_REG]);
-    WRITE_PERI_REG(SPI_MEM_CTRL2_REG(0), s->spi_regs[SPI_CTRL2_REG_ID]);
-    WRITE_PERI_REG(SPI_MEM_SPI_SMEM_AC_REG(0), s->spi_regs[SPI_SMEM_AC_REG_ID]);
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), s->spi1_ctrl);
 }
 
 void stub_target_spi_init(void)

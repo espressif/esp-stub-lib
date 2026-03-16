@@ -109,7 +109,7 @@ void stub_target_flash_init(void **state)
     }
 
     if (attach) {
-        STUB_LOGI("Attach spi flash...\n");
+        STUB_LOGD("Attach spi flash...\n");
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
         stub_target_flash_attach(spiconfig, 0);
     } else {
