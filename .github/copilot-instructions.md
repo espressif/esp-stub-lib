@@ -48,6 +48,7 @@ Base (src/target/base/) - Interface headers only
 CHANGELOG.md                # Version history
 CMakeLists.txt              # Main library build file
 LICENSE-APACHE, LICENSE-MIT # Dual license
+MAINTENANCE.md              # Maintenance & release policy
 README.md                   # Main documentation
 example/                    # Complete example implementation
 include/                    # Public API headers
@@ -163,6 +164,8 @@ body (optional)
 
 **Common types:** feat, fix, docs, style, refactor, test, chore, change (for version bumps)
 
+**Breaking changes:** Use `!` after type/scope (`feat(flash)!: ...`) or add a `BREAKING CHANGE:` footer so commitizen detects and bumps the major version. See [MAINTENANCE.md](../MAINTENANCE.md) for the full breaking-change process.
+
 ### PR and Review Guidelines
 
 **When creating or reviewing PRs, always check if documentation updates are needed:**
@@ -182,6 +185,9 @@ body (optional)
 
 - **README.md Updates:**
   - Review if changes require updates to repository README.md (e.g., new features, targets, or significant architectural changes)
+
+- **Breaking Changes:**
+  - Any PR that touches `include/esp-stub-lib/**` in a breaking way must follow the process in [MAINTENANCE.md](../MAINTENANCE.md#4-breaking-changes-policy)
 
 ## GitHub Actions CI
 
@@ -297,14 +303,17 @@ cd example
 ```
 
 **Release process (maintainers only):**
+
+See [MAINTENANCE.md](../MAINTENANCE.md) for versioning rules, breaking-change policy, and release quality expectations.
+
 ```bash
 pip install commitizen
 git fetch
-git checkout -b update/release_vX.Y.Z
-git reset --hard origin/master
+git checkout master && git reset --hard origin/master
 cz bump
-git push -u && git push --tags
-# Then create PR and edit draft release notes
+git push && git push --tags
+# A draft GitHub release with auto-generated notes is created automatically.
+# Review and publish the draft — no separate PR is required.
 ```
 
 ---

@@ -41,6 +41,8 @@ repos:
     hooks:
       - id: conventional-precommit-linter
         stages: [commit-msg]
+        args:
+          - --allow-breaking
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v21.1.8
