@@ -8,9 +8,21 @@
 
 #include <stdint.h>
 
+#include <esp-stub-lib/bit_utils.h>
+
+#define STUB_CACHE_CAP_HAS_INVALIDATE_ADDR BIT(0)
+#define STUB_CACHE_CAP_SHARED_IDCACHE      BIT(1)
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+/**
+ * @brief Get cache capability flags for the current target.
+ *
+ * @return Bitmask of STUB_CACHE_CAP_* flags.
+ */
+uint32_t stub_lib_cache_get_caps(void);
 
 /**
  * @brief Write back the entire cache.

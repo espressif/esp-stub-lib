@@ -8,6 +8,15 @@
 
 #include <stdint.h>
 
+#include <esp-stub-lib/cache.h>
+
+/**
+ * @brief Get cache capability flags for the current target.
+ *
+ * @return Bitmask of STUB_CACHE_CAP_* flags.
+ */
+uint32_t stub_target_cache_get_caps(void);
+
 /**
  * @brief Write back the entire cache.
  *

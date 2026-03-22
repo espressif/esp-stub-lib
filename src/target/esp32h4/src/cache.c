@@ -32,6 +32,11 @@ typedef struct {
 
 static esp32h4_cache_state_t s_cache_state;
 
+uint32_t stub_target_cache_get_caps(void)
+{
+    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR;
+}
+
 void stub_target_cache_writeback_all(void)
 {
     Cache_WriteBack_All();

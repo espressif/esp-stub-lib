@@ -18,6 +18,11 @@ extern void Cache_Resume_ICache(uint32_t autoload);
 extern void Cache_Invalidate_ICache_All(void);
 extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
 
+uint32_t stub_target_cache_get_caps(void)
+{
+    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR | STUB_CACHE_CAP_SHARED_IDCACHE;
+}
+
 void stub_target_cache_invalidate_all(void)
 {
     Cache_Invalidate_ICache_All();

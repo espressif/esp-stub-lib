@@ -25,6 +25,11 @@ typedef struct {
 
 static esp32h21_cache_state_t s_cache_state;
 
+uint32_t stub_target_cache_get_caps(void)
+{
+    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR | STUB_CACHE_CAP_SHARED_IDCACHE;
+}
+
 void stub_target_cache_invalidate_all(void)
 {
     Cache_Invalidate_ICache_All();

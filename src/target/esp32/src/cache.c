@@ -18,12 +18,24 @@ extern void Cache_Flush_rom(int cpu_num);
 extern void Cache_Read_Disable_rom(int cpu_num);
 extern void Cache_Read_Enable_rom(int cpu_num);
 
+uint32_t stub_target_cache_get_caps(void)
+{
+    return STUB_CACHE_CAP_SHARED_IDCACHE;
+}
+
 void stub_target_cache_writeback_all(void)
 {
+    if (DPORT_REG_GET_BIT(DPORT_PRO_CACHE_CTRL1_REG, DPORT_PRO_CACHE_MASK_DRAM1)) {
+        /* PSRAM not mapped - nothing to write back */
+        return;
+    }
+
     /*
-    Note: this assumes the amount of external RAM is >2M. If it is 2M or less, what this code does is undefined. If
-    we ever support external RAM chips of 2M or smaller, this may need adjusting.
-    */
+     * Low/high psram cache mode uses one 32K cache for the lowest 2MiB of SPI flash and another 32K for the highest
+     * 2MiB. Clear this by reading from both regions.
+     * Note: this assumes the amount of external RAM is >2M. If it is 2M or less, what this code does is undefined. If
+     * we ever support external RAM chips of 2M or smaller, this may need adjusting.
+     */
     volatile uint8_t *psram = (volatile uint8_t *)SOC_EXTRAM_DATA_LOW;
     volatile int i = 0;
     for (int x = 0; x < 1024 * 64; x += 32) {

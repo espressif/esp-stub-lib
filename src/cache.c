@@ -8,6 +8,11 @@
 
 #include <target/cache.h>
 
+uint32_t stub_lib_cache_get_caps(void)
+{
+    return stub_target_cache_get_caps();
+}
+
 void stub_lib_cache_writeback_all(void)
 {
     stub_target_cache_writeback_all();

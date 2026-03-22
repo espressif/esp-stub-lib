@@ -20,7 +20,7 @@
 
 extern int Cache_Invalidate_All(uint32_t map);
 extern int Cache_Invalidate_Addr(uint32_t map, uint32_t addr, uint32_t size);
-extern int Cache_WriteBack_All(uint32_t map);
+extern void Cache_WriteBack_All(uint32_t map);
 extern int Cache_WriteBack_Addr(uint32_t map, uint32_t addr, uint32_t size);
 
 extern uint32_t Cache_Suspend_L1_CORE0_ICache_Autoload(void);
@@ -33,14 +33,19 @@ extern void Cache_Resume_L1_DCache_Autoload(uint32_t autoload);
 extern uint32_t Cache_Suspend_L2_Cache(void);
 extern void Cache_Resume_L2_Cache(uint32_t autoload);
 
-void stub_target_cache_writeback_all(void)
+uint32_t stub_target_cache_get_caps(void)
 {
-    // Cache_WriteBack_All(CACHE_MAP_L1_DCACHE | CACHE_MAP_L2_CACHE);
+    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR | STUB_CACHE_CAP_SHARED_IDCACHE;
 }
 
 void stub_target_cache_writeback_addr(uint32_t vaddr, uint32_t size)
 {
     Cache_WriteBack_Addr(CACHE_MAP_L1_DCACHE | CACHE_MAP_L2_CACHE, vaddr, size);
+}
+
+void stub_target_cache_writeback_all(void)
+{
+    Cache_WriteBack_All(CACHE_MAP_ALL);
 }
 
 void stub_target_cache_invalidate_all(void)

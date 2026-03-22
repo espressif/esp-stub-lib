@@ -15,6 +15,7 @@
 #include <soc/spi_mem_compat.h>
 
 extern void Cache_Invalidate_All(void);
+extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
 extern void Cache_WriteBack_All(void);
 extern uint32_t Cache_Suspend_Cache(void);
 extern void Cache_Resume_Cache(uint32_t autoload);
@@ -25,6 +26,11 @@ typedef struct {
 
 static esp32c61_cache_state_t s_cache_state;
 
+uint32_t stub_target_cache_get_caps(void)
+{
+    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR | STUB_CACHE_CAP_SHARED_IDCACHE;
+}
+
 void stub_target_cache_writeback_all(void)
 {
     Cache_WriteBack_All();
@@ -33,6 +39,11 @@ void stub_target_cache_writeback_all(void)
 void stub_target_cache_invalidate_all(void)
 {
     Cache_Invalidate_All();
+}
+
+void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
+{
+    Cache_Invalidate_Addr(vaddr, size);
 }
 
 /* State packing: BIT(0) = cache autoload */
