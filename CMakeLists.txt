@@ -18,6 +18,7 @@ endif()
 
 set(srcs
     src/cache.c
+    src/mmu.c
     src/flash.c
     src/mem_utils.c
     src/rom_wrappers.c

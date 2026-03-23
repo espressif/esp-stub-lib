@@ -114,6 +114,8 @@ Base (interface headers only - serves both common and target)
 
 ## Contributing
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for coding conventions and review expectations.
+
 Please install the [pre-commit](https://pre-commit.com/) hooks to ensure that your commits are properly formatted:
 
 ```bash

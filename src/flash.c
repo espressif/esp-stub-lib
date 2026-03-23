@@ -111,7 +111,7 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    STUB_LOGV("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
+    STUB_LOGD("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
 
     if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
         STUB_LOGE("Flash write unaligned!\n");
@@ -223,4 +223,9 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
     }
 
     return stub_lib_flash_wait_ready(timeout_us);
+}
+
+int stub_lib_flash_unlock(void)
+{
+    return stub_target_flash_unlock();
 }

@@ -97,6 +97,12 @@ void stub_target_flash_state_restore(const void *state)
     g_rom_spiflash_dummy_len_plus[1] = s->dummy_len_plus;
 }
 
+#define ESP32_STUB_FLASH_STATE_SPI_USER_REG_VAL  0x80000040UL
+#define ESP32_STUB_FLASH_STATE_SPI_USER1_REG_VAL 0x5c000007UL
+#define ESP32_STUB_FLASH_STATE_SPI_USER2_REG_VAL 0x70000000UL
+#define ESP32_STUB_FLASH_STATE_SPI_SLAVE_REG_VAL 0x00000200UL
+#define ESP32_STUB_FLASH_STATE_SPI_CTRL_REG_VAL  0x208000UL
+#define ESP32_STUB_FLASH_STATE_SPI_CLOCK_REG_VAL 0x3043UL
 void stub_target_flash_init(void **state)
 {
     bool attach = true;
@@ -108,6 +114,11 @@ void stub_target_flash_init(void **state)
         }
     }
 
+    // WRITE_PERI_REG(SPI_USER_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER_REG_VAL);
+    // WRITE_PERI_REG(SPI_USER1_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER1_REG_VAL); //*** */
+    // WRITE_PERI_REG(SPI_USER2_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER2_REG_VAL);
+    // WRITE_PERI_REG(SPI_SLAVE_REG(1), ESP32_STUB_FLASH_STATE_SPI_SLAVE_REG_VAL);
+
     if (attach) {
         STUB_LOGD("Attach spi flash...\n");
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
@@ -115,6 +126,7 @@ void stub_target_flash_init(void **state)
     } else {
         WRITE_PERI_REG(SPI_CTRL_REG(1), 0x208000);
         WRITE_PERI_REG(SPI_CLOCK_REG(1), 0x3043);
+        WRITE_PERI_REG(SPI_USER1_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER1_REG_VAL);
         g_rom_spiflash_dummy_len_plus[1] = 0;
     }
 

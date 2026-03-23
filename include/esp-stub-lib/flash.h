@@ -151,6 +151,15 @@ int stub_lib_flash_wait_ready(uint64_t timeout_us);
  */
 int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaining_size, uint32_t timeout_us);
 
+/**
+ * @brief Unlock the flash
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_FAIL
+ */
+int stub_lib_flash_unlock(void);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
