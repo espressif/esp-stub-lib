@@ -168,6 +168,8 @@ body (optional)
 
 ### PR and Review Guidelines
 
+**When reviewing PRs, check all changes against the coding conventions and review checklist in [CONTRIBUTING.md](../CONTRIBUTING.md).** That document is the authoritative reference for naming, error handling, weak/strong overrides, include style, ROM functions, memory rules, and code style.
+
 **When creating or reviewing PRs, always check if documentation updates are needed:**
 
 - **Chip/Target Support Changes:**
