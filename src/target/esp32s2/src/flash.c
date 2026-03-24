@@ -20,6 +20,8 @@
 
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
+extern void spi_cache_mode_switch(uint32_t modebit);
+extern void spi_common_set_flash_cs_timing(void);
 
 /* Save/restore SPI registers. Can be extended to more registers if needed. */
 enum {
@@ -82,6 +84,32 @@ void stub_target_flash_state_restore(const void *state)
     WRITE_PERI_REG(SPI_MEM_USER_REG(1), s->spi_regs[SPI_USER_REG_ID]);
 }
 
+static void stub_target_spi_init(void)
+{
+    const uint32_t freqbits = 0x30103; /* SPI_CLK_DIV(4) */
+
+    REG_CLR_BIT(SPI_MEM_MISC_REG(0), SPI_MEM_CS0_DIS);
+    REG_SET_BIT(SPI_MEM_MISC_REG(0), SPI_MEM_CS1_DIS);
+
+    spi_common_set_flash_cs_timing();
+
+    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), freqbits);
+    WRITE_PERI_REG(SPI_MEM_CLOCK_REG(0), freqbits);
+
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), SPI_MEM_WP_REG | SPI_MEM_RESANDRES);
+    WRITE_PERI_REG(SPI_MEM_CTRL_REG(0), SPI_MEM_WP_REG);
+
+    REG_SET_FIELD(SPI_MEM_MISO_DLEN_REG(0), SPI_MEM_USR_MISO_DBITLEN, 0xff);
+    REG_SET_FIELD(SPI_MEM_MOSI_DLEN_REG(0), SPI_MEM_USR_MOSI_DBITLEN, 0xff);
+    REG_SET_FIELD(SPI_MEM_USER2_REG(0), SPI_MEM_USR_COMMAND_BITLEN, 0x7);
+    REG_SET_BIT(SPI_MEM_CACHE_FCTRL_REG(0), SPI_MEM_CACHE_REQ_EN);
+
+    WRITE_PERI_REG(SPI_MEM_DDR_REG(0), 0);
+    WRITE_PERI_REG(SPI_MEM_DDR_REG(1), 0);
+    spi_cache_mode_switch(0);
+    REG_SET_BIT(SPI_MEM_CACHE_FCTRL_REG(0), SPI_MEM_CACHE_FLASH_USR_CMD);
+}
+
 void stub_target_flash_init(void **state)
 {
     bool attach = true;
@@ -98,8 +126,7 @@ void stub_target_flash_init(void **state)
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
         stub_target_flash_attach(spiconfig, 0);
     } else {
-        WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), 0x208000);
-        WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), 0x30103);
+        stub_target_spi_init();
     }
 
     REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);

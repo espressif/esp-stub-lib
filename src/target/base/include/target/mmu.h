@@ -8,7 +8,8 @@
 
 #include <stdint.h>
 
-#include <esp-stub-lib/mmu.h>
+#define STUB_MMU_PAGE_SIZE  0x10000U /* 64KB */
+#define STUB_MMU_PAGE_SHIFT 16
 
 /**
  * @brief Get the DROM virtual address base for mmap operations.

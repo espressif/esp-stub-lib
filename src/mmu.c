@@ -18,8 +18,6 @@
 #include <target/mmu.h>
 
 #define STUB_MMAP_MAX_PAGES 8
-#define STUB_MMU_PAGE_SIZE  0x10000U /* 64KB */
-#define STUB_MMU_PAGE_SHIFT 16
 
 static struct {
     uint32_t vaddr_base;
