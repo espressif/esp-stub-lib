@@ -1,3 +1,14 @@
+## v0.2.0 (2026-03-24)
+
+### ✨ New Features
+
+- add plugin system support for loading optional features *(Roland Dobai - b299965)*
+
+### 📖 Documentation
+
+- add CONTRIBUTING.md with coding conventions and review guide *(erhankur - db4ca08)*
+
+
 ## v0.1.0 (2026-03-19)
 
 ### ✨ New Features
