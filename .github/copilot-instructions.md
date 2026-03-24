@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-**esp-stub-lib** is an experimental C library for creating flash stubs that can be loaded onto Espressif ESP chips. The repository is ~9MB in size and contains a three-layer architecture designed to maximize code reuse across multiple ESP chip targets while eliminating circular dependencies.
+**esp-stub-lib** is an experimental C library for creating flash stubs that can be loaded onto Espressif ESP chips. It uses a three-layer architecture to maximize code reuse across multiple ESP chip targets while eliminating circular dependencies.
 
 **Language/Tools:** C (C17), CMake, Ninja, Python, pre-commit hooks
 **Supported Targets:** ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-C61, ESP32-H2, ESP32-H21, ESP32-H4, ESP32-P4 (including P4-rev1)
@@ -24,8 +24,8 @@ Base (src/target/base/) - Interface headers only
 ```
 
 **Key Directories:**
-- `include/esp-stub-lib/` - Public API headers (15 total: bit_utils.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, rom_wrappers.h, security.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
-- `src/` - Top-level implementation layer (clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, md5.c, mem_utils.c, rom_wrappers.c, security.c, uart.c, usb_otg.c, usb_serial_jtag.c)
+- `include/esp-stub-lib/` - Public API headers (16 total: bit_utils.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, rom_wrappers.h, security.h, sha256.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
+- `src/` - Top-level implementation layer (clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, md5.c, mem_utils.c, rom_wrappers.c, security.c, sha256.c, uart.c, usb_otg.c, usb_serial_jtag.c)
 - `src/target/base/include/` - Internal interface headers split into:
   - `target/` - Internal API between common/target layers
   - `private/` - Internal ROM/hardware details
@@ -39,14 +39,16 @@ Base (src/target/base/) - Interface headers only
 ## Root Directory Structure
 
 ```
-.astyle-rules.yml           # Code formatting rules for astyle
 .check_copyright_config.yaml # Copyright header validation config
+.clang-format               # C code formatting rules (clang-format)
 .codespellrc                # Spell check configuration
-.github/workflows/          # CI workflows (build_example.yml, dangerjs.yml, jira.yml)
+.git-blame-ignore-revs      # Commits excluded from git blame
+.github/workflows/          # CI workflows (build_example.yml, dangerjs.yml, jira.yml, release.yml)
 .gitignore                  # Git ignore patterns
 .pre-commit-config.yaml     # Pre-commit hook configuration
 CHANGELOG.md                # Version history
 CMakeLists.txt              # Main library build file
+CONTRIBUTING.md             # Coding conventions and review checklist
 LICENSE-APACHE, LICENSE-MIT # Dual license
 MAINTENANCE.md              # Maintenance & release policy
 README.md                   # Main documentation
@@ -124,7 +126,7 @@ pre-commit run --all-files  # Takes 2-3 minutes on first run (installs hooks)
 ```
 
 **Hooks enforced:**
-1. `codespell` - Spell checking (ignores "dout", skips build/)
+1. `codespell` - Spell checking (ignores "dout" and "statics", skips build/)
 2. `check-copyright` - Validates copyright headers (Apache-2.0 OR MIT)
 3. `trailing-whitespace` - Removes trailing whitespace
 4. `end-of-file-fixer` - Ensures files end with newline
@@ -133,14 +135,14 @@ pre-commit run --all-files  # Takes 2-3 minutes on first run (installs hooks)
 7. `double-quote-string-fixer` - Converts double quotes to single quotes (Python)
 8. `yamlfix` - Formats YAML files (line length 120, preserves quotes)
 9. `conventional-precommit-linter` - Validates commit messages (conventional commits format)
-10. `astyle_py` - C code formatting (astyle 3.4.7, OTBS style, 4-space indent)
+10. `clang-format` - C code formatting (excludes miniz files and SOC headers)
 
-**Code formatting style (astyle):**
-- Style: One True Brace Style (OTBS)
-- Indent: 4 spaces, tabs converted to spaces
+**Code formatting style (clang-format, see `.clang-format`):**
+- Based on: LLVM style with Linux brace breaking
+- Indent: 4 spaces
 - Max line length: 120 characters
-- Pointer/reference alignment: to name (`int* ptr`, not `int *ptr`)
-- Padding: operators, commas, headers
+- Pointer alignment: right, i.e. to name (`int *ptr`, not `int* ptr`)
+- Include sorting: case-sensitive with regrouping (system → public → esp-stub-lib → target → private → quoted)
 
 **Copyright headers:** All new .c and .h files must include:
 ```c
@@ -151,7 +153,7 @@ pre-commit run --all-files  # Takes 2-3 minutes on first run (installs hooks)
  */
 ```
 
-**Ignored for copyright:** Linker scripts (*.ld files in src/target/*/ld/ and example/ld/)
+**Ignored for copyright:** Linker scripts (*.ld files in src/target/*/ld/ and example/ld/), and third-party files (src/target/esp8266/src/miniz.c, include/esp-stub-lib/miniz.h)
 
 ### Commit Message Format
 
@@ -173,12 +175,12 @@ body (optional)
 **When creating or reviewing PRs, always check if documentation updates are needed:**
 
 - **Chip/Target Support Changes:**
-  - Adding/removing chip support → Update supported targets list in README.md and this file (line 8)
-  - New target directories → Update target list in build documentation (lines 82-83)
+  - Adding/removing chip support → Update supported targets list in README.md and the "Supported Targets" line in this file
+  - New target directories → Update target list in build documentation
 
 - **API/File Changes:**
-  - Adding/removing public API headers → Update header lists (line 27 and lines 197-211)
-  - Adding/removing source files → Update source file lists (line 28)
+  - Adding/removing public API headers → Update header lists in "Key Directories" and "Public API Modules" sections
+  - Adding/removing source files → Update source file lists in "Key Directories" section
   - New modules → Add descriptions in "Public API Modules" section
 
 - **Build System Changes:**
@@ -200,9 +202,13 @@ body (optional)
    - Uploads build artifacts from `example/build/{target}/` (.elf, .map, .asm files)
    - **Failure means:** Build errors, missing toolchain, or incorrect CMake configuration
 
-2. **dangerjs.yml** - PR style linting (runs on PR open/edit/sync)
+2. **release.yml** - Creates draft GitHub releases on version tags (`v*`)
+   - Generates changelog using commitizen/czespressif
+   - Creates a draft release with auto-generated notes
 
-3. **jira.yml** - Syncs issues/PRs to Jira (internal Espressif workflow)
+3. **dangerjs.yml** - PR style linting (runs on PR open/edit/sync)
+
+4. **jira.yml** - Syncs issues/PRs to Jira (internal Espressif workflow)
 
 **External CI Services:**
 - **pre-commit.ci** - Runs pre-commit hooks on every push (https://results.pre-commit.ci/badge/github/espressif/esp-stub-lib/master)
@@ -221,18 +227,19 @@ cd example
 
 ### Public API Modules
 
-The library provides 15 public API headers in `include/esp-stub-lib/`:
+The library provides 16 public API headers in `include/esp-stub-lib/`:
 
-- **bit_utils.h** - Bit manipulation macros (BIT, BIT64, ALIGN_UP, ALIGN_MASK)
+- **bit_utils.h** - Bit manipulation macros (BIT, BIT64, ALIGN_UP, ALIGN_DOWN, IS_ALIGNED, MIN, MAX)
 - **clock.h** - Clock initialization and watchdog control
 - **err.h** - Error code definitions (STUB_LIB_OK, STUB_LIB_ERR_*)
 - **flash.h** - Flash memory operations (read, write, erase)
 - **log.h** - Logging macros (conditional on STUB_LOG_ENABLED)
 - **md5.h** - MD5 hashing operations
-- **mem_utils.h** - Memory region classification (irom, drom, iram, dram)
+- **mem_utils.h** - Memory region classification (irom, drom, iram, dram, rtc, tcm)
 - **miniz.h** - Deflate/inflate compression (zlib-compatible)
 - **rom_wrappers.h** - ROM function wrappers (delay_us, crc16_le)
 - **security.h** - Security information retrieval
+- **sha256.h** - SHA256 hardware hashing operations
 - **soc_utils.h** - Register read/write macros (REG_READ, REG_WRITE)
 - **trax_mem.h** - Xtensa trace memory access
 - **uart.h** - UART communication interface
@@ -253,7 +260,7 @@ The library provides 15 public API headers in `include/esp-stub-lib/`:
 4. **Add internal interface** to `src/target/base/include/target/{module}.h`
 5. **Add target overrides** (if needed) to `src/target/{target}/src/{module}.c` with strong symbols
 6. **Update CMakeLists.txt** files as needed to include new sources
-7. **Update this file** (`.github/copilot-instructions.md`) to reflect added/removed files in the "Key Directories" section (lines 27-28)
+7. **Update this file** (`.github/copilot-instructions.md`) to reflect added/removed files in the "Key Directories" and "Public API Modules" sections
 
 ### Weak vs Strong Symbols
 
@@ -278,7 +285,7 @@ The common layer provides **weak** implementations that work generically. Target
 - **ESP8266 build fails** - Use `./build.sh esp8266` which handles toolchain setup
 
 ### Pre-commit failures
-- **astyle errors** - Run `pre-commit run astyle_py --all-files` to auto-fix formatting
+- **clang-format errors** - Run `pre-commit run clang-format --all-files` to auto-fix formatting
 - **Copyright errors** - Add proper SPDX header to new files
 - **Commit message errors** - Use conventional commits format: `type(scope): description`
 - **Codespell errors** - Fix typos or add to `.codespellrc` ignore list if intentional
