@@ -77,6 +77,7 @@ PROVIDE ( esp_rom_get_cpu_ticks_per_us = ets_get_cpu_frequency );
 PROVIDE ( esp_rom_set_cpu_ticks_per_us = ets_update_cpu_frequency );
 
 PROVIDE ( esp_rom_spiflash_attach = spi_flash_attach );
+PROVIDE ( esp_rom_spiflash_boot_attach = spi_flash_boot_attach );
 PROVIDE ( esp_rom_spiflash_clear_bp = esp_rom_spiflash_unlock );
 PROVIDE ( esp_rom_spiflash_write_enable = SPI_write_enable );
 PROVIDE ( esp_rom_spiflash_erase_area = SPIEraseArea );
