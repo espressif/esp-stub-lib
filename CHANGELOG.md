@@ -1,3 +1,10 @@
+## v0.3.0 (2026-03-25)
+
+### ✨ New Features
+
+- **esp32-p4**: Support ECO7 (rev3.2) *(Radim Karniš - 374cb23)*
+
+
 ## v0.2.0 (2026-03-24)
 
 ### ✨ New Features
