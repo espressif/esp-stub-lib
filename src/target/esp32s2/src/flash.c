@@ -84,9 +84,12 @@ void stub_target_flash_state_restore(const void *state)
     WRITE_PERI_REG(SPI_MEM_USER_REG(1), s->spi_regs[SPI_USER_REG_ID]);
 }
 
-static void stub_target_spi_init(void)
+void stub_target_spi_init(void)
 {
-    const uint32_t freqbits = 0x30103; /* SPI_CLK_DIV(4) */
+    const uint32_t freqbits = 0x30103; /* precalculated for SPI_CLK_DIV(4) */
+
+    /* Trimmed version of ROM SPI_init(SLOWRD_MODE, 4).
+     * We skip the module reset to avoid breaking communication with PSRAM. */
 
     REG_CLR_BIT(SPI_MEM_MISC_REG(0), SPI_MEM_CS0_DIS);
     REG_SET_BIT(SPI_MEM_MISC_REG(0), SPI_MEM_CS1_DIS);
@@ -126,7 +129,9 @@ void stub_target_flash_init(void **state)
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
         stub_target_flash_attach(spiconfig, 0);
     } else {
-        stub_target_spi_init();
+        // stub_target_spi_init();
+        WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), 0x208000);
+        WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), 0x30103);
     }
 
     REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);
