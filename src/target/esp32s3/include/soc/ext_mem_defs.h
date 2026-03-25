@@ -10,6 +10,5 @@
 
 #define SOC_MMU_VALID           0
 #define SOC_MMU_INVALID         BIT(14)
-#define SOC_MMU_ACCESS_FLASH    BIT(15)
 
 #define SOC_MMU_ENTRY_NUM       512

@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/err.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
@@ -150,6 +151,33 @@ void stub_target_spi_init(void)
     WRITE_PERI_REG(SPI_MEM_DDR_REG(1), 0);
     spi_cache_mode_switch(0);
     REG_SET_BIT(SPI_MEM_CACHE_FCTRL_REG(0), SPI_MEM_CACHE_FLASH_USR_CMD);
+}
+
+// TODO: should we take care cache related settings from here?
+int stub_target_flash_update_config(uint32_t flash_id,
+                                    uint32_t flash_size,
+                                    uint32_t block_size,
+                                    uint32_t sector_size,
+                                    uint32_t page_size,
+                                    uint32_t status_mask)
+{
+    int res = esp_rom_spiflash_config_param(flash_id, flash_size, block_size, sector_size, page_size, status_mask);
+    if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
+        STUB_LOGE("Failed to update flash config: %d\n", res);
+        return STUB_LIB_FAIL;
+    }
+
+    /* spi_cache_mode_switch(0) configures SPI0 with 24-bit addressing (cmd 0x03).
+     * For flash >= 16MB, override to 32-bit addressing (cmd 0x13) so that
+     * cache/MMU reads can access addresses above 0x1000000. */
+    if (flash_size > MIB(16)) {
+        STUB_LOGD("Large flash (%d MB), enabling 4-byte cache addressing\n", BYTES_TO_MIB(flash_size));
+        REG_SET_FIELD(SPI_MEM_USER1_REG(0), SPI_MEM_USR_ADDR_BITLEN, 31);
+        REG_SET_FIELD(SPI_MEM_USER2_REG(0), SPI_MEM_USR_COMMAND_VALUE, 0x13);
+        REG_SET_BIT(SPI_MEM_CACHE_FCTRL_REG(0), SPI_MEM_CACHE_USR_CMD_4BYTE);
+    }
+
+    return STUB_LIB_OK;
 }
 
 void stub_target_flash_init(void **state)

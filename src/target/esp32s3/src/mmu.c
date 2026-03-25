@@ -21,7 +21,7 @@ uint32_t stub_target_mmu_get_drom_vaddr(void)
 {
     /* Unified MMU table: entry N maps to SOC_DROM_LOW + N * PAGE_SIZE,
      * so the DROM region starts at an offset from SOC_DROM_LOW. */
-    return SOC_DROM_LOW + Cache_Get_IROM_MMU_End() / sizeof(uint32_t) * 0x10000U;
+    return SOC_DROM_LOW + Cache_Get_IROM_MMU_End() / sizeof(uint32_t) * STUB_MMU_PAGE_SIZE;
 }
 
 uint32_t stub_target_mmu_get_drom_entry_start(void)

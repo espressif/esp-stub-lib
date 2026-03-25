@@ -22,7 +22,6 @@ extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 
 extern uint8_t g_rom_spiflash_dummy_len_plus[];
 
-/* Save/restore SPI registers. Can be extended to more registers if needed. */
 enum {
     SPI_USER_REG_ID = 0,
     SPI_CLOCK_REG_ID,
@@ -97,12 +96,54 @@ void stub_target_flash_state_restore(const void *state)
     g_rom_spiflash_dummy_len_plus[1] = s->dummy_len_plus;
 }
 
-#define ESP32_STUB_FLASH_STATE_SPI_USER_REG_VAL  0x80000040UL
-#define ESP32_STUB_FLASH_STATE_SPI_USER1_REG_VAL 0x5c000007UL
-#define ESP32_STUB_FLASH_STATE_SPI_USER2_REG_VAL 0x70000000UL
-#define ESP32_STUB_FLASH_STATE_SPI_SLAVE_REG_VAL 0x00000200UL
-#define ESP32_STUB_FLASH_STATE_SPI_CTRL_REG_VAL  0x208000UL
-#define ESP32_STUB_FLASH_STATE_SPI_CLOCK_REG_VAL 0x3043UL
+/*
+ * ROM esp_rom_spiflash_erase_area() calls esp_rom_spiflash_config_readmode(SLOWRD) first.
+ * That clears QIO/fast-read bits on SPI_CTRL_REG(0) and SPI_CTRL_REG(1), reprograms
+ * SPI0 user registers for slow XIP (cmd 0x03, etc.), and adjusts cache-related SPI
+ * state — but it never restores the previous mapping after erase finishes. The CPU
+ * then fetches from flash through SPI0/cache with the wrong protocol until something
+ * reprograms those registers again, which breaks mmap reads inside the stub and
+ * GDB memory reads over JTAG after the stub returns. Snapshot the clobbered
+ * registers around the ROM call and write them back so XIP and the SPI1 erase path
+ * match the configuration the firmware had before erase.
+ */
+int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
+{
+    uint32_t spi0_ctrl = READ_PERI_REG(SPI_CTRL_REG(0));
+    uint32_t spi0_user = READ_PERI_REG(SPI_USER_REG(0));
+    uint32_t spi0_user1 = READ_PERI_REG(SPI_USER1_REG(0));
+    uint32_t spi0_user2 = READ_PERI_REG(SPI_USER2_REG(0));
+    uint32_t spi1_ctrl = READ_PERI_REG(SPI_CTRL_REG(1));
+    uint32_t spi0_cache_sctrl = READ_PERI_REG(SPI_CACHE_SCTRL_REG(0));
+
+    int rom_res = esp_rom_spiflash_erase_area(addr, size);
+
+    WRITE_PERI_REG(SPI_CTRL_REG(0), spi0_ctrl);
+    WRITE_PERI_REG(SPI_USER_REG(0), spi0_user);
+    WRITE_PERI_REG(SPI_USER1_REG(0), spi0_user1);
+    WRITE_PERI_REG(SPI_USER2_REG(0), spi0_user2);
+    WRITE_PERI_REG(SPI_CACHE_SCTRL_REG(0), spi0_cache_sctrl);
+    WRITE_PERI_REG(SPI_CTRL_REG(1), spi1_ctrl);
+
+    return rom_res;
+}
+
+static void stub_target_spi_init(void)
+{
+    /*
+     * Trimmed version of ROM SPI_init(SLOWRD_MODE, 4).
+     * We skip the module reset to avoid breaking communication with PSRAM.
+     */
+    WRITE_PERI_REG(SPI_CTRL_REG(1), SPI_WP_REG | SPI_RESANDRES);
+    WRITE_PERI_REG(SPI_CLOCK_REG(1), 0x3043U); /* precalculated for SPI_CLK_DIV(4) */
+
+    WRITE_PERI_REG(SPI_USER1_REG(1), 0);
+    REG_SET_FIELD(SPI_USER1_REG(1), SPI_USR_ADDR_BITLEN, 23);
+    REG_SET_FIELD(SPI_USER1_REG(1), SPI_USR_DUMMY_CYCLELEN, 7);
+
+    g_rom_spiflash_dummy_len_plus[1] = 0;
+}
+
 void stub_target_flash_init(void **state)
 {
     bool attach = true;
@@ -114,20 +155,12 @@ void stub_target_flash_init(void **state)
         }
     }
 
-    // WRITE_PERI_REG(SPI_USER_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER_REG_VAL);
-    // WRITE_PERI_REG(SPI_USER1_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER1_REG_VAL); //*** */
-    // WRITE_PERI_REG(SPI_USER2_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER2_REG_VAL);
-    // WRITE_PERI_REG(SPI_SLAVE_REG(1), ESP32_STUB_FLASH_STATE_SPI_SLAVE_REG_VAL);
-
     if (attach) {
         STUB_LOGD("Attach spi flash...\n");
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
-        stub_target_flash_attach(spiconfig, 0);
+        esp_rom_spiflash_attach(spiconfig, 0);
     } else {
-        WRITE_PERI_REG(SPI_CTRL_REG(1), 0x208000);
-        WRITE_PERI_REG(SPI_CLOCK_REG(1), 0x3043);
-        WRITE_PERI_REG(SPI_USER1_REG(1), ESP32_STUB_FLASH_STATE_SPI_USER1_REG_VAL);
-        g_rom_spiflash_dummy_len_plus[1] = 0;
+        stub_target_spi_init();
     }
 
     /*

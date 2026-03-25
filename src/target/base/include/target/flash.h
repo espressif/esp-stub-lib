@@ -79,6 +79,13 @@ void stub_target_flash_state_save(void **state);
 void stub_target_flash_state_restore(const void *state);
 
 /**
+ * @brief Target wrapper for esp_rom_spiflash_erase_area().
+ *
+ * @return STUB_LIB_OK or STUB_LIB_FAIL
+ */
+int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size);
+
+/**
  * @brief Retrieve Flash ID (aka flash device id, aka flash chip id) from internal hw.
  *
  * @return Flash ID, that includes manufacture and size information.

@@ -23,7 +23,6 @@ extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern void spi_cache_mode_switch(uint32_t modebit);
 extern void spi_common_set_flash_cs_timing(void);
 
-/* Save/restore SPI registers. Can be extended to more registers if needed. */
 enum {
     SPI_USER_REG_ID = 0,
     SPI_CLOCK_REG_ID,
@@ -64,6 +63,7 @@ void stub_target_flash_state_save(void **state)
     if (!state) {
         return;
     }
+
     s_flash_state.spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_MEM_USER_REG(1));
     s_flash_state.spi_regs[SPI_CLOCK_REG_ID] = READ_PERI_REG(SPI_MEM_CLOCK_REG(1));
     s_flash_state.spi_regs[SPI_CTRL_REG_ID] = READ_PERI_REG(SPI_MEM_CTRL_REG(1));
@@ -84,7 +84,7 @@ void stub_target_flash_state_restore(const void *state)
     WRITE_PERI_REG(SPI_MEM_USER_REG(1), s->spi_regs[SPI_USER_REG_ID]);
 }
 
-void stub_target_spi_init(void)
+static void stub_target_spi_init(void)
 {
     const uint32_t freqbits = 0x30103; /* precalculated for SPI_CLK_DIV(4) */
 
@@ -129,9 +129,7 @@ void stub_target_flash_init(void **state)
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
         stub_target_flash_attach(spiconfig, 0);
     } else {
-        // stub_target_spi_init();
-        WRITE_PERI_REG(SPI_MEM_CTRL_REG(1), 0x208000);
-        WRITE_PERI_REG(SPI_MEM_CLOCK_REG(1), 0x30103);
+        stub_target_spi_init();
     }
 
     REG_SET_BIT(SPI_MEM_USER_REG(1), SPI_MEM_USR_COMMAND);

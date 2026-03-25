@@ -13,7 +13,6 @@
 #include <esp-stub-lib/err.h>
 #include <esp-stub-lib/flash.h>
 #include <esp-stub-lib/log.h>
-#include <esp-stub-lib/security.h>
 
 #include <target/mmu.h>
 
@@ -138,11 +137,9 @@ static void mmu_munmap(void)
 
 int stub_lib_mmu_read_flash(uint32_t addr, void *buffer, uint32_t size)
 {
-    // if (!stub_lib_security_flash_is_encrypted())
     if (0)
         return stub_lib_flash_read_buff(addr, buffer, size);
 
-    /* Encrypted flash: read through cache via MMU mapping */
     const void *vaddr;
     int rc = mmu_mmap(addr, size, &vaddr);
     if (rc != STUB_LIB_OK) {

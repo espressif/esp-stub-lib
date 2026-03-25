@@ -61,6 +61,14 @@ int esp_rom_spiflash_read(uint32_t src_addr, uint32_t *dest, int32_t len);
 int esp_rom_spiflash_unlock(void);
 
 /**
+ * @brief Erase a contiguous flash region (sector-aligned address and length).
+ *
+ * ROM implementation sets safe read mode, unlocks flash, and erases via
+ * sector/block commands — unlike raw SPI_MEM register pokes.
+ */
+int esp_rom_spiflash_erase_area(uint32_t start_addr, uint32_t area_len);
+
+/**
  * @brief Check if Flash is OPI.
  *
  * @return true if eFuse indicates an OPI flash is attached.
