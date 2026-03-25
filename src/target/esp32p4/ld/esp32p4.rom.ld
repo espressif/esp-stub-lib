@@ -159,6 +159,7 @@ spi_flash_get_chip_size = 0x4fc001ec;
 spi_flash_guard_set = 0x4fc001f0;
 spi_flash_guard_get = 0x4fc001f4;
 spi_flash_read_encrypted = 0x4fc001f8;
+spi_flash_boot_attach = 0x4fc0f198;
 /* Data (.data, .bss, .rodata) */
 rom_spiflash_legacy_funcs = 0x4ff3ffec;
 rom_spiflash_legacy_data = 0x4ff3ffe8;

@@ -11,7 +11,7 @@
 void stub_lib_clock_init(void)
 {
     stub_target_clock_init();
-    stub_lib_delay_us(50); // Wait for the clocks to stabilize
+    stub_lib_delay_us(5000); // Wait for the clocks to stabilize
 }
 
 void stub_lib_clock_disable_watchdogs(void)

@@ -12,10 +12,15 @@
 
 #include <target/flash.h>
 
+#include <soc/efuse_reg.h>
 #include <soc/spi_mem_compat.h>
 
 /* ECO version from ROM - used to route to correct ROM functions */
 extern uint32_t _rom_eco_version;
+
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+extern void esp_rom_spiflash_boot_attach(uint32_t ishspi, bool legacy, bool boot_mode);
+
 extern void esp_rom_opiflash_exec_cmd_eco1(int spi_num,
                                            spi_flash_mode_t mode,
                                            uint32_t cmd,
@@ -59,6 +64,20 @@ extern void esp_rom_opiflash_exec_cmd_eco5(int spi_num,
                                            bool is_write_erase_operation);
 
 extern void esp_rom_opiflash_exec_cmd_eco6(int spi_num,
+                                           spi_flash_mode_t mode,
+                                           uint32_t cmd,
+                                           int cmd_bit_len,
+                                           uint32_t addr,
+                                           int addr_bit_len,
+                                           int dummy_bits,
+                                           const uint8_t *mosi_data,
+                                           int mosi_bit_len,
+                                           uint8_t *miso_data,
+                                           int miso_bit_len,
+                                           uint32_t cs_mask,
+                                           bool is_write_erase_operation);
+
+extern void esp_rom_opiflash_exec_cmd_eco7(int spi_num,
                                            spi_flash_mode_t mode,
                                            uint32_t cmd,
                                            int cmd_bit_len,
@@ -116,8 +135,22 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
                                        params->miso_bit_len,
                                        params->cs_mask,
                                        params->is_write_erase_operation);
-    } else {
+    } else if (_rom_eco_version == 6) {
         esp_rom_opiflash_exec_cmd_eco6(params->spi_num,
+                                       params->mode,
+                                       params->cmd,
+                                       params->cmd_bit_len,
+                                       params->addr,
+                                       params->addr_bit_len,
+                                       params->dummy_bits,
+                                       params->mosi_data,
+                                       params->mosi_bit_len,
+                                       params->miso_data,
+                                       params->miso_bit_len,
+                                       params->cs_mask,
+                                       params->is_write_erase_operation);
+    } else {
+        esp_rom_opiflash_exec_cmd_eco7(params->spi_num,
                                        params->mode,
                                        params->cmd,
                                        params->cmd_bit_len,
@@ -136,6 +169,20 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
 void stub_target_reset_default_spi_pins(void)
 {
     /* ESP32-P4 uses dedicated pins for SPI flash. */
+}
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    if (_rom_eco_version == 7) {
+        if (REG_GET_FIELD(EFUSE_RD_REPEAT_DATA1_REG, EFUSE_DOWNLOAD_MODE_XPD_ON)) {
+            // If DOWNLOAD_MODE_XPD_ON eFuse is set, ROM powers on the flash chip
+            // inside esp_rom_spiflash_attach.
+            // This power-on sequence cannot run twice, let's skip it.
+            esp_rom_spiflash_boot_attach(ishspi, legacy, true);
+            return;
+        }
+    }
+    esp_rom_spiflash_attach(ishspi, legacy);
 }
 
 void stub_target_spi_wait_ready(void)
