@@ -12,26 +12,35 @@
 #include <soc/ext_mem_reg.h>
 #include <soc/soc.h>
 
-#define MMU_TABLE ((volatile uint32_t *)DR_REG_MMU_TABLE)
+#define MMU_TABLE                         ((volatile uint32_t *)DR_REG_MMU_TABLE)
 
-extern uint32_t Cache_Get_IROM_MMU_End(void);
-extern uint32_t Cache_Get_DROM_MMU_End(void);
-
-uint32_t stub_target_mmu_get_drom_vaddr(void)
-{
-    /* Unified MMU table: entry N maps to SOC_DROM_LOW + N * PAGE_SIZE,
-     * so the DROM region starts at an offset from SOC_DROM_LOW. */
-    return SOC_DROM_LOW + Cache_Get_IROM_MMU_End() / sizeof(uint32_t) * STUB_MMU_PAGE_SIZE;
-}
+/*
+ * ESP32-S3: IBUS flash MMU uses up to CACHE_DROM_MMU_MAX_END (0x400) bytes of
+ * MMU entries (256 × uint32_t) for IROM+DROM together, 64 KiB pages. The first
+ * two entries map IROM; DROM uses half-open indices [2, 256), matching the
+ * usual IDF split (Cache_Set_IDROM_MMU_Size in cpu_start) and the legacy stub.
+ *
+ * Do not use Cache_Get_IROM_MMU_End() / Cache_Get_DROM_MMU_End(): ROM returns
+ * byte offsets from RAM updated only by Cache_Set_IDROM_MMU_Size(), not from
+ * hardware. Those values can be wrong (e.g. ROM defaults) before IDF startup
+ * or out of sync with stub cache re-init, which breaks mmap entry math.
+ */
+#define ESP32S3_STUB_MMU_DROM_ENTRY_START 2U
+#define ESP32S3_STUB_MMU_DROM_ENTRY_END   256U
 
 uint32_t stub_target_mmu_get_drom_entry_start(void)
 {
-    return Cache_Get_IROM_MMU_End() / sizeof(uint32_t);
+    return ESP32S3_STUB_MMU_DROM_ENTRY_START;
 }
 
 uint32_t stub_target_mmu_get_drom_entry_end(void)
 {
-    return Cache_Get_DROM_MMU_End() / sizeof(uint32_t);
+    return ESP32S3_STUB_MMU_DROM_ENTRY_END;
+}
+
+uint32_t stub_target_mmu_get_drom_vaddr(void)
+{
+    return SOC_DROM_LOW + stub_target_mmu_get_drom_entry_start() * STUB_MMU_PAGE_SIZE;
 }
 
 void stub_target_mmu_write_entry(uint32_t entry_id, uint32_t flash_page_num)

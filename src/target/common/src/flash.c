@@ -113,6 +113,7 @@ void __attribute__((weak)) stub_target_flash_init(void **state)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+    STUB_LOGD("Flash attach with spiconfig: 0x%x\n", spiconfig);
     stub_target_flash_attach(spiconfig, 0);
 }
 
