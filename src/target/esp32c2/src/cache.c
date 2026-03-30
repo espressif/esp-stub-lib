@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/cache.h>
@@ -17,9 +19,13 @@ extern void Cache_Suspend_ICache(void);
 extern void Cache_Resume_ICache(uint32_t autoload);
 extern void Cache_Invalidate_ICache_All(void);
 extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
+extern void ROM_Boot_Cache_Init(void);
+extern void Cache_Disable_ICache(void);
 
 typedef struct {
     uint32_t mmu_page_size;
+    uint32_t ctrl1;
+    bool cache_was_enabled;
 } esp32c2_cache_state_t;
 
 static esp32c2_cache_state_t s_cache_state;
@@ -62,10 +68,28 @@ void stub_target_cache_resume(uint32_t autoload)
 void stub_target_cache_save(void)
 {
     s_cache_state.mmu_page_size = REG_GET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE);
+    s_cache_state.ctrl1 = REG_READ(EXTMEM_ICACHE_CTRL1_REG);
+    s_cache_state.cache_was_enabled =
+        REG_GET_BIT(EXTMEM_ICACHE_CTRL_REG, EXTMEM_ICACHE_ENABLE) && !(s_cache_state.ctrl1 & EXTMEM_ICACHE_SHUT_DBUS);
+
+    STUB_LOGD("cache_was_enabled: %d, mmu_page_size: %d\n",
+              s_cache_state.cache_was_enabled,
+              s_cache_state.mmu_page_size);
+
+    if (!s_cache_state.cache_was_enabled) {
+        STUB_LOGD("ICache not enabled, initializing for DROM\n");
+        ROM_Boot_Cache_Init();
+    }
 }
 
 void stub_target_cache_restore(void)
 {
-    /* Restore MMU page size */
-    REG_SET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE, s_cache_state.mmu_page_size);
+    if (!s_cache_state.cache_was_enabled) {
+        STUB_LOGD("Disabling ICache\n");
+        Cache_Disable_ICache();
+        REG_WRITE(EXTMEM_ICACHE_CTRL1_REG, s_cache_state.ctrl1);
+    } else {
+        /* Restore MMU page size */
+        REG_SET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE, s_cache_state.mmu_page_size);
+    }
 }

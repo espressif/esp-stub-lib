@@ -40,7 +40,7 @@ uint32_t stub_target_mmu_get_drom_entry_end(void)
 
 uint32_t stub_target_mmu_get_drom_vaddr(void)
 {
-    return SOC_DROM_LOW + stub_target_mmu_get_drom_entry_start() * STUB_MMU_PAGE_SIZE;
+    return SOC_DROM_LOW + stub_target_mmu_get_drom_entry_start() * stub_target_mmu_get_page_size();
 }
 
 void stub_target_mmu_write_entry(uint32_t entry_id, uint32_t flash_page_num)

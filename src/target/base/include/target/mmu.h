@@ -8,8 +8,15 @@
 
 #include <stdint.h>
 
-#define STUB_MMU_PAGE_SIZE  0x10000U /* 64KB */
-#define STUB_MMU_PAGE_SHIFT 16
+#define STUB_MMU_PAGE_SIZE_16KB 0x4000U
+#define STUB_MMU_PAGE_SIZE_32KB 0x8000U
+#define STUB_MMU_PAGE_SIZE_64KB 0x10000U
+
+/**
+ * @brief MMU flash page size in bytes (16 KiB, 32 KiB, or 64 KiB).
+ *
+ */
+uint32_t stub_target_mmu_get_page_size(void);
 
 /**
  * @brief Get the DROM virtual address base for mmap operations.
@@ -42,7 +49,7 @@ uint32_t stub_target_mmu_get_drom_entry_end(void);
  * The implementation must add the chip-specific valid bit(s).
  *
  * @param entry_id        MMU entry index.
- * @param flash_page_num  Flash page number (paddr >> STUB_MMU_PAGE_SHIFT).
+ * @param flash_page_num  Flash page index (paddr / stub_target_mmu_get_page_size()).
  */
 void stub_target_mmu_write_entry(uint32_t entry_id, uint32_t flash_page_num);
 

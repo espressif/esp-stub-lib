@@ -8,6 +8,11 @@
 
 #include <target/mmu.h>
 
+uint32_t __attribute__((weak)) stub_target_mmu_get_page_size(void)
+{
+    return STUB_MMU_PAGE_SIZE_64KB;
+}
+
 uint32_t __attribute__((weak)) stub_target_mmu_get_drom_vaddr(void)
 {
     return 0;

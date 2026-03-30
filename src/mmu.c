@@ -25,6 +25,21 @@ static struct {
     uint32_t saved_entries[STUB_MMAP_MAX_PAGES];
 } s_mmap_state;
 
+static uint32_t mmu_page_shift(uint32_t page_size)
+{
+    switch (page_size) {
+    case STUB_MMU_PAGE_SIZE_16KB:
+        return 14U;
+    case STUB_MMU_PAGE_SIZE_32KB:
+        return 15U;
+    case STUB_MMU_PAGE_SIZE_64KB:
+        return 16U;
+    default:
+        STUB_LOGE("invalid page_size: %d\n", page_size);
+        return 0;
+    }
+}
+
 static void mmu_invalidate_region(uint32_t vaddr, uint32_t size)
 {
     uint32_t caps = stub_lib_cache_get_caps();
@@ -54,10 +69,12 @@ static void mmu_invalidate_region(uint32_t vaddr, uint32_t size)
  */
 static int mmu_mmap(uint32_t flash_paddr, uint32_t size, const void **out_vaddr)
 {
-    uint32_t aligned = ALIGN_DOWN(flash_paddr, STUB_MMU_PAGE_SIZE);
+    uint32_t page_size = stub_target_mmu_get_page_size();
+    uint32_t page_shift = mmu_page_shift(page_size);
+    uint32_t aligned = ALIGN_DOWN(flash_paddr, page_size);
     uint32_t offset = flash_paddr - aligned;
     uint32_t map_size = size + offset;
-    uint32_t page_count = (map_size + STUB_MMU_PAGE_SIZE - 1) >> STUB_MMU_PAGE_SHIFT;
+    uint32_t page_count = (map_size + page_size - 1) >> page_shift;
 
     STUB_LOGD("aligned: %x, offset: %x, map_size: %x, page_count: %d\n", aligned, offset, map_size, page_count);
 
@@ -77,7 +94,7 @@ static int mmu_mmap(uint32_t flash_paddr, uint32_t size, const void **out_vaddr)
     /* Use the last N entries of the DROM region (least likely to conflict) */
     uint32_t entry_start = drom_end - page_count;
     uint32_t drom_vaddr = stub_target_mmu_get_drom_vaddr();
-    uint32_t vaddr_base = drom_vaddr + (entry_start - drom_start) * STUB_MMU_PAGE_SIZE;
+    uint32_t vaddr_base = drom_vaddr + (entry_start - drom_start) * page_size;
 
     STUB_LOGD("drom_start: %d, drom_end: %d, entry_start: %d, vaddr_base: %x\n",
               drom_start,
@@ -93,7 +110,7 @@ static int mmu_mmap(uint32_t flash_paddr, uint32_t size, const void **out_vaddr)
     }
 
     /* Write new flash mappings */
-    uint32_t flash_page = aligned >> STUB_MMU_PAGE_SHIFT;
+    uint32_t flash_page = aligned >> page_shift;
     for (uint32_t i = 0; i < page_count; i++) {
         stub_target_mmu_write_entry(entry_start + i, flash_page + i);
     }
@@ -104,7 +121,7 @@ static int mmu_mmap(uint32_t flash_paddr, uint32_t size, const void **out_vaddr)
 
     stub_lib_cache_resume(autoload);
 
-    mmu_invalidate_region(vaddr_base, page_count * STUB_MMU_PAGE_SIZE);
+    mmu_invalidate_region(vaddr_base, page_count * page_size);
 
     *out_vaddr = (const void *)(uintptr_t)(vaddr_base + offset);
 
@@ -121,6 +138,7 @@ static void mmu_munmap(void)
     if (s_mmap_state.page_count == 0)
         return;
 
+    uint32_t page_size = stub_target_mmu_get_page_size();
     uint32_t autoload = stub_lib_cache_suspend();
 
     /* Restore saved MMU entries */
@@ -130,7 +148,7 @@ static void mmu_munmap(void)
 
     stub_lib_cache_resume(autoload);
 
-    mmu_invalidate_region(s_mmap_state.vaddr_base, s_mmap_state.page_count * STUB_MMU_PAGE_SIZE);
+    mmu_invalidate_region(s_mmap_state.vaddr_base, s_mmap_state.page_count * page_size);
 
     s_mmap_state.page_count = 0;
 }
