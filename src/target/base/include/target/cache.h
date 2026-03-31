@@ -70,3 +70,5 @@ void stub_target_cache_save(void);
  *
  */
 void stub_target_cache_restore(void);
+
+int stub_target_cache_is_enabled(void);

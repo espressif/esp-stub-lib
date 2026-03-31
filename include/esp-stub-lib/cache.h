@@ -86,6 +86,13 @@ void stub_lib_cache_save(void);
  */
 void stub_lib_cache_restore(void);
 
+/**
+ * @brief Check if the cache is enabled.
+ *
+ * @return true if the cache is enabled, false otherwise.
+ */
+int stub_lib_is_cache_enabled(void);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

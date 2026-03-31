@@ -52,3 +52,8 @@ void stub_lib_cache_restore(void)
 {
     stub_target_cache_restore();
 }
+
+int stub_lib_is_cache_enabled(void)
+{
+    return stub_target_cache_is_enabled();
+}

@@ -7,16 +7,27 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
 #include <target/flash.h>
 
 #include <soc/spi_mem_compat.h>
 
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+
 void stub_target_spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_MST_ST) ||
            REG_GET_FIELD(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_SLV_ST)) {
         /* busy wait */
+    }
+}
+
+void stub_target_flash_init(void **state)
+{
+    if (state) {
+        STUB_LOGD("Attach spi flash...\n");
+        esp_rom_spiflash_attach(0, 0);
     }
 }

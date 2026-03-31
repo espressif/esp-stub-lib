@@ -28,6 +28,8 @@ static struct {
 static uint32_t mmu_page_shift(uint32_t page_size)
 {
     switch (page_size) {
+    case STUB_MMU_PAGE_SIZE_8KB:
+        return 13U;
     case STUB_MMU_PAGE_SIZE_16KB:
         return 14U;
     case STUB_MMU_PAGE_SIZE_32KB:
@@ -76,7 +78,8 @@ static int mmu_mmap(uint32_t flash_paddr, uint32_t size, const void **out_vaddr)
     uint32_t map_size = size + offset;
     uint32_t page_count = (map_size + page_size - 1) >> page_shift;
 
-    STUB_LOGD("aligned: %x, offset: %x, map_size: %x, page_count: %d\n", aligned, offset, map_size, page_count);
+    STUB_LOGD("page_size: %d, page_shift: %d page_count: %d\n", page_size, page_shift, page_count);
+    STUB_LOGD("aligned: %x, offset: %x, map_size: %x\n", aligned, offset, map_size);
 
     if (page_count == 0 || page_count > STUB_MMAP_MAX_PAGES) {
         STUB_LOGE("invalid page_count: %d\n", page_count);

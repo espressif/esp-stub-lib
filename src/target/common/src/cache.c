@@ -50,3 +50,8 @@ void __attribute__((weak)) stub_target_cache_save(void)
 void __attribute__((weak)) stub_target_cache_restore(void)
 {
 }
+
+int __attribute__((weak)) stub_target_cache_is_enabled(void)
+{
+    return 0;
+}
