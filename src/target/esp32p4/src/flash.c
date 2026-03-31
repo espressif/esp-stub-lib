@@ -173,7 +173,7 @@ void stub_target_reset_default_spi_pins(void)
 
 void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
-    if (_rom_eco_version == 7) {
+    if (_rom_eco_version >= 7) {
         if (REG_GET_FIELD(EFUSE_RD_REPEAT_DATA1_REG, EFUSE_DOWNLOAD_MODE_XPD_ON)) {
             // If DOWNLOAD_MODE_XPD_ON eFuse is set, ROM powers on the flash chip
             // inside esp_rom_spiflash_attach.
