@@ -1,3 +1,10 @@
+## v0.3.1 (2026-03-31)
+
+### 🐛 Bug Fixes
+
+- **esp32-p4**: Wait for ECO7 clock stabilisation *(Radim Karniš - 332eddc)*
+
+
 ## v0.3.0 (2026-03-25)
 
 ### ✨ New Features
