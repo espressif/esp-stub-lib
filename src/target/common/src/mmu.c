@@ -50,3 +50,8 @@ void __attribute__((weak)) stub_target_mmu_restore_entry(uint32_t entry_id, uint
     (void)entry_id;
     (void)raw_value;
 }
+
+bool __attribute__((weak)) stub_target_mmu_has_valid_entry(void)
+{
+    return false;
+}

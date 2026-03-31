@@ -65,54 +65,42 @@ void stub_target_cache_resume(uint32_t autoload)
     Cache_Resume_ICache(autoload & BIT(0) ? EXTMEM_L1_CACHE_AUTOLOAD_ENA : 0);
 }
 
-static bool is_cache_enabled(void)
+int stub_target_cache_is_enabled(void)
 {
-    /* if any of the entry is valid and buses are enabled we can consider that cache is enabled */
-    for (uint32_t i = 0; i < SOC_MMU_ENTRY_NUM; ++i) {
-        uint32_t mmu_raw_value = stub_target_mmu_read_entry(i);
-        if ((mmu_raw_value & SOC_MMU_VALID) == SOC_MMU_VALID)
-            return !(s_cache_state.ctrl & (EXTMEM_L1_CACHE_SHUT_DBUS | EXTMEM_L1_CACHE_SHUT_IBUS));
-    }
-    return false;
+    uint32_t ctrl = REG_READ(EXTMEM_L1_CACHE_CTRL_REG);
+    return stub_target_mmu_has_valid_entry() && !(ctrl & (EXTMEM_L1_CACHE_SHUT_DBUS | EXTMEM_L1_CACHE_SHUT_IBUS));
 }
 
-void stub_target_cache_save(void)
+void stub_target_cache_init(void **state)
 {
     s_cache_state.mmu_page_size = REG_GET_FIELD(SPI_MEM_MMU_POWER_CTRL_REG(0), SPI_MEM_MMU_PAGE_SIZE);
     s_cache_state.ctrl = REG_READ(EXTMEM_L1_CACHE_CTRL_REG);
-    s_cache_state.cache_was_enabled = is_cache_enabled();
+    s_cache_state.cache_was_enabled = stub_target_cache_is_enabled();
 
-    STUB_LOGD("cache_was_enabled: %d, mmu_page_size: %d\n",
-              s_cache_state.cache_was_enabled,
-              s_cache_state.mmu_page_size);
+    STUB_LOGD("mmu_page_size: %d cache_ctrl: 0x%x\n", s_cache_state.mmu_page_size, s_cache_state.ctrl);
 
     if (!s_cache_state.cache_was_enabled) {
         STUB_LOGD("ICache not enabled, initializing for DROM\n");
         ROM_Boot_Cache_Init();
     }
+
+    if (state)
+        *state = &s_cache_state;
 }
 
-void stub_target_cache_restore(void)
+void stub_target_cache_deinit(const void *state)
 {
-    if (!s_cache_state.cache_was_enabled) {
+    if (!state)
+        return;
+
+    const esp32c6_cache_state_t *s = state;
+
+    if (!s->cache_was_enabled) {
         STUB_LOGD("Disabling ICache\n");
         Cache_Disable_ICache();
-        REG_WRITE(EXTMEM_L1_CACHE_CTRL_REG, s_cache_state.ctrl);
+        REG_WRITE(EXTMEM_L1_CACHE_CTRL_REG, s->ctrl);
     } else {
         /* Restore MMU page size */
-        REG_SET_FIELD(SPI_MEM_MMU_POWER_CTRL_REG(0), SPI_MEM_MMU_PAGE_SIZE, s_cache_state.mmu_page_size);
+        REG_SET_FIELD(SPI_MEM_MMU_POWER_CTRL_REG(0), SPI_MEM_MMU_PAGE_SIZE, s->mmu_page_size);
     }
-}
-
-int stub_target_cache_is_enabled(void)
-{
-    s_cache_state.ctrl = REG_READ(EXTMEM_L1_CACHE_CTRL_REG);
-    return is_cache_enabled();
-}
-
-int stub_target_cache_init(void)
-{
-    ROM_Boot_Cache_Init();
-
-    return 0;
 }

@@ -57,15 +57,23 @@ void stub_target_cache_resume(uint32_t autoload)
     Cache_Resume_ICache(autoload & BIT(0) ? EXTMEM_L1_CACHE_AUTOLOAD_ENA : 0);
 }
 
-void stub_target_cache_save(void)
+void stub_target_cache_init(void **state)
 {
     s_cache_state.mmu_page_size = REG_GET_FIELD(SPI_MEM_MMU_POWER_CTRL_REG(0), SPI_MEM_MMU_PAGE_SIZE);
 
     STUB_LOGD("MMU page size: 0x%x\n", s_cache_state.mmu_page_size);
+
+    if (state)
+        *state = &s_cache_state;
 }
 
-void stub_target_cache_restore(void)
+void stub_target_cache_deinit(const void *state)
 {
+    if (!state)
+        return;
+
+    const esp32h2_cache_state_t *s = state;
+
     /* Restore MMU page size */
-    REG_SET_FIELD(SPI_MEM_MMU_POWER_CTRL_REG(0), SPI_MEM_MMU_PAGE_SIZE, s_cache_state.mmu_page_size);
+    REG_SET_FIELD(SPI_MEM_MMU_POWER_CTRL_REG(0), SPI_MEM_MMU_PAGE_SIZE, s->mmu_page_size);
 }

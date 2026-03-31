@@ -65,31 +65,42 @@ void stub_target_cache_resume(uint32_t autoload)
     }
 }
 
-void stub_target_cache_save(void)
+int stub_target_cache_is_enabled(void)
+{
+    uint32_t ctrl1 = REG_READ(EXTMEM_ICACHE_CTRL1_REG);
+    return REG_GET_BIT(EXTMEM_ICACHE_CTRL_REG, EXTMEM_ICACHE_ENABLE) && !(ctrl1 & EXTMEM_ICACHE_SHUT_DBUS);
+}
+
+void stub_target_cache_init(void **state)
 {
     s_cache_state.mmu_page_size = REG_GET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE);
     s_cache_state.ctrl1 = REG_READ(EXTMEM_ICACHE_CTRL1_REG);
-    s_cache_state.cache_was_enabled =
-        REG_GET_BIT(EXTMEM_ICACHE_CTRL_REG, EXTMEM_ICACHE_ENABLE) && !(s_cache_state.ctrl1 & EXTMEM_ICACHE_SHUT_DBUS);
+    s_cache_state.cache_was_enabled = stub_target_cache_is_enabled();
 
-    STUB_LOGD("cache_was_enabled: %d, mmu_page_size: %d\n",
-              s_cache_state.cache_was_enabled,
-              s_cache_state.mmu_page_size);
+    STUB_LOGD("mmu_page_size: %d cache_ctrl: 0x%x\n", s_cache_state.mmu_page_size, s_cache_state.ctrl1);
 
     if (!s_cache_state.cache_was_enabled) {
         STUB_LOGD("ICache not enabled, initializing for DROM\n");
         ROM_Boot_Cache_Init();
     }
+
+    if (state)
+        *state = &s_cache_state;
 }
 
-void stub_target_cache_restore(void)
+void stub_target_cache_deinit(const void *state)
 {
-    if (!s_cache_state.cache_was_enabled) {
+    if (!state)
+        return;
+
+    const esp32c2_cache_state_t *s = state;
+
+    if (!s->cache_was_enabled) {
         STUB_LOGD("Disabling ICache\n");
         Cache_Disable_ICache();
-        REG_WRITE(EXTMEM_ICACHE_CTRL1_REG, s_cache_state.ctrl1);
+        REG_WRITE(EXTMEM_ICACHE_CTRL1_REG, s->ctrl1);
     } else {
         /* Restore MMU page size */
-        REG_SET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE, s_cache_state.mmu_page_size);
+        REG_SET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE, s->mmu_page_size);
     }
 }

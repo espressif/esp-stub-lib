@@ -60,15 +60,17 @@ uint32_t stub_target_cache_suspend(void);
 void stub_target_cache_resume(uint32_t autoload);
 
 /**
- * @brief Save the cache/MMU state
+ * @brief Save the cache/MMU state and initialize the cache for flash access.
  *
+ * @param state  Out-pointer that receives the saved state. May be NULL.
  */
-void stub_target_cache_save(void);
+void stub_target_cache_init(void **state);
 
 /**
- * @brief Restore the cache/MMU state
+ * @brief Restore the cache/MMU state saved by stub_target_cache_init().
  *
+ * @param state  State pointer from stub_target_cache_init(). If NULL, this is a no-op.
  */
-void stub_target_cache_restore(void);
+void stub_target_cache_deinit(const void *state);
 
 int stub_target_cache_is_enabled(void);

@@ -10,6 +10,7 @@
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <target/cache.h>
 #include <target/flash.h>
 
 #include <soc/spi_mem_compat.h>
@@ -22,6 +23,11 @@ void stub_target_spi_wait_ready(void)
            REG_GET_FIELD(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_SLV_ST)) {
         /* busy wait */
     }
+}
+
+bool stub_target_flash_needs_attach(void)
+{
+    return !stub_target_cache_is_enabled();
 }
 
 void stub_target_flash_init(void **state)

@@ -83,6 +83,11 @@ void stub_lib_flash_deinit(const void *state)
     stub_target_flash_state_restore(state);
 }
 
+bool stub_lib_flash_needs_attach(void)
+{
+    return stub_target_flash_needs_attach();
+}
+
 void stub_lib_flash_get_config(stub_lib_flash_config_t *cfg)
 {
     const esp_rom_spiflash_chip_t *chip = stub_target_flash_get_config();

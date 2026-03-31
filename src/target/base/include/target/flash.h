@@ -65,6 +65,16 @@ void stub_target_flash_init(void **state);
 void stub_target_flash_deinit(const void *state);
 
 /**
+ * @brief Check whether ROM spiflash_attach() should be called during flash init.
+ *
+ * The default weak implementation returns true (always attach).
+ * Targets where attach would clobber live MMU state provide a strong override.
+ *
+ * @return true if attach is needed, false to skip it.
+ */
+bool stub_target_flash_needs_attach(void);
+
+/**
  * @brief Save SPI Flash hardware state before sending any command.
  *
  * @param state If non-NULL, the state is saved.

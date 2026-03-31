@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #define STUB_MMU_PAGE_SIZE_8KB  0x2000U
@@ -78,3 +79,10 @@ void stub_target_mmu_set_entry_invalid(uint32_t entry_id);
  * @param raw_value  Raw value previously returned by stub_target_mmu_read_entry().
  */
 void stub_target_mmu_restore_entry(uint32_t entry_id, uint32_t raw_value);
+
+/**
+ * @brief Check whether any MMU entry is currently mapped (valid).
+ *
+ * @return true if at least one MMU entry has its valid bit set, false otherwise.
+ */
+bool stub_target_mmu_has_valid_entry(void);

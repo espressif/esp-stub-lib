@@ -27,10 +27,12 @@ extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
 extern void ROM_Boot_Cache_Init(void);
 extern void Cache_Disable_DCache(void);
 
-static struct {
+typedef struct {
     uint32_t ctrl1;
     bool cache_was_enabled;
-} s_cache_state;
+} esp32s3_cache_state_t;
+
+static esp32s3_cache_state_t s_cache_state;
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -90,23 +92,36 @@ void stub_target_cache_resume(uint32_t autoload)
     }
 }
 
-void stub_target_cache_save(void)
+int stub_target_cache_is_enabled(void)
+{
+    uint32_t ctrl1 = REG_READ(EXTMEM_DCACHE_CTRL1_REG);
+    return REG_GET_BIT(EXTMEM_DCACHE_CTRL_REG, EXTMEM_DCACHE_ENABLE) && !(ctrl1 & EXTMEM_DCACHE_SHUT_CORE0_BUS);
+}
+
+void stub_target_cache_init(void **state)
 {
     s_cache_state.ctrl1 = REG_READ(EXTMEM_DCACHE_CTRL1_REG);
-    s_cache_state.cache_was_enabled = REG_GET_BIT(EXTMEM_DCACHE_CTRL_REG, EXTMEM_DCACHE_ENABLE) &&
-                                      !(s_cache_state.ctrl1 & EXTMEM_DCACHE_SHUT_CORE0_BUS);
+    s_cache_state.cache_was_enabled = stub_target_cache_is_enabled();
 
     if (!s_cache_state.cache_was_enabled) {
         STUB_LOGD("DCache not enabled, initializing for DROM\n");
         ROM_Boot_Cache_Init();
     }
+
+    if (state)
+        *state = &s_cache_state;
 }
 
-void stub_target_cache_restore(void)
+void stub_target_cache_deinit(const void *state)
 {
-    if (!s_cache_state.cache_was_enabled) {
+    if (!state)
+        return;
+
+    const esp32s3_cache_state_t *s = state;
+
+    if (!s->cache_was_enabled) {
         STUB_LOGD("Disabling DCache\n");
         Cache_Disable_DCache();
-        REG_WRITE(EXTMEM_DCACHE_CTRL1_REG, s_cache_state.ctrl1);
+        REG_WRITE(EXTMEM_DCACHE_CTRL1_REG, s->ctrl1);
     }
 }

@@ -30,11 +30,11 @@
 
 uint32_t stub_target_mmu_get_page_size(void)
 {
-    uint32_t code = REG_GET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE);
+    uint32_t page_size = REG_GET_FIELD(EXTMEM_CACHE_CONF_MISC_REG, EXTMEM_CACHE_MMU_PAGE_SIZE);
 
-    if (code == 0) {
+    if (page_size == 0) {
         return STUB_MMU_PAGE_SIZE_16KB;
-    } else if (code == 1) {
+    } else if (page_size == 1) {
         return STUB_MMU_PAGE_SIZE_32KB;
     }
     return STUB_MMU_PAGE_SIZE_64KB;

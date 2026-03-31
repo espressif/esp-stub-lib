@@ -109,6 +109,11 @@ void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy
     esp_rom_spiflash_attach(ishspi, legacy);
 }
 
+bool __attribute__((weak)) stub_target_flash_needs_attach(void)
+{
+    return true;
+}
+
 void __attribute__((weak)) stub_target_flash_init(void **state)
 {
     (void)state;

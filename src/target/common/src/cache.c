@@ -43,12 +43,14 @@ void __attribute__((weak)) stub_target_cache_resume(uint32_t autoload)
     (void)autoload;
 }
 
-void __attribute__((weak)) stub_target_cache_save(void)
+void __attribute__((weak)) stub_target_cache_init(void **state)
 {
+    (void)state;
 }
 
-void __attribute__((weak)) stub_target_cache_restore(void)
+void __attribute__((weak)) stub_target_cache_deinit(const void *state)
 {
+    (void)state;
 }
 
 int __attribute__((weak)) stub_target_cache_is_enabled(void)

@@ -20,10 +20,12 @@ extern void Cache_Flush_rom(int cpu_num);
 extern void Cache_Read_Disable_rom(int cpu_num);
 extern void Cache_Read_Enable_rom(int cpu_num);
 
-static struct {
+typedef struct {
     uint32_t pro_ctrl1;
     bool pro_cache_was_enabled;
-} s_cache_state;
+} esp32_cache_state_t;
+
+static esp32_cache_state_t s_cache_state;
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -82,12 +84,17 @@ void stub_target_cache_resume(uint32_t autoload)
         Cache_Read_Enable_rom(0);
 }
 
-void stub_target_cache_save(void)
+int stub_target_cache_is_enabled(void)
+{
+    uint32_t ctrl1 = REG_READ(DPORT_PRO_CACHE_CTRL1_REG);
+    return DPORT_REG_GET_BIT(DPORT_PRO_CACHE_CTRL_REG, DPORT_PRO_CACHE_ENABLE) && !(ctrl1 & DPORT_PRO_CACHE_MASK_DROM0);
+}
+
+void stub_target_cache_init(void **state)
 {
     /* Save PRO CTRL1 register so we can restore bus mask later */
     s_cache_state.pro_ctrl1 = REG_READ(DPORT_PRO_CACHE_CTRL1_REG);
-    s_cache_state.pro_cache_was_enabled = DPORT_REG_GET_BIT(DPORT_PRO_CACHE_CTRL_REG, DPORT_PRO_CACHE_ENABLE) &&
-                                          !(s_cache_state.pro_ctrl1 & DPORT_PRO_CACHE_MASK_DROM0);
+    s_cache_state.pro_cache_was_enabled = stub_target_cache_is_enabled();
 
     if (!s_cache_state.pro_cache_was_enabled) {
         STUB_LOGD("PRO cache not enabled, initializing for DROM0\n");
@@ -100,14 +107,22 @@ void stub_target_cache_save(void)
         DPORT_REG_WRITE(DPORT_PRO_CACHE_CTRL1_REG, ctrl1);
         Cache_Read_Enable_rom(0);
     }
+
+    if (state)
+        *state = &s_cache_state;
 }
 
-void stub_target_cache_restore(void)
+void stub_target_cache_deinit(const void *state)
 {
-    if (!s_cache_state.pro_cache_was_enabled) {
+    if (!state)
+        return;
+
+    const esp32_cache_state_t *s = state;
+
+    if (!s->pro_cache_was_enabled) {
         STUB_LOGD("Disabling PRO CPU cache\n");
         Cache_Read_Disable_rom(0);
         /* Restore original bus mask */
-        REG_WRITE(DPORT_PRO_CACHE_CTRL1_REG, s_cache_state.pro_ctrl1);
+        REG_WRITE(DPORT_PRO_CACHE_CTRL1_REG, s->pro_ctrl1);
     }
 }

@@ -69,22 +69,22 @@ uint32_t stub_lib_cache_suspend(void);
 void stub_lib_cache_resume(uint32_t autoload);
 
 /**
- * @brief Save the cache/MMU state.
+ * @brief Save the cache/MMU state and initialize the cache for flash access.
  *
- * Must be called before any flash operation that requires the state to be saved.
- * Pairs with stub_lib_cache_restore().
+ * Must be called before any flash operation. Saves the current cache state into
+ * @p state and, if the cache was not already enabled, initializes it for DROM access.
+ * Pairs with stub_lib_cache_deinit().
  *
+ * @param state  Out-pointer that receives the saved state. Pass back to stub_lib_cache_deinit().
  */
-void stub_lib_cache_save(void);
+void stub_lib_cache_init(void **state);
 
 /**
- * @brief Restore the cache/MMU state.
+ * @brief Restore the cache/MMU state saved by stub_lib_cache_init().
  *
- * Restores the exact state captured by stub_lib_cache_save().
- * Must be called after flash operations are complete
- *
+ * @param state  State pointer returned by stub_lib_cache_init(). If NULL, this is a no-op.
  */
-void stub_lib_cache_restore(void);
+void stub_lib_cache_deinit(const void *state);
 
 /**
  * @brief Check if the cache is enabled.

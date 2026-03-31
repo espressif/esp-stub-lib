@@ -43,14 +43,14 @@ void stub_lib_cache_resume(uint32_t autoload)
     stub_target_cache_resume(autoload);
 }
 
-void stub_lib_cache_save(void)
+void stub_lib_cache_init(void **state)
 {
-    stub_target_cache_save();
+    stub_target_cache_init(state);
 }
 
-void stub_lib_cache_restore(void)
+void stub_lib_cache_deinit(const void *state)
 {
-    stub_target_cache_restore();
+    stub_target_cache_deinit(state);
 }
 
 int stub_lib_is_cache_enabled(void)

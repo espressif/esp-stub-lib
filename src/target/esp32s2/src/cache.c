@@ -36,10 +36,12 @@ extern void Cache_MMU_Init(void);
 #define CACHE_4WAYS_ASSOC        0
 #define CACHE_LINE_SIZE_32B      1
 
-static struct {
+typedef struct {
     uint32_t ctrl1;
     bool cache_was_enabled;
-} s_cache_state;
+} esp32s2_cache_state_t;
+
+static esp32s2_cache_state_t s_cache_state;
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -99,11 +101,16 @@ void stub_target_cache_resume(uint32_t autoload)
     }
 }
 
-void stub_target_cache_save(void)
+int stub_target_cache_is_enabled(void)
+{
+    uint32_t ctrl1 = REG_READ(EXTMEM_PRO_ICACHE_CTRL1_REG);
+    return REG_GET_BIT(EXTMEM_PRO_ICACHE_CTRL_REG, EXTMEM_PRO_ICACHE_ENABLE) && !(ctrl1 & EXTMEM_PRO_ICACHE_MASK_DROM0);
+}
+
+void stub_target_cache_init(void **state)
 {
     s_cache_state.ctrl1 = REG_READ(EXTMEM_PRO_ICACHE_CTRL1_REG);
-    s_cache_state.cache_was_enabled = REG_GET_BIT(EXTMEM_PRO_ICACHE_CTRL_REG, EXTMEM_PRO_ICACHE_ENABLE) &&
-                                      !(s_cache_state.ctrl1 & EXTMEM_PRO_ICACHE_MASK_DROM0);
+    s_cache_state.cache_was_enabled = stub_target_cache_is_enabled();
 
     if (!s_cache_state.cache_was_enabled) {
         STUB_LOGD("ICache not enabled, initializing for DROM0\n");
@@ -115,13 +122,21 @@ void stub_target_cache_save(void)
         REG_CLR_BIT(EXTMEM_PRO_ICACHE_CTRL1_REG, EXTMEM_PRO_ICACHE_MASK_DROM0);
         Cache_Resume_ICache(0);
     }
+
+    if (state)
+        *state = &s_cache_state;
 }
 
-void stub_target_cache_restore(void)
+void stub_target_cache_deinit(const void *state)
 {
-    if (!s_cache_state.cache_was_enabled) {
+    if (!state)
+        return;
+
+    const esp32s2_cache_state_t *s = state;
+
+    if (!s->cache_was_enabled) {
         STUB_LOGD("Disabling ICache\n");
         Cache_Suspend_ICache();
-        REG_WRITE(EXTMEM_PRO_ICACHE_CTRL1_REG, s_cache_state.ctrl1);
+        REG_WRITE(EXTMEM_PRO_ICACHE_CTRL1_REG, s->ctrl1);
     }
 }
