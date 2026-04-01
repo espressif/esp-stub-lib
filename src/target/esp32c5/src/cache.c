@@ -92,6 +92,7 @@ void stub_target_cache_init(void **state)
     if (!s_cache_state.cache_was_enabled) {
         STUB_LOGD("Cache not enabled, initializing for DROM\n");
         ROM_Boot_Cache_Init();
+        REG_CLR_BIT(CACHE_L1_CACHE_CTRL_REG, CACHE_L1_CACHE_SHUT_BUS0);
     }
 
     if (state)

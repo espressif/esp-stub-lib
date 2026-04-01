@@ -16,6 +16,20 @@
 #include <soc/soc.h>
 #include <soc/spi_mem_compat.h>
 
+uint32_t stub_target_mmu_get_page_size(void)
+{
+    uint32_t page_size = REG_GET_FIELD(SPI_MEM_MMU_POWER_CTRL_REG(0), SPI_MMU_PAGE_SIZE);
+
+    if (page_size == 0) {
+        return STUB_MMU_PAGE_SIZE_64KB;
+    } else if (page_size == 1) {
+        return STUB_MMU_PAGE_SIZE_32KB;
+    } else if (page_size == 2) {
+        return STUB_MMU_PAGE_SIZE_16KB;
+    }
+    return STUB_MMU_PAGE_SIZE_8KB;
+}
+
 uint32_t stub_target_mmu_get_drom_entry_start(void)
 {
     return 2;

@@ -145,7 +145,7 @@ void stub_target_flash_state_restore(const void *state)
 
 bool stub_target_flash_needs_attach(void)
 {
-    return !stub_target_cache_is_enabled();
+    return true; //! stub_target_cache_is_enabled();
 }
 
 void stub_target_flash_init(void **state)
