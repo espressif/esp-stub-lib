@@ -46,10 +46,11 @@ __attribute__((weak)) int stub_target_nand_read_page(uint32_t page_number, uint8
     return STUB_LIB_ERR_NOT_SUPPORTED;
 }
 
-__attribute__((weak)) int stub_target_nand_write_page(uint32_t page_number, const uint8_t *buf)
+__attribute__((weak)) int stub_target_nand_write_page(uint32_t page_number, const uint8_t *buf, uint32_t buf_size)
 {
     (void)page_number;
     (void)buf;
+    (void)buf_size;
     return STUB_LIB_ERR_NOT_SUPPORTED;
 }
 
