@@ -10,4 +10,5 @@
 
 #define SOC_MMU_ENTRY_NUM   256
 #define SOC_MMU_VALID       BIT(9)
+#define SOC_MMU_SENSITIVE   BIT(10)
 #define SOC_MMU_INVALID     0U
