@@ -11,6 +11,7 @@
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <target/cache.h>
 #include <target/flash.h>
 
 #include <private/rom_flash_config.h>
@@ -142,29 +143,17 @@ void stub_target_flash_state_restore(const void *state)
     WRITE_PERI_REG(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), s->spi_regs[SPI_CTRL_REG_ID]);
 }
 
-#include <soc/cache_reg.h>
-#include <soc/ext_mem_defs.h>
+bool stub_target_flash_needs_attach(void)
+{
+    return !stub_target_cache_is_enabled();
+}
+
 void stub_target_flash_init(void **state)
 {
-    bool attach = true;
-
-    if (state) {
+    if (state)
         stub_target_flash_state_save(state);
-        if (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0)) & SPI_MEM_CACHE_FLASH_USR_CMD) {
-            // OpenOCD can not halt the target at the reset vector. So this bit will be read as set always
-        }
 
-        for (uint32_t i = 0; i < SOC_MMU_ENTRY_NUM; i++) {
-            REG_WRITE(SPI_MEM_MMU_ITEM_INDEX_REG(0), i);
-            uint32_t content = REG_READ(SPI_MEM_MMU_ITEM_CONTENT_REG(0));
-            if (content & SOC_MMU_VALID) {
-                attach = false;
-                break;
-            }
-        }
-    }
-
-    if (attach) {
+    if (stub_target_flash_needs_attach()) {
         STUB_LOGD("Attach spi flash...\n");
         stub_target_flash_attach(0, 0);
     } else {
