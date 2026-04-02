@@ -5,7 +5,7 @@
 **esp-stub-lib** is an experimental C library for creating flash stubs that can be loaded onto Espressif ESP chips. It uses a three-layer architecture to maximize code reuse across multiple ESP chip targets while eliminating circular dependencies.
 
 **Language/Tools:** C (C17), CMake, Ninja, Python, pre-commit hooks
-**Supported Targets:** ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-C61, ESP32-H2, ESP32-H21, ESP32-H4, ESP32-P4 (including P4-rev1)
+**Supported Targets:** ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-C61, ESP32-H2, ESP32-H21, ESP32-H4, ESP32-P4 (including P4-rev1), ESP32-S31
 
 ## Three-Layer Architecture
 
@@ -65,7 +65,7 @@ src/                        # Implementation sources
 **IMPORTANT:** Building requires ESP-IDF toolchains to be installed and available in PATH. The build system expects target-specific cross-compilers:
 
 - **Xtensa targets** (esp32, esp32s2, esp32s3): `xtensa-{target}-elf-gcc`
-- **RISC-V targets** (esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4): `riscv32-esp-elf-gcc`
+- **RISC-V targets** (esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4, esp32s31): `riscv32-esp-elf-gcc`
 - **ESP8266**: `xtensa-lx106-elf-gcc` (auto-downloaded by build.sh)
 
 **Setup:** Follow https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html to install ESP-IDF and export the environment (`. $IDF_PATH/export.sh`).
@@ -83,7 +83,7 @@ cd example
 ./build.sh clean            # Clean all builds
 ```
 
-**Supported targets in build.sh:** esp8266, esp32, esp32s2, esp32s3, esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4, esp32p4-rev1
+**Supported targets in build.sh:** esp8266, esp32, esp32s2, esp32s3, esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4, esp32p4-rev1, esp32s31
 
 **Manual build:**
 ```bash
@@ -197,7 +197,7 @@ body (optional)
 
 **Workflows:**
 1. **build_example.yml** - Builds example for all targets on PR/push to non-master branches
-   - Builds all ESP-IDF targets (esp32, esp32s2, esp32s3, esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4, esp32p4-rev1) using `espressif/esp-idf-ci-action@v1` with latest ESP-IDF
+   - Builds all ESP-IDF targets (esp32, esp32s2, esp32s3, esp32c2, esp32c3, esp32c5, esp32c6, esp32c61, esp32h2, esp32h21, esp32h4, esp32p4, esp32p4-rev1, esp32s31) using `espressif/esp-idf-ci-action@v1` with latest ESP-IDF
    - Builds ESP8266 separately using `./build.sh esp8266` (requires custom toolchain)
    - Uploads build artifacts from `example/build/{target}/` (.elf, .map, .asm files)
    - **Failure means:** Build errors, missing toolchain, or incorrect CMake configuration
