@@ -18,6 +18,7 @@
 
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
 
 /* Save/restore SPI registers. Can be extended to more registers if needed. */
 enum {
