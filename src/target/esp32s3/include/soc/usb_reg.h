@@ -1462,7 +1462,7 @@ extern "C" {
 /** USB_ENA32KHZSUSP : R/W; bitpos: [3]; default: 0;
  *  This bit can be set only if FS PHY interface is selected.
  *  Otherwise, this bit needs to be set to zero.
- *  1'b0: USB 1.1 Full-Speed Serial transiver not selected
+ *  1'b0: USB 1.1 Full-Speed Serial transceiver not selected
  *  1'b1: If FS PHY interface is chosen and this bit is set, the PHY clock during Suspend
  *  must be switched from 48 MHz to 32 KHz
  */
