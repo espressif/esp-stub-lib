@@ -42,6 +42,8 @@ If something is unclear or missing, feel free to open a PR to improve this docum
     - [Per-target CMakeLists.txt](#per-target-cmakeliststxt)
     - [Symbol override](#symbol-override)
   - [Adding a New Chip](#adding-a-new-chip)
+    - [SPI register naming](#spi-register-naming)
+    - [ROM function signature mismatches](#rom-function-signature-mismatches)
   - [Testing](#testing)
   - [Code Style](#code-style)
     - [License header](#license-header)
@@ -342,12 +344,13 @@ these flags.
 src/target/<chip>/
 ├── CMakeLists.txt
 ├── include/
+│   ├── esp_rom_caps.h
 │   └── soc/
 │       ├── soc.h
 │       ├── soc_caps.h
 │       ├── reg_base.h
 │       ├── spi_mem_compat.h
-│       ├── spi_mem_reg.h
+│       ├── spi_mem_reg.h       ← may be split: spi_mem_c_reg.h + spi1_mem_c_reg.h on some chips
 │       ├── uart_reg.h
 │       └── io_mux_reg.h
 ├── ld/
@@ -365,13 +368,51 @@ src/target/<chip>/
    `components/hal/<chip>/include/hal/`).
 2. Create the directory tree.
 3. Pull SOC headers from ESP-IDF. Only what you need.
-4. Pull ROM linker scripts from ESP-IDF
+4. Pull `esp_rom_caps.h` from ESP-IDF (`components/esp_rom/<chip>/`). If a capability is
+   not yet supported, set it to `-1` as a placeholder to unblock the build, and add a
+   `/* TODO */` comment.
+5. Pull ROM linker scripts from ESP-IDF
    (`components/esp_rom/<chip>/ld/`). Check that function names match.
-5. Write overrides. Start from the closest existing chip:
+6. Write overrides. Start from the closest existing chip:
    - RISC-V single-core (C6, H2, H21, C61): start from `esp32c6`
-   - Multi-level cache (P4): start from `esp32p4`
-6. Write `CMakeLists.txt`.
-7. Build with `-DESP_TARGET=<chip>` and test.
+   - RISC-V multi-core (P4, H4, S31): start from `esp32p4`
+7. Write `CMakeLists.txt`.
+8. Build with `-DESP_TARGET=<chip>` and fix any remaining errors. It is fine to start
+   with only `flash.c` and `uart.c` to get a working build, and add other overrides
+   incrementally.
+
+### SPI register naming
+
+On some chips (e.g. esp32s31) the SPI memory register headers are split or use a
+different naming scheme (`SPI1_MEM_C_*` instead of `SPI_MEM_*`). Use `spi_mem_compat.h`
+to map the generic names the common code uses to the chip-specific register names:
+
+```c
+/* spi_mem_compat.h — esp32s31 example */
+#define SPI_MEM_CMD_REG(n)   SPI1_MEM_C_CMD_REG
+#define SPI_MEM_MST_ST       SPI1_MEM_C_MST_ST
+```
+
+If the chip splits the register file (e.g. `spi_mem_c_reg.h` and `spi1_mem_c_reg.h`),
+include both in `spi_mem_compat.h` so callers only need one include.
+
+### ROM function signature mismatches
+
+ROM functions sometimes take fewer parameters than the `stub_target_*` interface
+expects. Write a strong override that accepts the full interface signature and silences
+the unused parameter with `(void)`:
+
+```c
+/* ROM on this chip only takes uart_no — clock is baked in */
+void stub_target_rom_uart_init(uint8_t uart_no, uint32_t clock)
+{
+    (void)clock;
+    esp_rom_uart_init(uart_no);
+}
+```
+
+Add a short comment explaining why the parameter is ignored, so reviewers don't flag
+it as a bug.
 
 ---
 
