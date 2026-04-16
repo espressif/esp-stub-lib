@@ -1,4 +1,4 @@
 [codespell]
 skip = build
-ignore-words-list = dout,statics
+ignore-words-list = dout,statics,OT
 write-changes = true
