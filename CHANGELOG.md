@@ -1,3 +1,12 @@
+## v0.4.0 (2026-04-17)
+
+### ✨ New Features
+
+- **esp32s31**: Implement USB-OTG mode *(Radim Karniš - a6cee7c)*
+- **esp32s3**: Add NAND flash chip support via the nand plugin *(Roland Dobai - c3339a3)*
+- add esp32s31 base support *(erhankur - aa06fb8)*
+
+
 ## v0.3.1 (2026-03-31)
 
 ### 🐛 Bug Fixes
