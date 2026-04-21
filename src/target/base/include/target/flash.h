@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/flash.h>
+
 #include <private/rom_flash.h>
 
 /**
@@ -55,7 +57,18 @@ void stub_target_reset_default_spi_pins(void);
  *
  * @param state If non-NULL, the state is saved.
  */
-void stub_target_flash_init(void **state);
+void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy);
+
+/**
+ * @brief Check whether flash attach is needed for the current hardware state.
+ *
+ * The default weak implementation returns true. Targets with live cache/MMU/XIP
+ * state that should not be disturbed can override this to return false when
+ * attach should be skipped.
+ *
+ * @return true if ROM flash attach should run, false otherwise.
+ */
+bool stub_target_flash_needs_attach(void);
 
 /**
  * @brief Restore SPI Flash hardware state.

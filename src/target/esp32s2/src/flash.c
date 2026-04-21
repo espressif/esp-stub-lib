@@ -41,3 +41,8 @@ void stub_target_spi_wait_ready(void)
         /* busy wait */
     }
 }
+
+bool stub_target_flash_needs_attach(void)
+{
+    return (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0)) & SPI_MEM_CACHE_FLASH_USR_CMD) == 0;
+}

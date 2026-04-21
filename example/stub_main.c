@@ -138,6 +138,7 @@ static int __attribute__((unused)) handle_test_flash(void)
     uint8_t buffer[256];
 
     (void)stub_lib_flash_init(&flash_state);
+    (void)stub_lib_flash_init_ex(&flash_state, STUB_LIB_FLASH_ATTACH_IF_NEEDED);
     stub_lib_flash_get_config(&flash_config);
     (void)stub_lib_flash_update_config(&flash_config);
     stub_lib_flash_attach(0, false);
