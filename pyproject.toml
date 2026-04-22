@@ -18,3 +18,4 @@
 
 [tool.codespell]
     write-changes = false
+    skip = "src/target/*/include/soc/*.h,src/target/*/include/esp_rom_caps.h,src/target/*/ld/*.rom.*.ld"
