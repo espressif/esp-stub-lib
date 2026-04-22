@@ -230,3 +230,8 @@ int __attribute__((weak)) stub_target_flash_unlock(void)
     }
     return STUB_LIB_FAIL;
 }
+
+int __attribute__((weak)) stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
+{
+    return esp_rom_spiflash_erase_area(addr, size);
+}
