@@ -18,6 +18,11 @@ typedef struct stub_lib_flash_config {
     uint32_t status_mask;
 } stub_lib_flash_config_t;
 
+typedef enum {
+    STUB_LIB_FLASH_ATTACH_ALWAYS = 0,
+    STUB_LIB_FLASH_ATTACH_IF_NEEDED,
+} stub_lib_flash_attach_policy_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -54,6 +59,20 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy);
  * - STUB_LIB_ERR_UNKNOWN_FLASH_ID
  */
 int stub_lib_flash_init(void **state);
+
+/**
+ * @brief Initialize SPI Flash before any use with explicit attach policy.
+ *
+ * Configure SPI, Flash ID, flash size, and the internal ROM's config.
+ *
+ * @param state If non-NULL, the state is saved to this pointer to be restored later.
+ * @param attach_policy Whether to always perform ROM flash attach or skip it when not needed.
+ *
+ * @return Error code:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_UNKNOWN_FLASH_ID
+ */
+int stub_lib_flash_init_ex(void **state, stub_lib_flash_attach_policy_t attach_policy);
 
 /**
  * @brief Restore flash state at the end of the stub.

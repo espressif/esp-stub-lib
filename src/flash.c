@@ -45,7 +45,12 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
 
 int stub_lib_flash_init(void **state)
 {
-    stub_target_flash_init(state);
+    return stub_lib_flash_init_ex(state, STUB_LIB_FLASH_ATTACH_ALWAYS);
+}
+
+int stub_lib_flash_init_ex(void **state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    stub_target_flash_init(state, attach_policy);
 
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);

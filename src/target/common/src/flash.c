@@ -105,11 +105,19 @@ void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
     (void)state;
 }
 
-void __attribute__((weak)) stub_target_flash_init(void **state)
+void __attribute__((weak)) stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
 {
     (void)state;
-    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
-    stub_target_flash_attach(spiconfig, 0);
+
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        stub_target_flash_attach(spiconfig, 0);
+    }
+}
+
+bool __attribute__((weak)) stub_target_flash_needs_attach(void)
+{
+    return true;
 }
 
 void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)

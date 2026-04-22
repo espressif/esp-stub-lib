@@ -56,14 +56,22 @@ static void stub_target_flash_init_funcs(void)
     rom_spiflash_legacy_funcs = &funcs;
 }
 
-void stub_target_flash_init(void **state)
+bool stub_target_flash_needs_attach(void)
+{
+    return (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0)) & SPI_MEM_CACHE_FLASH_USR_CMD) == 0;
+}
+
+void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
-    stub_target_flash_attach(spiconfig, 0);
-    if (ets_efuse_flash_octal_mode()) {
-        STUB_LOGD("octal mode is on\n");
-        stub_target_flash_init_funcs();
+
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        stub_target_flash_attach(spiconfig, 0);
+        if (ets_efuse_flash_octal_mode()) {
+            STUB_LOGD("octal mode is on\n");
+            stub_target_flash_init_funcs();
+        }
     }
 }
 

@@ -111,20 +111,23 @@ int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
     return rom_res;
 }
 
-void stub_target_flash_init(void **state)
+bool stub_target_flash_needs_attach(void)
 {
+    return (READ_PERI_REG(SPI_CACHE_FCTRL_REG(0)) & SPI_CACHE_FLASH_USR_CMD) == 0;
+}
+
+void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+{
+    (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
 
-    if (state) {
-        stub_target_flash_state_save(state);
+    if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        stub_target_flash_attach(spiconfig, 0);
+        /*
+         * Command phase is always set in download mode.
+         * But in reset-run case, it seems to be not set.
+         * So we need to set it here before sending any command.
+         */
+        REG_SET_BIT(SPI_USER_REG(1), SPI_USR_COMMAND);
     }
-
-    stub_target_flash_attach(spiconfig, 0);
-
-    /*
-     * Command phase is always set in download mode.
-     * But in reset-run case, it seems to be not set.
-     * So we need to set it here before sending any command.
-     */
-    REG_SET_BIT(SPI_USER_REG(1), SPI_USR_COMMAND);
 }
