@@ -21,6 +21,8 @@
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
+#define STUB_FLASH_ERASE_TIMEOUT_US 1000000U
+
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
     if (config == NULL) {
@@ -212,15 +214,34 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
         return STUB_LIB_ERR_INVALID_ARG;
     }
 
-    const uint32_t timeout_us = 1000000; // 1 second per block or sector
-
     while (size > 0) {
-        int res = stub_lib_flash_start_next_erase(&addr, &size, timeout_us);
+        int res = stub_lib_flash_start_next_erase(&addr, &size, STUB_FLASH_ERASE_TIMEOUT_US);
         if (res != STUB_LIB_OK) {
             STUB_LOGE("Erase area failed at 0x%x, remaining %u with error 0x%x\n", addr, size, res);
             return res;
         }
     }
 
-    return stub_lib_flash_wait_ready(timeout_us);
+    return stub_lib_flash_wait_ready(STUB_FLASH_ERASE_TIMEOUT_US);
+}
+
+int stub_lib_flash_rom_erase_area(uint32_t addr, uint32_t size)
+{
+    if (large_flash_mode) {
+        return STUB_LIB_ERR_NOT_SUPPORTED;
+    }
+
+    if (!IS_ALIGNED(addr, STUB_FLASH_SECTOR_SIZE) || !IS_ALIGNED(size, STUB_FLASH_SECTOR_SIZE)) {
+        STUB_LOGE("Erase area addr 0x%x or size 0x%x not sector-aligned\n", addr, size);
+        return STUB_LIB_ERR_INVALID_ARG;
+    }
+
+    int res = stub_target_rom_spiflash_erase_area(addr, size);
+    if (res != ESP_ROM_SPIFLASH_RESULT_OK) {
+        STUB_LOGE("esp_rom_spiflash_erase_area(0x%x, %u) failed (%d)\n", addr, size, res);
+        return STUB_LIB_FAIL;
+    }
+
+    /* ROM waits for IDLE before returning. No extra wait_ready needed. */
+    return STUB_LIB_OK;
 }

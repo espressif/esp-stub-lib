@@ -61,6 +61,16 @@ int esp_rom_spiflash_read(uint32_t src_addr, uint32_t *dest, int32_t len);
 int esp_rom_spiflash_unlock(void);
 
 /**
+ * @brief Erase an area of SPI flash using ROM implementation.
+ *
+ * @return Result
+ * - ESP_ROM_SPIFLASH_RESULT_OK
+ * - ESP_ROM_SPIFLASH_RESULT_ERR
+ * - ESP_ROM_SPIFLASH_RESULT_TIMEOUT
+ */
+int esp_rom_spiflash_erase_area(uint32_t start_addr, uint32_t area_len);
+
+/**
  * @brief Check if Flash is OPI.
  *
  * @return true if eFuse indicates an OPI flash is attached.

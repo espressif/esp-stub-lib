@@ -85,6 +85,32 @@ void stub_target_flash_state_restore(const void *state)
     WRITE_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM), s->spi_regs[SPI_USER_REG_ID]);
 }
 
+/*
+ * ESP32 ROM SPIEraseArea() switches flash read mode to slow read before erase.
+ * That reprograms SPI0 read-mode bits and cache/XIP user registers, but ROM
+ * does not restore the previous controller state before returning. Restore the
+ * clobbered registers here so cache/XIP reads remain consistent after the ROM
+ * erase call.
+ */
+int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
+{
+    uint32_t spi0_ctrl = READ_PERI_REG(SPI_CTRL_REG(0));
+    uint32_t spi0_user = READ_PERI_REG(SPI_USER_REG(0));
+    uint32_t spi0_user1 = READ_PERI_REG(SPI_USER1_REG(0));
+    uint32_t spi0_user2 = READ_PERI_REG(SPI_USER2_REG(0));
+    uint32_t spi1_ctrl = READ_PERI_REG(SPI_CTRL_REG(1));
+
+    int rom_res = esp_rom_spiflash_erase_area(addr, size);
+
+    WRITE_PERI_REG(SPI_CTRL_REG(0), spi0_ctrl);
+    WRITE_PERI_REG(SPI_USER_REG(0), spi0_user);
+    WRITE_PERI_REG(SPI_USER1_REG(0), spi0_user1);
+    WRITE_PERI_REG(SPI_USER2_REG(0), spi0_user2);
+    WRITE_PERI_REG(SPI_CTRL_REG(1), spi1_ctrl);
+
+    return rom_res;
+}
+
 void stub_target_flash_init(void **state)
 {
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();

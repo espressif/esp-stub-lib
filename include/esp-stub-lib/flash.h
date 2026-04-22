@@ -112,6 +112,24 @@ int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, 
 int stub_lib_flash_erase_area(uint32_t addr, uint32_t size);
 
 /**
+ * @brief ROM SPIEraseArea path for a flash region
+ *
+ * For internal flash <= 16MB only. Callers that need the ROM routine explicitly
+ * can use this API. For > 16MB flash, returns STUB_LIB_ERR_NOT_SUPPORTED
+ * and stub_lib_flash_erase_area must be used instead.
+ *
+ * @param addr Sector-aligned start address.
+ * @param size Sector-aligned size.
+ *
+ * @return Result:
+ * - STUB_LIB_OK
+ * - STUB_LIB_ERR_INVALID_ARG
+ * - STUB_LIB_ERR_NOT_SUPPORTED (large-flash / 4-byte mode)
+ * - STUB_LIB_FAIL if ROM erase fails
+ */
+int stub_lib_flash_rom_erase_area(uint32_t addr, uint32_t size);
+
+/**
  * @brief Erase the entire flash chip.
  *
  * @return Result:
