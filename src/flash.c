@@ -43,12 +43,17 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
     stub_target_flash_attach(ishspi, legacy);
 }
 
-int stub_lib_flash_init(void **state)
+size_t stub_lib_flash_state_size(void)
+{
+    return stub_target_flash_state_size();
+}
+
+int stub_lib_flash_init(void *state)
 {
     return stub_lib_flash_init_ex(state, STUB_LIB_FLASH_ATTACH_ALWAYS);
 }
 
-int stub_lib_flash_init_ex(void **state, stub_lib_flash_attach_policy_t attach_policy)
+int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy)
 {
     stub_target_flash_init(state, attach_policy);
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include <esp-stub-lib/flash.h>
@@ -51,13 +52,21 @@ typedef enum {
 void stub_target_reset_default_spi_pins(void);
 
 /**
+ * @brief Return the size in bytes needed for the target flash state buffer.
+ *
+ * Weak default returns 0 (no state). Targets that save SPI register state
+ * override this to return sizeof(their_state_struct).
+ */
+size_t stub_target_flash_state_size(void) __attribute__((const));
+
+/**
  * @brief Initialize SPI Flash hardware.
  *
  * Configure SPI pins, registers, mode, etc.
  *
- * @param state If non-NULL, the state is saved.
+ * @param state Pre-allocated buffer of stub_target_flash_state_size() bytes, or NULL.
  */
-void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy);
+void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy);
 
 /**
  * @brief Check whether flash attach is needed for the current hardware state.
@@ -80,9 +89,9 @@ void stub_target_flash_deinit(const void *state);
 /**
  * @brief Save SPI Flash hardware state before sending any command.
  *
- * @param state If non-NULL, the state is saved.
+ * @param state Pre-allocated buffer of stub_target_flash_state_size() bytes, or NULL.
  */
-void stub_target_flash_state_save(void **state);
+void stub_target_flash_state_save(void *state);
 
 /**
  * @brief Restore SPI Flash hardware state before leaving the stub.

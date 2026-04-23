@@ -29,8 +29,6 @@ typedef struct {
     uint32_t spi_regs[SPI_REGS_NUM];
 } stub_esp32_flash_state_t;
 
-static stub_esp32_flash_state_t s_flash_state;
-
 uint32_t stub_target_flash_get_spiconfig_efuse(void)
 {
     return esp_rom_efuse_get_flash_gpio_info();
@@ -59,15 +57,14 @@ void stub_target_spi_wait_ready(void)
     }
 }
 
-void stub_target_flash_state_save(void **state)
+void stub_target_flash_state_save(void *state)
 {
     if (!state) {
         return;
     }
 
-    s_flash_state.spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM));
-
-    *state = &s_flash_state;
+    stub_esp32_flash_state_t *s = state;
+    s->spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM));
 }
 
 void stub_target_flash_state_restore(const void *state)
@@ -116,7 +113,7 @@ bool stub_target_flash_needs_attach(void)
     return (READ_PERI_REG(SPI_CACHE_FCTRL_REG(0)) & SPI_CACHE_FLASH_USR_CMD) == 0;
 }
 
-void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();

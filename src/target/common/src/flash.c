@@ -95,7 +95,12 @@ uint32_t __attribute__((weak)) stub_target_flash_get_spiconfig_efuse(void)
     return 0;
 }
 
-void __attribute__((weak)) stub_target_flash_state_save(void **state)
+size_t __attribute__((weak, const)) stub_target_flash_state_size(void)
+{
+    return 0;
+}
+
+void __attribute__((weak)) stub_target_flash_state_save(void *state)
 {
     (void)state;
 }
@@ -105,7 +110,7 @@ void __attribute__((weak)) stub_target_flash_state_restore(const void *state)
     (void)state;
 }
 
-void __attribute__((weak)) stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+void __attribute__((weak)) stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
 {
     (void)state;
 
