@@ -94,6 +94,16 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
 void stub_lib_flash_deinit(const void *state);
 
 /**
+ * @brief Check whether the flash hardware needs to be attached (ROM spiflash_attach called).
+ *
+ * Most targets always need attach. Targets where attach would clobber live MMU state
+ * (e.g. ESP32-C6 when cache is running) return false to skip it.
+ *
+ * @return true if stub_lib_flash_init() should perform a full SPI attach, false otherwise.
+ */
+bool stub_lib_flash_needs_attach(void);
+
+/**
  * @brief Retrieve SPI Flash information.
  *
  * @param[out] info Pointer to receive the result.

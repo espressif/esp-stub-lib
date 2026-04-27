@@ -1,4 +1,6 @@
 set(srcs
+    src/cache.c
+    src/mmu.c
     src/flash.c
     src/sha256.c
     src/trax.c

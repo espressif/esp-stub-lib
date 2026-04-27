@@ -1,5 +1,7 @@
 set(srcs
+    src/cache.c
     src/flash.c
+    src/mmu.c
     src/uart.c
     src/usb_otg.c
 )

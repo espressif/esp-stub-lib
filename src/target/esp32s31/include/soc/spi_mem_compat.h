@@ -22,3 +22,15 @@
 #define SPI_MEM_SLV_ST                      SPI1_MEM_C_SLV_ST
 #define SPI_MEM_SLV_ST_S                    SPI1_MEM_C_SLV_ST_S
 #define SPI_MEM_SLV_ST_V                    SPI1_MEM_C_SLV_ST_V
+
+/* SPI1 registers used by stub_target_flash_init */
+#define SPI_MEM_CTRL_REG(i)     SPI1_MEM_C_CTRL_REG
+#define SPI_MEM_CTRL2_REG(i)    SPI1_MEM_C_CTRL2_REG
+#define SPI_MEM_USER_REG(i)     SPI1_MEM_C_USER_REG
+#define SPI_MEM_SUS_STATUS_REG(i) SPI1_MEM_C_SUS_STATUS_REG
+
+#define SPI_MEM_WP_REG          SPI1_MEM_C_WP_REG
+#define SPI_MEM_RESANDRES       SPI1_MEM_C_RESANDRES
+#define SPI_MEM_SYNC_RESET      SPI1_MEM_C_SYNC_RESET
+#define SPI_MEM_FLASH_SUS_M     SPI1_MEM_C_FLASH_SUS_M
+#define SPI_MEM_USR_COMMAND     SPI1_MEM_C_USR_COMMAND
