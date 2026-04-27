@@ -133,12 +133,14 @@ static int __attribute__((unused)) handle_test_uart(void)
 
 static int __attribute__((unused)) handle_test_flash(void)
 {
-    void *flash_state = NULL;
+    size_t flash_state_sz = stub_lib_flash_state_size();
+    uint8_t flash_state_buf[flash_state_sz ? flash_state_sz : 1] __attribute__((aligned(__alignof__(uint32_t))));
+    void *flash_state = flash_state_sz ? flash_state_buf : NULL;
     stub_lib_flash_config_t flash_config;
     uint8_t buffer[256];
 
-    (void)stub_lib_flash_init(&flash_state);
-    (void)stub_lib_flash_init_ex(&flash_state, STUB_LIB_FLASH_ATTACH_IF_NEEDED);
+    (void)stub_lib_flash_init(flash_state);
+    (void)stub_lib_flash_init_ex(flash_state, STUB_LIB_FLASH_ATTACH_IF_NEEDED);
     stub_lib_flash_get_config(&flash_config);
     (void)stub_lib_flash_update_config(&flash_config);
     stub_lib_flash_attach(0, false);
@@ -248,7 +250,7 @@ int stub_main(int cmd, ...)
 
     STUB_LOGI("Command: 0x%x\n", cmd);
 
-    int lib_ret = stub_lib_flash_init(&flash_state);
+    int lib_ret = stub_lib_flash_init(flash_state);
     if (lib_ret != STUB_LIB_OK) {
         STUB_LOGE("Flash init failure: (0x%X) %s\n", lib_ret, stub_err_str(lib_ret));
         return lib_ret;

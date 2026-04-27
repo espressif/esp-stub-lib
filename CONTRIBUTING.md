@@ -134,21 +134,18 @@ This is the core pattern. Get familiar with it before contributing.
 `src/target/common/src/` has weak defaults:
 
 ```c
-int __attribute__((weak)) stub_target_flash_state_save(void **state)
+bool __attribute__((weak)) stub_target_flash_needs_attach(void)
 {
-    *state = NULL;
-    return 0;
+    return true;
 }
 ```
 
 `src/target/<chip>/src/` has strong overrides when needed:
 
 ```c
-int stub_target_flash_state_save(void **state)
+bool stub_target_flash_needs_attach(void)
 {
-    s_saved_state.usr_reg = REG_READ(SPI_MEM_USER_REG(1));
-    *state = &s_saved_state;
-    return 0;
+    return (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0)) & SPI_MEM_CACHE_FLASH_USR_CMD) == 0;
 }
 ```
 

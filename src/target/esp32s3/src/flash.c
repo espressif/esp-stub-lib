@@ -61,7 +61,7 @@ bool stub_target_flash_needs_attach(void)
     return (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(0)) & SPI_MEM_CACHE_FLASH_USR_CMD) == 0;
 }
 
-void stub_target_flash_init(void **state, stub_lib_flash_attach_policy_t attach_policy)
+void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
 {
     (void)state;
     uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
