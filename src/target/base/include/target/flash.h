@@ -40,7 +40,8 @@ typedef enum {
     SPI_FLASH_QPI_MODE,
 } spi_flash_mode_t;
 
-#define FLASH_SPI_NUM 1
+#define FLASH_SPI_NUM_INT 0 /* SPI flash controller used by cache */
+#define FLASH_SPI_NUM     1 /* SPI flash controller used by host CPU */
 
 /**
  * @brief Reset default SPI IOMUX pins to GPIO mode

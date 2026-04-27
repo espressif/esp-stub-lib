@@ -18,16 +18,27 @@
 
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
+extern uint8_t g_rom_spiflash_dummy_len_plus[];
 
-/* Save/restore SPI registers. Can be extended to more registers if needed. */
 enum {
     SPI_USER_REG_ID = 0,
+    SPI_USER1_REG_ID,
+    SPI_USER2_REG_ID,
+    SPI_SLAVE_REG_ID,
+    SPI_CLOCK_REG_ID,
+    SPI_CTRL_REG_ID,
     SPI_REGS_NUM,
 };
 
 typedef struct {
     uint32_t spi_regs[SPI_REGS_NUM];
+    uint8_t dummy_len_plus;
 } stub_esp32_flash_state_t;
+
+size_t stub_target_flash_state_size(void)
+{
+    return sizeof(stub_esp32_flash_state_t);
+}
 
 uint32_t stub_target_flash_get_spiconfig_efuse(void)
 {
@@ -65,6 +76,12 @@ void stub_target_flash_state_save(void *state)
 
     stub_esp32_flash_state_t *s = state;
     s->spi_regs[SPI_USER_REG_ID] = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_USER1_REG_ID] = READ_PERI_REG(SPI_USER1_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_USER2_REG_ID] = READ_PERI_REG(SPI_USER2_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_SLAVE_REG_ID] = READ_PERI_REG(SPI_SLAVE_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_CLOCK_REG_ID] = READ_PERI_REG(SPI_CLOCK_REG(FLASH_SPI_NUM));
+    s->spi_regs[SPI_CTRL_REG_ID] = READ_PERI_REG(SPI_CTRL_REG(FLASH_SPI_NUM));
+    s->dummy_len_plus = g_rom_spiflash_dummy_len_plus[FLASH_SPI_NUM];
 }
 
 void stub_target_flash_state_restore(const void *state)
@@ -75,11 +92,13 @@ void stub_target_flash_state_restore(const void *state)
 
     const stub_esp32_flash_state_t *s = state;
 
-    STUB_LOGD("SPI_USER_REG(1) was:0x%x, restored to:0x%x\n",
-              READ_PERI_REG(SPI_USER_REG(1)),
-              s->spi_regs[SPI_USER_REG_ID]);
-
+    WRITE_PERI_REG(SPI_USER1_REG(FLASH_SPI_NUM), s->spi_regs[SPI_USER1_REG_ID]);
+    WRITE_PERI_REG(SPI_USER2_REG(FLASH_SPI_NUM), s->spi_regs[SPI_USER2_REG_ID]);
+    WRITE_PERI_REG(SPI_SLAVE_REG(FLASH_SPI_NUM), s->spi_regs[SPI_SLAVE_REG_ID]);
+    WRITE_PERI_REG(SPI_CLOCK_REG(FLASH_SPI_NUM), s->spi_regs[SPI_CLOCK_REG_ID]);
+    WRITE_PERI_REG(SPI_CTRL_REG(FLASH_SPI_NUM), s->spi_regs[SPI_CTRL_REG_ID]);
     WRITE_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM), s->spi_regs[SPI_USER_REG_ID]);
+    g_rom_spiflash_dummy_len_plus[FLASH_SPI_NUM] = s->dummy_len_plus;
 }
 
 /*
@@ -91,40 +110,61 @@ void stub_target_flash_state_restore(const void *state)
  */
 int stub_target_rom_spiflash_erase_area(uint32_t addr, uint32_t size)
 {
-    uint32_t spi0_ctrl = READ_PERI_REG(SPI_CTRL_REG(0));
-    uint32_t spi0_user = READ_PERI_REG(SPI_USER_REG(0));
-    uint32_t spi0_user1 = READ_PERI_REG(SPI_USER1_REG(0));
-    uint32_t spi0_user2 = READ_PERI_REG(SPI_USER2_REG(0));
-    uint32_t spi1_ctrl = READ_PERI_REG(SPI_CTRL_REG(1));
+    uint32_t spi0_ctrl = READ_PERI_REG(SPI_CTRL_REG(FLASH_SPI_NUM_INT));
+    uint32_t spi0_user = READ_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM_INT));
+    uint32_t spi0_user1 = READ_PERI_REG(SPI_USER1_REG(FLASH_SPI_NUM_INT));
+    uint32_t spi0_user2 = READ_PERI_REG(SPI_USER2_REG(FLASH_SPI_NUM_INT));
+    uint32_t spi1_ctrl = READ_PERI_REG(SPI_CTRL_REG(FLASH_SPI_NUM));
 
     int rom_res = esp_rom_spiflash_erase_area(addr, size);
 
-    WRITE_PERI_REG(SPI_CTRL_REG(0), spi0_ctrl);
-    WRITE_PERI_REG(SPI_USER_REG(0), spi0_user);
-    WRITE_PERI_REG(SPI_USER1_REG(0), spi0_user1);
-    WRITE_PERI_REG(SPI_USER2_REG(0), spi0_user2);
-    WRITE_PERI_REG(SPI_CTRL_REG(1), spi1_ctrl);
+    WRITE_PERI_REG(SPI_CTRL_REG(FLASH_SPI_NUM_INT), spi0_ctrl);
+    WRITE_PERI_REG(SPI_USER_REG(FLASH_SPI_NUM_INT), spi0_user);
+    WRITE_PERI_REG(SPI_USER1_REG(FLASH_SPI_NUM_INT), spi0_user1);
+    WRITE_PERI_REG(SPI_USER2_REG(FLASH_SPI_NUM_INT), spi0_user2);
+    WRITE_PERI_REG(SPI_CTRL_REG(FLASH_SPI_NUM), spi1_ctrl);
 
     return rom_res;
 }
 
 bool stub_target_flash_needs_attach(void)
 {
-    return (READ_PERI_REG(SPI_CACHE_FCTRL_REG(0)) & SPI_CACHE_FLASH_USR_CMD) == 0;
+    return (READ_PERI_REG(SPI_CACHE_FCTRL_REG(FLASH_SPI_NUM_INT)) & SPI_CACHE_FLASH_USR_CMD) == 0;
+}
+
+static void stub_target_spi_init(void)
+{
+    /*
+     * Trimmed version of ROM SPI_init(SLOWRD_MODE, 4).
+     * We skip the module reset to avoid breaking communication with PSRAM.
+     */
+    WRITE_PERI_REG(SPI_CTRL_REG(FLASH_SPI_NUM), SPI_WP_REG | SPI_RESANDRES);
+    WRITE_PERI_REG(SPI_CLOCK_REG(FLASH_SPI_NUM), 0x3043U); /* precalculated for SPI_CLK_DIV(4) */
+
+    WRITE_PERI_REG(SPI_USER1_REG(FLASH_SPI_NUM), 0);
+    REG_SET_FIELD(SPI_USER1_REG(FLASH_SPI_NUM), SPI_USR_ADDR_BITLEN, 23);
+    REG_SET_FIELD(SPI_USER1_REG(FLASH_SPI_NUM), SPI_USR_DUMMY_CYCLELEN, 7);
+
+    g_rom_spiflash_dummy_len_plus[FLASH_SPI_NUM] = 0;
 }
 
 void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
 {
-    (void)state;
-    uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+    if (state) {
+        stub_target_flash_state_save(state);
+    }
 
     if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
+        uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
         stub_target_flash_attach(spiconfig, 0);
-        /*
-         * Command phase is always set in download mode.
-         * But in reset-run case, it seems to be not set.
-         * So we need to set it here before sending any command.
-         */
-        REG_SET_BIT(SPI_USER_REG(1), SPI_USR_COMMAND);
+    } else {
+        stub_target_spi_init();
     }
+
+    /*
+     * Command phase is always set in download mode.
+     * But in reset-run case, it seems to be not set.
+     * So we need to set it here before sending any command.
+     */
+    REG_SET_BIT(SPI_USER_REG(FLASH_SPI_NUM), SPI_USR_COMMAND);
 }
