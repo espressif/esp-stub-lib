@@ -1,3 +1,18 @@
+## v1.0.0 (2026-04-28)
+
+### 🚨 Breaking changes
+
+- **flash**: add flash state size api *(erhankur - 3a31e21)*
+- flash init APIs now require caller-allocated state buffers. *(erhankur - 3a31e21)*
+
+### ✨ New Features
+
+- **esp32s31**: Add USB-Serial/JTAG support *(Radim Karniš - 5af5ca8)*
+- **flash**: add target flash save restore *(erhankur - fa2e44e)*
+- **flash**: add explicit flash attach policy *(erhankur - 4b75a18)*
+- **flash**: add rom erase area API *(erhankur - e471e1c)*
+
+
 ## v0.4.0 (2026-04-17)
 
 ### ✨ New Features
