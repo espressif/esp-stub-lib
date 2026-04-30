@@ -34,6 +34,8 @@ if(STUB_LOG_ENABLED IN_LIST STUB_COMPILE_DEFS)
 
     if(STUB_LIB_LOG_UART IN_LIST STUB_COMPILE_DEFS)
         list(APPEND srcs src/log_uart.c)
+    elseif(STUB_LIB_LOG_USJ IN_LIST STUB_COMPILE_DEFS)
+        list(APPEND srcs src/log_usj.c)
     else()
         # STUB_LIB_LOG_BUF is by default
         if(NOT STUB_LIB_LOG_BUF IN_LIST STUB_COMPILE_DEFS)
