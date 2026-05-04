@@ -131,16 +131,16 @@ static uint32_t detected_crystal_freq(void)
 
 void stub_target_clock_init(void)
 {
-    // This enables PLL which multiplies the crystal frequency by 12/6 = 2x.
-    REG_SET_FIELD(SYSTEM_SYSCLK_CONF_REG, SYSTEM_SOC_CLK_SEL, 1);
-    REG_SET_FIELD(SYSTEM_CPU_PER_CONF_REG, SYSTEM_PLL_FREQ_SEL, 0);
-
     /*
-    TODO: Increase CPU frequency to at least 80 MHz for 26 MHz crystal.
-    */
+     * TODO: Increase CPU frequency to at least 80 MHz for 26 MHz crystal.
+     */
     s_crystal_freq = detected_crystal_freq();
     s_cpu_freq = s_crystal_freq * 2;
     esp_rom_set_cpu_ticks_per_us(s_cpu_freq / MHZ);
+
+    // This enables PLL which multiplies the crystal frequency by 12/6 = 2x.
+    REG_SET_FIELD(SYSTEM_SYSCLK_CONF_REG, SYSTEM_SOC_CLK_SEL, 1);
+    REG_SET_FIELD(SYSTEM_CPU_PER_CONF_REG, SYSTEM_PLL_FREQ_SEL, 0);
 }
 
 uint32_t stub_target_get_cpu_freq(void)

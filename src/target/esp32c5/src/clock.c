@@ -23,13 +23,13 @@ static uint32_t s_cpu_freq = 0;
 
 void stub_target_clock_init(void)
 {
-    REG_SET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL, 2);
-    REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
-
     // TODO: Investigate why 192 MHz instead of 160 MHz
     // Also regarding 240 MHz, there might be some HW bug with switching to it, check ESP-IDF.
     s_cpu_freq = CPU_FREQ_MHZ * MHZ;
     esp_rom_set_cpu_ticks_per_us(CPU_FREQ_MHZ);
+
+    REG_SET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL, 2);
+    REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
 }
 
 uint32_t stub_target_get_cpu_freq(void)
