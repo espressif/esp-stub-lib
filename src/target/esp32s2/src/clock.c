@@ -24,15 +24,15 @@ static uint32_t s_cpu_freq = 0;
 
 void stub_target_clock_init(void)
 {
-
     REG_SET_FIELD(RTC_CNTL_REG, RTC_CNTL_DIG_DBIAS_WAK, RTC_CNTL_DIG_DBIAS_1V20);
     REG_SET_FIELD(RTC_CNTL_REG, RTC_CNTL_DBIAS_WAK, RTC_CNTL_DIG_DBIAS_1V20);
+
+    s_cpu_freq = CPU_FREQ_MHZ * MHZ;
+    esp_rom_set_cpu_ticks_per_us(CPU_FREQ_MHZ);
 
     REG_SET_FIELD(DPORT_SYSCLK_CONF_REG, DPORT_SOC_CLK_SEL, 1);
     REG_SET_FIELD(DPORT_CPU_PER_CONF_REG, DPORT_PLL_FREQ_SEL, 1);
     REG_SET_FIELD(DPORT_CPU_PER_CONF_REG, DPORT_CPUPERIOD_SEL, 2);
-    s_cpu_freq = CPU_FREQ_MHZ * MHZ;
-    esp_rom_set_cpu_ticks_per_us(CPU_FREQ_MHZ);
 }
 
 uint32_t stub_target_get_cpu_freq(void)
