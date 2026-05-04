@@ -117,9 +117,11 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size);
 /**
  * @brief Write data to SPI flash from a buffer.
  *
- * @param addr Address to write to. Should be 4 bytes aligned.
+ * @param addr Address to write to. Unencrypted writes may use any offset; partial words use 0xFF padding. Encrypted
+ *             writes require a 4-byte aligned address.
  * @param buffer Source buffer
- * @param size Number of bytes to write. Should be 4 bytes aligned.
+ * @param size Number of bytes to write. Unencrypted writes may use any length; the tail is padded to a word with 0xFF.
+ *             Encrypted writes require a size multiple of 4.
  * @param encrypt Whether to use encrypted write
  *
  * @return Result:
