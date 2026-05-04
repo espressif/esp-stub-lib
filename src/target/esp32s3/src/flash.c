@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/cache.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
@@ -38,6 +39,15 @@ extern void esp_rom_opiflash_exec_cmd(int spi_num,
                                       int miso_bit_len,
                                       uint32_t cs_mask,
                                       bool is_write_erase_operation);
+
+typedef struct {
+    uint8_t addr_bit_len;
+    uint8_t dummy_bit_len;
+    uint16_t cmd;
+    uint8_t cmd_bit_len;
+    uint8_t var_dummy_en;
+} esp_rom_opiflash_spi0rd_t;
+extern void esp_rom_opiflash_cache_mode_config(spi_flash_mode_t mode, const esp_rom_opiflash_spi0rd_t *cache);
 
 enum {
     SPI_USER_REG_ID = 0,
@@ -169,6 +179,71 @@ static void stub_target_spi_init(void)
     WRITE_PERI_REG(SPI_MEM_DDR_REG(FLASH_SPI_NUM), 0);
     spi_cache_mode_switch(0);
     REG_SET_BIT(SPI_MEM_CACHE_FCTRL_REG(FLASH_SPI_NUM_INT), SPI_MEM_CACHE_FLASH_USR_CMD);
+}
+
+static struct {
+    bool applied;
+    uint32_t saved_user;
+    uint32_t saved_user1;
+    uint32_t saved_user2;
+    uint32_t saved_cache_fctrl;
+    uint32_t saved_ctrl;
+} s_addr32_state;
+
+static void enable_4byte_cache_mode(void)
+{
+    if (REG_GET_FIELD(SPI_MEM_USER1_REG(FLASH_SPI_NUM_INT), SPI_MEM_USR_ADDR_BITLEN) == 31)
+        return;
+
+    s_addr32_state.saved_user = REG_READ(SPI_MEM_USER_REG(FLASH_SPI_NUM_INT));
+    s_addr32_state.saved_user1 = REG_READ(SPI_MEM_USER1_REG(FLASH_SPI_NUM_INT));
+    s_addr32_state.saved_user2 = REG_READ(SPI_MEM_USER2_REG(FLASH_SPI_NUM_INT));
+    s_addr32_state.saved_cache_fctrl = REG_READ(SPI_MEM_CACHE_FCTRL_REG(FLASH_SPI_NUM_INT));
+    s_addr32_state.saved_ctrl = REG_READ(SPI_MEM_CTRL_REG(FLASH_SPI_NUM_INT));
+
+    const esp_rom_opiflash_spi0rd_t cache_rd = {
+        .addr_bit_len = 32,
+        .dummy_bit_len = 0,
+        .cmd = 0x13,
+        .cmd_bit_len = 8,
+        .var_dummy_en = 0,
+    };
+
+    STUB_LOGD("Switching SPI0 cache to 32-bit addr (cmd=0x%x, dummy=%u)\n", cache_rd.cmd, cache_rd.dummy_bit_len);
+
+    stub_lib_cache_stop();
+    esp_rom_opiflash_cache_mode_config(SPI_FLASH_SLOWRD_MODE, &cache_rd);
+    /* Workaround: ROM esp_rom_opiflash_cache_mode_config sets SPI_MEM_USR_DUMMY
+     * unconditionally; clear it when no dummy phase is required. */
+    if (cache_rd.dummy_bit_len == 0)
+        REG_CLR_BIT(SPI_MEM_USER_REG(FLASH_SPI_NUM_INT), SPI_MEM_USR_DUMMY);
+    stub_lib_cache_start();
+
+    s_addr32_state.applied = true;
+}
+
+static void disable_4byte_cache_mode(void)
+{
+    if (!s_addr32_state.applied)
+        return;
+
+    stub_lib_cache_stop();
+    REG_WRITE(SPI_MEM_USER_REG(FLASH_SPI_NUM_INT), s_addr32_state.saved_user);
+    REG_WRITE(SPI_MEM_USER1_REG(FLASH_SPI_NUM_INT), s_addr32_state.saved_user1);
+    REG_WRITE(SPI_MEM_USER2_REG(FLASH_SPI_NUM_INT), s_addr32_state.saved_user2);
+    REG_WRITE(SPI_MEM_CACHE_FCTRL_REG(FLASH_SPI_NUM_INT), s_addr32_state.saved_cache_fctrl);
+    REG_WRITE(SPI_MEM_CTRL_REG(FLASH_SPI_NUM_INT), s_addr32_state.saved_ctrl);
+    stub_lib_cache_start();
+
+    s_addr32_state.applied = false;
+}
+
+void stub_target_flash_set_4byte_cache_mode(bool enable)
+{
+    if (enable)
+        enable_4byte_cache_mode();
+    else
+        disable_4byte_cache_mode();
 }
 
 void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy)
