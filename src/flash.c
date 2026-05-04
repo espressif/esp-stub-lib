@@ -73,6 +73,7 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
 
     if (flash_size > MIB(16)) {
         large_flash_mode = true;
+        stub_target_flash_set_4byte_cache_mode(true);
     }
 
     int config_ret = stub_target_flash_update_config(flash_id,
@@ -90,6 +91,10 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
 
 void stub_lib_flash_deinit(const void *state)
 {
+    if (large_flash_mode) {
+        stub_target_flash_set_4byte_cache_mode(false);
+        large_flash_mode = false;
+    }
     stub_target_flash_deinit(state);
 }
 

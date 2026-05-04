@@ -247,3 +247,8 @@ int __attribute__((weak)) stub_target_rom_spiflash_erase_area(uint32_t addr, uin
 {
     return esp_rom_spiflash_erase_area(addr, size);
 }
+
+void __attribute__((weak)) stub_target_flash_set_4byte_cache_mode(bool enable)
+{
+    (void)enable;
+}
