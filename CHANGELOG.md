@@ -1,3 +1,10 @@
+## v1.0.1 (2026-05-04)
+
+### 🐛 Bug Fixes
+
+- **clock**: prevent Guru Meditation in clock init *(Jaroslav Burian - dd7a40d)*
+
+
 ## v1.0.0 (2026-04-28)
 
 ### 🚨 Breaking changes
