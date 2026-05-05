@@ -25,7 +25,7 @@ Base (src/target/base/) - Interface headers only
 
 **Key Directories:**
 - `include/esp-stub-lib/` - Public API headers (16 total: bit_utils.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, rom_wrappers.h, security.h, sha256.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
-- `src/` - Top-level implementation layer (clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, md5.c, mem_utils.c, rom_wrappers.c, security.c, sha256.c, uart.c, usb_otg.c, usb_serial_jtag.c)
+- `src/` - Top-level implementation layer (clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, log_usj.c, md5.c, mem_utils.c, rom_wrappers.c, security.c, sha256.c, uart.c, usb_otg.c, usb_serial_jtag.c)
 - `src/target/base/include/` - Internal interface headers split into:
   - `target/` - Internal API between common/target layers
   - `private/` - Internal ROM/hardware details
