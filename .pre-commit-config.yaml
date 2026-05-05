@@ -14,6 +14,8 @@ repos:
     rev: v2.4.2
     hooks:
       - id: codespell
+        additional_dependencies:
+          - tomli
 
   - repo: https://github.com/espressif/check-copyright/
     rev: v1.1.2
@@ -49,4 +51,4 @@ repos:
     hooks:
       - id: clang-format
         files: \.(c|h|cpp|hpp|cc|cxx)$
-        exclude: ^(include/esp-stub-lib/miniz\.h|src/target/esp8266/src/miniz\.c|src/target/.*/include/soc/.*\.h)$
+        exclude: ^(include/esp-stub-lib/miniz\.h|src/target/esp8266/src/miniz\.c|src/target/.*/include/(soc/.*\.h|esp_rom_caps\.h))$
