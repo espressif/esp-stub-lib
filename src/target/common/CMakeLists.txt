@@ -8,6 +8,7 @@ set(common_srcs
     src/mem_utils.c
     src/security.c
     src/sha256.c
+    src/sdio.c
     src/uart.c
     src/usb_serial_jtag.c
     src/usb_otg.c

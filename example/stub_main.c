@@ -16,6 +16,7 @@
 #include <esp-stub-lib/md5.h>
 #include <esp-stub-lib/mem_utils.h>
 #include <esp-stub-lib/miniz.h>
+#include <esp-stub-lib/sdio.h>
 #include <esp-stub-lib/security.h>
 #include <esp-stub-lib/sha256.h>
 #include <esp-stub-lib/uart.h>
@@ -93,6 +94,18 @@ static void __attribute__((unused)) test_usb_serial_jtag(void)
     (void)stub_lib_usb_serial_jtag_read_rxfifo_byte();
     (void)stub_lib_usb_serial_jtag_tx_one_char('A');
     (void)stub_lib_usb_serial_jtag_tx_flush();
+}
+
+static void __attribute__((unused)) test_sdio(void)
+{
+    uint8_t rx_buf[512] __attribute__((aligned(4)));
+    size_t rx_len;
+
+    (void)stub_lib_sdio_is_active();
+    stub_lib_sdio_init();
+    (void)stub_lib_sdio_take_rx_frame(&rx_len);
+    (void)stub_lib_sdio_rearm(rx_buf, sizeof(rx_buf));
+    (void)stub_lib_sdio_tx_frame(rx_buf, sizeof(rx_buf));
 }
 
 static __attribute__((unused)) void test_md5(void)
@@ -210,6 +223,7 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     test_sha256();
     test_md5();
     test_usb_serial_jtag();
+    test_sdio();
     test_miniz();
     test_clock_init();
 
