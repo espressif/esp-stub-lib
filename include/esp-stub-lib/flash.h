@@ -79,12 +79,15 @@ int stub_lib_flash_init(void *state);
  * @param state Pre-allocated buffer of at least stub_lib_flash_state_size()
  *              bytes, or NULL if no state save is needed.
  * @param attach_policy Whether to always perform ROM flash attach or skip it when not needed.
+ * @param enable_4byte_cache_mode If true and flash size exceeds 16MB, reconfigure the
+ *              SPI0 cache for 32-bit addressing so MMU-mapped reads work above 16MB.
+ *              Set to false when the caller does not perform cache/MMU reads
  *
  * @return Error code:
  * - STUB_LIB_OK
  * - STUB_LIB_ERR_UNKNOWN_FLASH_ID
  */
-int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy);
+int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy, bool enable_4byte_cache_mode);
 
 /**
  * @brief Restore flash state at the end of the stub.

@@ -1496,6 +1496,11 @@
 #define SPI_MEM_CLK_EN_V  0x00000001U
 #define SPI_MEM_CLK_EN_S  0
 
+/** MMU indirect access registers */
+#define SPI_MEM_MMU_ITEM_CONTENT_REG(i)  (REG_SPI_MEM_BASE(i) + 0x37c)
+#define SPI_MEM_MMU_ITEM_INDEX_REG(i)    (REG_SPI_MEM_BASE(i) + 0x380)
+#define SPI_MEM_MMU_POWER_CTRL_REG(i)    (REG_SPI_MEM_BASE(i) + 0x384)
+
 /** SPI_MEM_DATE_REG register
  *  Version control register
  */
