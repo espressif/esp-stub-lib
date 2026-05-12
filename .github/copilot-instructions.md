@@ -170,7 +170,68 @@ body (optional)
 
 ### PR and Review Guidelines
 
-**When reviewing PRs, check all changes against the coding conventions and review checklist in [CONTRIBUTING.md](../CONTRIBUTING.md).** That document is the authoritative reference for naming, error handling, weak/strong overrides, include style, ROM functions, memory rules, and code style.
+**Your goal when assisting on a PR is to help the contributor land an acceptable change, not to enumerate violations against them.** Generate patches the contributor can accept with one click. Reserve "request changes" for things that genuinely need human review. Same coverage as a strict review checklist — different distribution of who does the work.
+
+[CONTRIBUTING.md](../CONTRIBUTING.md) is the authoritative reference for naming, error handling, weak/strong overrides, include style, ROM functions, memory rules, and code style. Treat it as the contract; the sections below are how to operationalize it without piling objections on the contributor.
+
+#### How to deliver fixes
+
+The mechanism depends on where you are running:
+
+- **PR review (e.g. Copilot code review):** drop a `suggestion` block on the offending line. The contributor accepts it with "Commit suggestion." You do **not** push to the branch yourself.
+- **In-IDE assistance (Copilot chat / Copilot edits) or an authoring agent with write access:** edit the file in place and summarize the change in one line.
+
+In either context, prefer one batched review/edit over a trickle of comments. Aim for "I made 6 suggestions" plus an accept-all path, not six separate threads.
+
+#### Common contribution shapes — surface these first
+
+When the contributor's task matches one of these shapes, point them at the existing walkthrough before doing anything else. The walkthrough is the cheapest way to land a clean PR:
+
+- **Adding a new chip target** → [CONTRIBUTING.md → Adding a New Chip](../CONTRIBUTING.md#adding-a-new-chip).
+- **Adding a new public API function** → [CONTRIBUTING.md → Weak/Strong Overrides](../CONTRIBUTING.md#weakstrong-overrides) and the "Adding New Functionality" steps below.
+- **Touching MMIO / peripheral registers** → start from [include/esp-stub-lib/soc_utils.h](../include/esp-stub-lib/soc_utils.h) and [include/esp-stub-lib/bit_utils.h](../include/esp-stub-lib/bit_utils.h). They cover bit set/clear, masked set, field get/set, and peripheral mask ops; prefer the highest-level helper that applies over an open-coded read-modify-write.
+
+If a worked example or scaffolding exists, lead with it. A 30-second pointer beats a 10-bullet correction list.
+
+#### Auto-suggest (no prose) — batch the mechanical fixes
+
+For these classes of issue, drop the patch as a `suggestion` block (or apply it directly when running in an authoring context) with **no explanation attached** — just the diff. They are cheap to fix, expensive to defend item by item:
+
+- Include-path normalization (e.g. `<soc_utils.h>` → `<esp-stub-lib/soc_utils.h>` when the public form exists).
+- "Just in case" casts; casts applied inconsistently in the same function.
+- Parameter naming drift across an interface (one symbol used multiple ways).
+- Replacing a hand-rolled `READ + mask + WRITE` triple with the appropriate helper from `soc_utils.h` / `bit_utils.h` when an equivalent one-liner exists.
+- License header on new files; copyright-year touch-ups (pre-commit handles most of these — let it).
+- `__attribute__((weak))` accidentally placed on a strong override.
+- Magic numbers that already have a named define in `soc/*.h`.
+
+Batch them into a single review so the contributor accepts them in one pass.
+
+#### Suggest with a one-line rationale
+
+For issues that need a small judgment call, generate the same `suggestion` block (or in-place edit) but attach **one sentence of why**, so the contributor learns the rule rather than just clicking through:
+
+- A `#ifdef <chip macro>` in shared code where the fix is either a strong override or a `soc_caps.h` flag with `#if defined(X) && X`.
+- A new `stub_target_*` function added without a weak default in `common/src/`.
+- An unbounded MMIO `while` loop where a bounded retry with the right cap is straightforward.
+- A read-modify-write on a register containing a self-clearing / W1C bit that needs explicit masking.
+- A missing dummy call in `example/stub_main.c` for a newly added public API (the linker smoke test).
+
+#### Verify, and flag only if the answer is non-obvious
+
+These are the items that genuinely need a human or a contributor decision. Check them yourself first; only escalate when you can't resolve confidently:
+
+- **Public API change** under `include/esp-stub-lib/**` (signature, type width, behavior). If breaking, route via [MAINTENANCE.md](../MAINTENANCE.md#4-breaking-changes-policy) and tag the relevant maintainers.
+- **Per-chip register location and field width.** When the change writes an MMIO field, cross-check each chip's `src/target/<chip>/include/soc/*.h` and the corresponding ESP-IDF LL header (`components/esp_hal_*/<chip>/include/hal/*_ll.h`). Fields can move between registers and change width across SoC generations; mask values from `soc/*.h` are the source of truth, not literals in the code.
+- **Register-write order across multiple registers.** Use the ESP-IDF LL function as the reference sequence. If the intermediate state between writes can fire a spurious interrupt or leave the peripheral mis-configured, suggest the reordered sequence rather than just flagging it.
+- **Sync / update register pokes** on SoCs that use a shadow + update-trigger scheme. Each shadow write must be followed by the trigger and a bounded poll on the acknowledge bit.
+- **Integer promotion and shift UB** in `(value & MASK_V) << SHIFT_S` expressions where the macros come from `soc/*.h`. Plain hex literals from SOC headers are often signed `int`; confirm the operand cannot promote to a negative value and the shift result fits the destination width.
+- **Coverage across all supported targets** listed at the top of this file. A weak default plus N strong overrides must cover every chip in that list. Preprocessor gating in shared code is not a substitute for an override.
+- **Dead `#else` no-ops** that silently do nothing for unsupported chips. Prefer dropping the arm (let the build break) or emitting `STUB_LOGE`.
+
+#### Tone
+
+When you do write a review comment, prefer "I noticed X; here's a patch — does this work for you?" over "you violated X." The agent's role is to shorten the path between draft and accepted PR, not to inflate the cost of contributing.
 
 **When creating or reviewing PRs, always check if documentation updates are needed:**
 
