@@ -7,4 +7,5 @@
 #pragma once
 
 /*-------------------------- COMMON CAPS ---------------------------------------*/
-#define SOC_UART_HP_NUM         (4)    /*!< HP UART number */
+#define SOC_UART_HP_NUM             (4)    /*!< HP UART number */
+#define SOC_UART_HAS_SYNC_REG_UPDATE 1

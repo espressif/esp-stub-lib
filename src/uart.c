@@ -75,14 +75,12 @@ uint8_t stub_lib_uart_read_rxfifo_byte(uart_port_t uart_num)
 
 void stub_lib_uart_set_rx_timeout(uart_port_t uart_num, uint8_t timeout)
 {
-    uint32_t conf1 = READ_PERI_REG(UART_CONF1_REG(uart_num));
-    conf1 &= ~(UART_RX_TOUT_THRHD_M | UART_RX_TOUT_EN_M);
+    stub_target_uart_set_rx_timeout(uart_num, timeout);
+}
 
-    if (timeout > 0U) {
-        conf1 |= (((uint32_t)timeout & UART_RX_TOUT_THRHD_V) << UART_RX_TOUT_THRHD_S) | UART_RX_TOUT_EN;
-    }
-
-    WRITE_PERI_REG(UART_CONF1_REG(uart_num), conf1);
+void stub_lib_uart_set_rxfifo_full_threshold(uart_port_t uart_num, uint16_t threshold)
+{
+    SET_PERI_REG_BITS(UART_CONF1_REG(uart_num), UART_RXFIFO_FULL_THRHD_V, threshold, UART_RXFIFO_FULL_THRHD_S);
 }
 
 uint8_t stub_lib_uart_tx_one_char(uint8_t c)

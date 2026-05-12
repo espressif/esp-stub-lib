@@ -149,6 +149,8 @@ extern "C" {
 #define UART_CONF1_REG(i)                   (REG_UART_BASE(i) + 0x24)
 #define UART_RX_TOUT_EN                     (BIT(31))
 #define UART_RX_TOUT_EN_M                   (BIT(31))
+#define UART_RX_TOUT_EN_V                   0x1
+#define UART_RX_TOUT_EN_S                   31
 #define UART_RX_TOUT_THRHD_M                (UART_RX_TOUT_THRHD_V << UART_RX_TOUT_THRHD_S)
 #define UART_RX_TOUT_THRHD_V                0x0000007F
 #define UART_RX_TOUT_THRHD_S                24

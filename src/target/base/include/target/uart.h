@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -34,6 +34,17 @@ void stub_target_uart_rominit_set_baudrate(uint8_t uart_num, uint32_t baudrate);
  * @brief Flush any buffered transmit data.
  */
 void stub_target_uart_tx_flush(uint8_t uart_no);
+
+/**
+ * @brief Configure UART RX timeout threshold and enable (SoC-specific layout).
+ *
+ * Default (weak): UART_TOUT_CONF_SYNC_REG + UART_REG_UPDATE_REG where present.
+ * Override on targets that use MEM_CONF / CONF1 only layouts.
+ *
+ * @param uart_num UART port number
+ * @param timeout Threshold (masked per SoC); 0 disables RX timeout.
+ */
+void stub_target_uart_set_rx_timeout(uint8_t uart_num, uint8_t timeout);
 
 /**
  * @brief Wrapper for esp_rom_uart_attach
