@@ -18,10 +18,29 @@
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
 
+extern void *memcpy(void *dest, const void *src, size_t n);
+
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
 #define STUB_FLASH_ERASE_TIMEOUT_US 1000000U
+
+static int flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
+{
+    if (large_flash_mode) {
+        return stub_target_flash_4byte_write(FLASH_SPI_NUM, addr, (const uint8_t *)buffer, size, encrypt);
+    }
+    return stub_target_flash_write_buff(addr, buffer, size, encrypt);
+}
+
+static int flash_write_partial_word(uint32_t word_addr, const uint8_t *src, uint32_t size, uint32_t offset)
+{
+    uint8_t word[4] = { 0xFFU, 0xFFU, 0xFFU, 0xFFU };
+
+    memcpy(word + offset, src, size);
+
+    return flash_write_buff(word_addr, word, sizeof(word), false);
+}
 
 int stub_lib_flash_update_config(stub_lib_flash_config_t *config)
 {
@@ -132,16 +151,55 @@ int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, 
 {
     STUB_LOGD("Flash write: addr: 0x%x, size: %u, large: %d, enc: %d\n", addr, size, large_flash_mode, encrypt);
 
-    if (!IS_ALIGNED(addr, 4) || !IS_ALIGNED(size, 4)) {
-        STUB_LOGE("Flash write unaligned!\n");
-        return STUB_LIB_ERR_FLASH_WRITE_UNALIGNED;
+    if (size == 0) {
+        return STUB_LIB_OK;
     }
 
-    if (large_flash_mode) {
-        return stub_target_flash_4byte_write(FLASH_SPI_NUM, addr, buffer, size, encrypt);
+    if (encrypt) {
+        if (!IS_ALIGNED(addr, 16) || !IS_ALIGNED(size, 16)) {
+            STUB_LOGE("Encrypted flash write requires 16-byte alignment\n");
+            return STUB_LIB_ERR_FLASH_WRITE_UNALIGNED;
+        }
+        return flash_write_buff(addr, buffer, size, true);
     }
 
-    return stub_target_flash_write_buff(addr, buffer, size, encrypt);
+    if (IS_ALIGNED(addr, 4) && IS_ALIGNED(size, 4)) {
+        return flash_write_buff(addr, buffer, size, false);
+    }
+
+    const uint8_t *src = (const uint8_t *)buffer;
+    uint32_t flash_addr = ALIGN_DOWN(addr, 4);
+    uint32_t offset = addr - flash_addr;
+
+    if (offset != 0) {
+        uint32_t head_size = MIN(size, 4 - offset);
+        int res = flash_write_partial_word(flash_addr, src, head_size, offset);
+        if (res != STUB_LIB_OK) {
+            return res;
+        }
+
+        src += head_size;
+        size -= head_size;
+        flash_addr += 4;
+    }
+
+    uint32_t aligned_size = ALIGN_DOWN(size, 4);
+    if (aligned_size > 0) {
+        int res = flash_write_buff(flash_addr, src, aligned_size, false);
+        if (res != STUB_LIB_OK) {
+            return res;
+        }
+
+        src += aligned_size;
+        size -= aligned_size;
+        flash_addr += aligned_size;
+    }
+
+    if (size > 0) {
+        return flash_write_partial_word(flash_addr, src, size, 0);
+    }
+
+    return STUB_LIB_OK;
 }
 
 int stub_lib_flash_erase_chip(void)
