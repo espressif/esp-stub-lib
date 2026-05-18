@@ -51,3 +51,13 @@ void stub_target_uart_rominit_set_baudrate(uint8_t uart_num, uint32_t baudrate)
 
     stub_lib_delay_us(5 * 1000);
 }
+
+void stub_target_uart_set_rx_timeout(uint8_t uart_num, uint8_t timeout)
+{
+    if (timeout > 0U) {
+        SET_PERI_REG_BITS(UART_MEM_CONF_REG(uart_num), UART_RX_TOUT_THRHD_V, timeout, UART_RX_TOUT_THRHD_S);
+        SET_PERI_REG_BITS(UART_CONF1_REG(uart_num), UART_RX_TOUT_EN_V, 1U, UART_RX_TOUT_EN_S);
+    } else {
+        SET_PERI_REG_BITS(UART_CONF1_REG(uart_num), UART_RX_TOUT_EN_V, 0U, UART_RX_TOUT_EN_S);
+    }
+}

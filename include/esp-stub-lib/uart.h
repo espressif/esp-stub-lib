@@ -109,13 +109,24 @@ uint32_t stub_lib_uart_get_rxfifo_count(uart_port_t uart_num);
 uint8_t stub_lib_uart_read_rxfifo_byte(uart_port_t uart_num);
 
 /**
- * @brief Configure RX timeout threshold
+ * @brief Configure RX timeout threshold and enable
  *
  * @param uart_num UART port number
- * @param timeout Timeout value in bit times (1-126, 0 to disable)
- * timeout mean the multiple of UART packets (~11 bytes) that can be received before timeout
+ * @param timeout Threshold for RX timeout (masked with chip `UART_RX_TOUT_THRHD_V`); 0 disables.
+ *                Use `UART_RX_TOUT_THRHD_V` for the widest value the current SoC allows.
+ *
+ * @note The UART block stores threshold and enable in different registers on some SoCs;
+ *       this function applies the correct sequence for the current target headers.
  */
 void stub_lib_uart_set_rx_timeout(uart_port_t uart_num, uint8_t timeout);
+
+/**
+ * @brief Configure RX FIFO full interrupt threshold
+ *
+ * @param uart_num UART port number
+ * @param threshold Number of bytes in RX FIFO needed to trigger RXFIFO_FULL interrupt
+ */
+void stub_lib_uart_set_rxfifo_full_threshold(uart_port_t uart_num, uint16_t threshold);
 
 /**
  * @brief Transmit a single byte over UART.

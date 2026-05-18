@@ -146,6 +146,7 @@ static int __attribute__((unused)) handle_test_uart(void)
 
     stub_lib_uart_init(UART_NUM_0);
     stub_lib_uart_set_rx_timeout(UART_NUM_0, 10);
+    stub_lib_uart_set_rxfifo_full_threshold(UART_NUM_0, 10);
     (void)stub_lib_uart_get_rxfifo_count(UART_NUM_0);
     (void)stub_lib_uart_clear_intr_flags(UART_NUM_0);
     (void)stub_lib_uart_read_rxfifo_byte(UART_NUM_0);

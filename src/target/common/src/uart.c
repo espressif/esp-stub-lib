@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -8,9 +8,13 @@
 #include <stdint.h>
 
 #include <esp-stub-lib/rom_wrappers.h>
+#include <esp-stub-lib/soc_utils.h>
 
 #include <target/clock.h>
 #include <target/uart.h>
+
+#include <soc/soc_caps.h>
+#include <soc/uart_reg.h>
 
 extern void esp_rom_uart_set_as_console(uint8_t uart_no);
 extern void esp_rom_uart_tx_wait_idle(uint8_t uart_num);
@@ -44,4 +48,23 @@ void __attribute__((weak)) stub_target_uart_rominit_set_baudrate(uint8_t uart_nu
 void __attribute__((weak)) stub_target_uart_tx_flush(uint8_t uart_no)
 {
     esp_rom_uart_flush_tx(uart_no);
+}
+
+void __attribute__((weak)) stub_target_uart_set_rx_timeout(uint8_t uart_num, uint8_t timeout)
+{
+#if defined(SOC_UART_HAS_SYNC_REG_UPDATE) && SOC_UART_HAS_SYNC_REG_UPDATE
+    if (timeout > 0U) {
+        SET_PERI_REG_BITS(UART_TOUT_CONF_SYNC_REG(uart_num), UART_RX_TOUT_THRHD_V, timeout, UART_RX_TOUT_THRHD_S);
+        SET_PERI_REG_BITS(UART_TOUT_CONF_SYNC_REG(uart_num), UART_RX_TOUT_EN_V, 1U, UART_RX_TOUT_EN_S);
+    } else {
+        SET_PERI_REG_BITS(UART_TOUT_CONF_SYNC_REG(uart_num), UART_RX_TOUT_EN_V, 0U, UART_RX_TOUT_EN_S);
+    }
+
+    WRITE_PERI_REG(UART_REG_UPDATE_REG(uart_num), UART_REG_UPDATE);
+    while ((READ_PERI_REG(UART_REG_UPDATE_REG(uart_num)) & UART_REG_UPDATE) != 0U) {
+    }
+#else
+    (void)uart_num;
+    (void)timeout;
+#endif
 }
