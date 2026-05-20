@@ -1,3 +1,18 @@
+## v1.1.0 (2026-05-20)
+
+### ✨ New Features
+
+- **uart**: handle UART RX FIFO full and timeout per SoC *(Vojtech Piroch - af0f002)*
+- **sdio**: Add support for SDIO slave interface *(Jaroslav Burian - 4316a1f)*
+- **flash**: Add padding for not aligned write *(Vojtech Piroch - 9ed7995)*
+- read flash through cache/mmu *(erhankur - ed9dd43)*
+- Add configurable output for logging *(Vojtech Piroch - 9841391)*
+
+### 📖 Documentation
+
+- **copilot**: split PR review into conventions + correctness passes *(erhankur - 4119e14)*
+
+
 ## v1.0.1 (2026-05-04)
 
 ### 🐛 Bug Fixes
