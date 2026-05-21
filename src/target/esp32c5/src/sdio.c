@@ -74,6 +74,7 @@ static sip_t *s_sip;
  * ------------------------------------------------------------------------- */
 extern sip_t *sip_get_ptr(void);
 extern bool sip_download_begin(void);
+extern uint32_t _rom_eco_version;
 
 extern int slc_from_host_chain_fetch(lldesc_t **head, lldesc_t **tail);
 extern void slc_to_host_chain_recycle(lldesc_t **head, lldesc_t **tail);
@@ -205,7 +206,8 @@ bool stub_target_sdio_take_rx_frame(size_t *out_len)
 
 bool stub_target_sdio_is_active(void)
 {
-    return sip_download_begin();
+    /* Eco version below 2 does not support SDIO download. */
+    return _rom_eco_version >= 2 && sip_download_begin();
 }
 
 void stub_target_sdio_init(void)
