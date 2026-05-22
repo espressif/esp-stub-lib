@@ -74,9 +74,9 @@ static sip_t *s_sip;
  * ------------------------------------------------------------------------- */
 extern sip_t *sip_get_ptr(void);
 extern bool sip_download_begin(void);
+extern uint32_t _rom_eco_version;
 
 extern int slc_from_host_chain_fetch(lldesc_t **head, lldesc_t **tail);
-extern void slc_send_to_host_chain(lldesc_t *head, lldesc_t *tail);
 extern void slc_to_host_chain_recycle(lldesc_t **head, lldesc_t **tail);
 
 extern void esp_rom_isr_attach(int int_num, void *handler, void *arg);
@@ -206,7 +206,8 @@ bool stub_target_sdio_take_rx_frame(size_t *out_len)
 
 bool stub_target_sdio_is_active(void)
 {
-    return sip_download_begin();
+    /* Eco version below 2 does not support SDIO download. */
+    return _rom_eco_version >= 2 && sip_download_begin();
 }
 
 void stub_target_sdio_init(void)
@@ -279,7 +280,12 @@ int stub_target_sdio_tx_frame(const void *data, size_t len)
     REG_WRITE(SDIO_SLC0INT_CLR_REG,
               SDIO_SLC0_RX_DONE_INT | SDIO_SLC0_RX_EOF_INT | SDIO_SLC0_RX_DSCR_EMPTY_INT | SDIO_SLC0_RX_DSCR_ERR_INT);
     REG_WRITE(SLCHOST_CONF_W0_REG, (uint32_t)len);
-    slc_send_to_host_chain(&s_tx_desc, &s_tx_desc);
+    s_sip->slc->first_desc[1] = &s_tx_desc;
+    s_sip->slc->last_desc[1] = &s_tx_desc;
+    REG_WRITE(SDIO_SLC0RX_LINK_ADDR_REG, (uint32_t)(uintptr_t)&s_tx_desc);
+    REG_SET_BIT(SDIO_SLC0RX_LINK_REG, SDIO_SLC0_RXLINK_START);
+    REG_WRITE(SDIO_SLC0_LEN_CONF_REG, ((uint32_t)len & SDIO_SLC0_LEN_WDATA_MASK) | SDIO_SLC0_LEN_WR);
+    REG_WRITE(SLCHOST_SLC0HOST_INT_RAW_REG, SLCHOST_SLC0_RX_NEW_PACKET_INT);
 
     bool ok = sdio_wait_tx_done();
 
