@@ -1,3 +1,13 @@
+## v1.1.1 (2026-05-22)
+
+### 🐛 Bug Fixes
+
+- **esp32c5**: gate SDIO stub on ECO2 and newer ROMs *(Jaroslav Burian - d6a31a5)*
+- **esp32c5**: use explicit SDIO TX packet publish *(Jaroslav Burian - c056711)*
+- **esp32s3**: reset SPI1 USER regs before HW-auto RDID to avoid rotated flash_id *(erhankur - c46baa7)*
+- **esp32s3**: preserve OPI flash state across stub partial-init *(erhankur - 39d5c30)*
+
+
 ## v1.1.0 (2026-05-20)
 
 ### ✨ New Features
