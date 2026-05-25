@@ -30,7 +30,6 @@
 #define SDIO_SLC0TX_LINK_ADDR_REG   (DR_REG_SLC_BASE + 0x48) /* Host→slave first descriptor */
 #define SDIO_SLC0TOKEN1_REG         (DR_REG_SLC_BASE + 0x64) /* Host→slave buffer credits */
 #define SDIO_SLC_RX_DSCR_CONF_REG   (DR_REG_SLC_BASE + 0xA8) /* Slave→host descriptor configuration */
-#define SDIO_SLC0_LEN_CONF_REG      (DR_REG_SLC_BASE + 0xF4)
 
 /* SDIO_SLC0TOKEN1_REG fields */
 #define SDIO_SLC0_TOKEN1_WDATA_MASK 0x0FFFU
@@ -38,10 +37,6 @@
 
 /* SDIO_SLC_RX_DSCR_CONF_REG fields */
 #define SDIO_SLC0_TOKEN_NO_REPLACE  BIT(0)
-
-/* SDIO_SLC0_LEN_CONF_REG fields */
-#define SDIO_SLC0_LEN_WDATA_MASK    0x000FFFFFU
-#define SDIO_SLC0_LEN_WR            BIT(20)
 
 /* SDIO_SLC0RX_LINK_REG control bits (slave→host DMA) */
 #define SDIO_SLC0_RXLINK_STOP       BIT(28)

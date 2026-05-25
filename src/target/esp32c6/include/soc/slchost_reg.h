@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include <esp-stub-lib/bit_utils.h>
-
 #include <soc/reg_base.h>
 
 /*
@@ -20,8 +18,3 @@
  * to pull before the next packet starts.
  */
 #define SLCHOST_CONF_W0_REG (DR_REG_SLCHOST_BASE + 0x6C)
-
-/* Host-visible interrupt registers. */
-#define SLCHOST_SLC0HOST_INT_RAW_REG       (DR_REG_SLCHOST_BASE + 0x50)
-
-#define SLCHOST_SLC0_RX_NEW_PACKET_INT BIT(23)
