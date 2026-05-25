@@ -14,7 +14,9 @@
 #include <soc/pcr_reg.h>
 #include <soc/soc.h>
 
-#define CPU_FREQ_MHZ 192
+#define CPU_FREQ_MHZ       192
+#define AHB_FREQ_MHZ       40
+#define PLL_F160M_FREQ_MHZ 160
 
 extern uint32_t esp_rom_get_cpu_freq(void);
 extern void esp_rom_set_cpu_ticks_per_us(uint32_t ticks_per_us);
@@ -28,6 +30,7 @@ void stub_target_clock_init(void)
     s_cpu_freq = CPU_FREQ_MHZ * MHZ;
     esp_rom_set_cpu_ticks_per_us(CPU_FREQ_MHZ);
 
+    REG_SET_FIELD(PCR_AHB_FREQ_CONF_REG, PCR_AHB_DIV_NUM, (PLL_F160M_FREQ_MHZ / AHB_FREQ_MHZ) - 1U);
     REG_SET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL, 2);
     REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
 }
