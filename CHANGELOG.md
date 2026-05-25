@@ -1,3 +1,10 @@
+## v1.1.2 (2026-05-25)
+
+### 🐛 Bug Fixes
+
+- **esp32c5**: update AHB frequency divider after clock init *(Jaroslav Burian - 1e3c838)*
+
+
 ## v1.1.1 (2026-05-22)
 
 ### 🐛 Bug Fixes
