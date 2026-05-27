@@ -40,10 +40,8 @@ static void km_write_mem(uint32_t reg, const uint8_t *src, size_t len)
      * the IDF reference impl, but we must not read OOB on src. */
     uint32_t i = 0;
     while (i + 4 <= len) {
-        uint32_t word = ((uint32_t)src[i])
-                      | ((uint32_t)src[i + 1] << 8)
-                      | ((uint32_t)src[i + 2] << 16)
-                      | ((uint32_t)src[i + 3] << 24);
+        uint32_t word = ((uint32_t)src[i]) | ((uint32_t)src[i + 1] << 8) | ((uint32_t)src[i + 2] << 16) |
+                        ((uint32_t)src[i + 3] << 24);
         REG_WRITE(reg + i, word);
         i += 4;
     }
@@ -134,13 +132,11 @@ int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf)
     {
         uint32_t v = REG_READ(LP_AON_MEM_CTRL_REG);
         v &= ~LP_AON_HUK_MEM_FORCE_PD;
-        v |=  LP_AON_HUK_MEM_FORCE_PU;
+        v |= LP_AON_HUK_MEM_FORCE_PU;
         REG_WRITE(LP_AON_MEM_CTRL_REG, v);
     }
 
-    int rom_mode = (mode == STUB_HUK_MODE_GENERATE)
-                       ? HUK_ROM_MODE_GEN
-                       : HUK_ROM_MODE_RECOVER;
+    int rom_mode = (mode == STUB_HUK_MODE_GENERATE) ? HUK_ROM_MODE_GEN : HUK_ROM_MODE_RECOVER;
 
     /* IDF reference path (configure_huk in esp_security/src/esp_key_mgr.c):
      * configure once; if the KM doesn't see HUK valid, recharge the PUF
@@ -284,7 +280,7 @@ void stub_target_km_set_xts_aes_key_len(stub_km_key_type_t key_type, bool use_25
     } else if (key_type == STUB_KM_KEY_TYPE_PSRAM_XTS_AES) {
         shift = KEYMNG_PSRAM_KEY_LEN_S;
     } else {
-        return;  /* not an XTS-AES key type — KM ignores the len bit */
+        return; /* not an XTS-AES key type — KM ignores the len bit */
     }
     if (use_256) {
         REG_SET_BIT(KEYMNG_STATIC_REG, 1U << shift);
@@ -354,19 +350,32 @@ static uint32_t key_type_bit(stub_km_key_type_t key_type)
 static uint32_t key_vld_mask(stub_km_key_type_t kt, stub_km_key_len_t kl)
 {
     if (kt == STUB_KM_KEY_TYPE_ECDSA) {
-        if (kl == STUB_KM_KEY_LEN_ECDSA_192) { return KEYMNG_KEY_VLD_ECDSA_192_M; }
-        if (kl == STUB_KM_KEY_LEN_ECDSA_256) { return KEYMNG_KEY_VLD_ECDSA_256_M; }
-        if (kl == STUB_KM_KEY_LEN_ECDSA_384) { return KEYMNG_KEY_VLD_ECDSA_384_M; }
+        if (kl == STUB_KM_KEY_LEN_ECDSA_192) {
+            return KEYMNG_KEY_VLD_ECDSA_192_M;
+        }
+        if (kl == STUB_KM_KEY_LEN_ECDSA_256) {
+            return KEYMNG_KEY_VLD_ECDSA_256_M;
+        }
+        if (kl == STUB_KM_KEY_LEN_ECDSA_384) {
+            return KEYMNG_KEY_VLD_ECDSA_384_M;
+        }
     }
-    if (kt == STUB_KM_KEY_TYPE_FLASH_XTS_AES) { return KEYMNG_KEY_VLD_FLASH_M; }
-    if (kt == STUB_KM_KEY_TYPE_HMAC)          { return KEYMNG_KEY_VLD_HMAC_M; }
-    if (kt == STUB_KM_KEY_TYPE_DS)            { return KEYMNG_KEY_VLD_DS_M; }
-    if (kt == STUB_KM_KEY_TYPE_PSRAM_XTS_AES) { return KEYMNG_KEY_VLD_PSRAM_M; }
+    if (kt == STUB_KM_KEY_TYPE_FLASH_XTS_AES) {
+        return KEYMNG_KEY_VLD_FLASH_M;
+    }
+    if (kt == STUB_KM_KEY_TYPE_HMAC) {
+        return KEYMNG_KEY_VLD_HMAC_M;
+    }
+    if (kt == STUB_KM_KEY_TYPE_DS) {
+        return KEYMNG_KEY_VLD_DS_M;
+    }
+    if (kt == STUB_KM_KEY_TYPE_PSRAM_XTS_AES) {
+        return KEYMNG_KEY_VLD_PSRAM_M;
+    }
     return 0U;
 }
 
-bool stub_target_km_is_key_deployment_valid(stub_km_key_type_t key_type,
-                                            stub_km_key_len_t key_len)
+bool stub_target_km_is_key_deployment_valid(stub_km_key_type_t key_type, stub_km_key_len_t key_len)
 {
     uint32_t mask = key_vld_mask(key_type, key_len);
     if (mask == 0U) {
@@ -404,21 +413,33 @@ void stub_target_km_set_key_usage(stub_km_key_type_t key_type, bool use_own_key)
  * The check unrolls the 6 slots inline — a slots[] table would land in
  * .rodata, which the plugin linker script forbids ("Plugin must not have
  * initialized .data — use BSS instead"). */
-#define EFUSE_C5_KEY_PURPOSE_MASK         0x1FU
-#define EFUSE_C5_KM_INIT_KEY_PURPOSE_VAL  12U
+#define EFUSE_C5_KEY_PURPOSE_MASK        0x1FU
+#define EFUSE_C5_KM_INIT_KEY_PURPOSE_VAL 12U
 
 bool stub_target_km_is_efuse_init_key_burned(void)
 {
     uint32_t r34 = REG_READ(DR_REG_EFUSE_BASE + 0x34);
     uint32_t r38 = REG_READ(DR_REG_EFUSE_BASE + 0x38);
-    const uint32_t mask   = EFUSE_C5_KEY_PURPOSE_MASK;
+    const uint32_t mask = EFUSE_C5_KEY_PURPOSE_MASK;
     const uint32_t target = EFUSE_C5_KM_INIT_KEY_PURPOSE_VAL;
 
-    if (((r34 >> 22) & mask) == target) { return true; }  /* KEY0 */
-    if (((r34 >> 27) & mask) == target) { return true; }  /* KEY1 */
-    if (((r38 >>  0) & mask) == target) { return true; }  /* KEY2 */
-    if (((r38 >>  5) & mask) == target) { return true; }  /* KEY3 */
-    if (((r38 >> 10) & mask) == target) { return true; }  /* KEY4 */
-    if (((r38 >> 15) & mask) == target) { return true; }  /* KEY5 */
+    if (((r34 >> 22) & mask) == target) {
+        return true;
+    } /* KEY0 */
+    if (((r34 >> 27) & mask) == target) {
+        return true;
+    } /* KEY1 */
+    if (((r38 >> 0) & mask) == target) {
+        return true;
+    } /* KEY2 */
+    if (((r38 >> 5) & mask) == target) {
+        return true;
+    } /* KEY3 */
+    if (((r38 >> 10) & mask) == target) {
+        return true;
+    } /* KEY4 */
+    if (((r38 >> 15) & mask) == target) {
+        return true;
+    } /* KEY5 */
     return false;
 }

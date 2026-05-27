@@ -45,10 +45,8 @@ static void km_write_mem(uint32_t reg, const uint8_t *src, size_t len)
 {
     uint32_t i = 0;
     while (i + 4 <= len) {
-        uint32_t word = ((uint32_t)src[i])
-                      | ((uint32_t)src[i + 1] << 8)
-                      | ((uint32_t)src[i + 2] << 16)
-                      | ((uint32_t)src[i + 3] << 24);
+        uint32_t word = ((uint32_t)src[i]) | ((uint32_t)src[i + 1] << 8) | ((uint32_t)src[i + 2] << 16) |
+                        ((uint32_t)src[i + 3] << 24);
         REG_WRITE(reg + i, word);
         i += 4;
     }
@@ -111,9 +109,7 @@ int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf)
         return -1;
     }
 
-    int rom_mode = (mode == STUB_HUK_MODE_GENERATE)
-                       ? HUK_ROM_MODE_GEN
-                       : HUK_ROM_MODE_RECOVER;
+    int rom_mode = (mode == STUB_HUK_MODE_GENERATE) ? HUK_ROM_MODE_GEN : HUK_ROM_MODE_RECOVER;
 
     /* P4 doesn't need the LP_AON PUF SRAM recharge that C5 requires on cold
      * boot — SOC_HUK_MEM_NEEDS_RECHARGE=0 in IDF's P4 soc_caps. The ROM
@@ -144,13 +140,11 @@ void stub_target_km_bringup(void)
      * sequence via PCR registers. */
 
     /* Bus clock + crypto peripheral clocks. */
-    REG_SET_BIT(HP_SYS_CLKRST_SOC_CLK_CTRL1_REG,
-                HP_SYS_CLKRST_KEY_MANAGER_SYS_CLK_EN_M);
+    REG_SET_BIT(HP_SYS_CLKRST_SOC_CLK_CTRL1_REG, HP_SYS_CLKRST_KEY_MANAGER_SYS_CLK_EN_M);
 
     REG_SET_BIT(HP_SYS_CLKRST_PERI_CLK_CTRL25_REG,
-                HP_SYS_CLKRST_CRYPTO_KM_CLK_EN_M
-                | HP_SYS_CLKRST_CRYPTO_ECC_CLK_EN_M
-                | HP_SYS_CLKRST_CRYPTO_ECDSA_CLK_EN_M);
+                HP_SYS_CLKRST_CRYPTO_KM_CLK_EN_M | HP_SYS_CLKRST_CRYPTO_ECC_CLK_EN_M |
+                    HP_SYS_CLKRST_CRYPTO_ECDSA_CLK_EN_M);
 
     /* Reset pulse for KM, then leave reset clear. */
     REG_SET_BIT(HP_SYS_CLKRST_HP_RST_EN2_REG, HP_SYS_CLKRST_RST_EN_KM_M);
@@ -159,9 +153,7 @@ void stub_target_km_bringup(void)
     /* Clear parent crypto reset + ECC / ECDSA resets so the KM can drive
      * the external ECC block during ECDH0 / ECDH1 deploys. */
     REG_CLR_BIT(HP_SYS_CLKRST_HP_RST_EN2_REG,
-                HP_SYS_CLKRST_RST_EN_CRYPTO_M
-                | HP_SYS_CLKRST_RST_EN_ECC_M
-                | HP_SYS_CLKRST_RST_EN_ECDSA_M);
+                HP_SYS_CLKRST_RST_EN_CRYPTO_M | HP_SYS_CLKRST_RST_EN_ECC_M | HP_SYS_CLKRST_RST_EN_ECDSA_M);
 
     /* Wait for KM to settle into IDLE before any subsequent register
      * access. Reading state before this point can return non-IDLE
@@ -223,7 +215,7 @@ void stub_target_km_set_xts_aes_key_len(stub_km_key_type_t key_type, bool use_25
     } else if (key_type == STUB_KM_KEY_TYPE_PSRAM_XTS_AES) {
         shift = KEYMNG_PSRAM_KEY_LEN_S;
     } else {
-        return;  /* not an XTS-AES key type — KM ignores the len bit */
+        return; /* not an XTS-AES key type — KM ignores the len bit */
     }
     if (use_256) {
         REG_SET_BIT(KEYMNG_STATIC_REG, 1U << shift);
@@ -293,19 +285,32 @@ static uint32_t key_type_bit(stub_km_key_type_t key_type)
 static uint32_t key_vld_mask(stub_km_key_type_t kt, stub_km_key_len_t kl)
 {
     if (kt == STUB_KM_KEY_TYPE_ECDSA) {
-        if (kl == STUB_KM_KEY_LEN_ECDSA_192) { return KEYMNG_KEY_VLD_ECDSA_192_M; }
-        if (kl == STUB_KM_KEY_LEN_ECDSA_256) { return KEYMNG_KEY_VLD_ECDSA_256_M; }
-        if (kl == STUB_KM_KEY_LEN_ECDSA_384) { return KEYMNG_KEY_VLD_ECDSA_384_M; }
+        if (kl == STUB_KM_KEY_LEN_ECDSA_192) {
+            return KEYMNG_KEY_VLD_ECDSA_192_M;
+        }
+        if (kl == STUB_KM_KEY_LEN_ECDSA_256) {
+            return KEYMNG_KEY_VLD_ECDSA_256_M;
+        }
+        if (kl == STUB_KM_KEY_LEN_ECDSA_384) {
+            return KEYMNG_KEY_VLD_ECDSA_384_M;
+        }
     }
-    if (kt == STUB_KM_KEY_TYPE_FLASH_XTS_AES) { return KEYMNG_KEY_VLD_FLASH_M; }
-    if (kt == STUB_KM_KEY_TYPE_HMAC)          { return KEYMNG_KEY_VLD_HMAC_M; }
-    if (kt == STUB_KM_KEY_TYPE_DS)            { return KEYMNG_KEY_VLD_DS_M; }
-    if (kt == STUB_KM_KEY_TYPE_PSRAM_XTS_AES) { return KEYMNG_KEY_VLD_PSRAM_M; }
+    if (kt == STUB_KM_KEY_TYPE_FLASH_XTS_AES) {
+        return KEYMNG_KEY_VLD_FLASH_M;
+    }
+    if (kt == STUB_KM_KEY_TYPE_HMAC) {
+        return KEYMNG_KEY_VLD_HMAC_M;
+    }
+    if (kt == STUB_KM_KEY_TYPE_DS) {
+        return KEYMNG_KEY_VLD_DS_M;
+    }
+    if (kt == STUB_KM_KEY_TYPE_PSRAM_XTS_AES) {
+        return KEYMNG_KEY_VLD_PSRAM_M;
+    }
     return 0U;
 }
 
-bool stub_target_km_is_key_deployment_valid(stub_km_key_type_t key_type,
-                                            stub_km_key_len_t key_len)
+bool stub_target_km_is_key_deployment_valid(stub_km_key_type_t key_type, stub_km_key_len_t key_len)
 {
     uint32_t mask = key_vld_mask(key_type, key_len);
     if (mask == 0U) {
@@ -343,21 +348,33 @@ void stub_target_km_set_key_usage(stub_km_key_type_t key_type, bool use_own_key)
  * The check unrolls the 6 slots inline — a slots[] table would land in
  * .rodata, which the plugin linker script forbids ("Plugin must not have
  * initialized .data — use BSS instead"). */
-#define EFUSE_P4_KEY_PURPOSE_MASK         0xFU
-#define EFUSE_P4_KM_INIT_KEY_PURPOSE_VAL  12U
+#define EFUSE_P4_KEY_PURPOSE_MASK        0xFU
+#define EFUSE_P4_KM_INIT_KEY_PURPOSE_VAL 12U
 
 bool stub_target_km_is_efuse_init_key_burned(void)
 {
     uint32_t r34 = REG_READ(DR_REG_EFUSE_BASE + 0x34);
     uint32_t r38 = REG_READ(DR_REG_EFUSE_BASE + 0x38);
-    const uint32_t mask   = EFUSE_P4_KEY_PURPOSE_MASK;
+    const uint32_t mask = EFUSE_P4_KEY_PURPOSE_MASK;
     const uint32_t target = EFUSE_P4_KM_INIT_KEY_PURPOSE_VAL;
 
-    if (((r34 >> 24) & mask) == target) { return true; }  /* KEY0 */
-    if (((r34 >> 28) & mask) == target) { return true; }  /* KEY1 */
-    if (((r38 >>  0) & mask) == target) { return true; }  /* KEY2 */
-    if (((r38 >>  4) & mask) == target) { return true; }  /* KEY3 */
-    if (((r38 >>  8) & mask) == target) { return true; }  /* KEY4 */
-    if (((r38 >> 12) & mask) == target) { return true; }  /* KEY5 */
+    if (((r34 >> 24) & mask) == target) {
+        return true;
+    } /* KEY0 */
+    if (((r34 >> 28) & mask) == target) {
+        return true;
+    } /* KEY1 */
+    if (((r38 >> 0) & mask) == target) {
+        return true;
+    } /* KEY2 */
+    if (((r38 >> 4) & mask) == target) {
+        return true;
+    } /* KEY3 */
+    if (((r38 >> 8) & mask) == target) {
+        return true;
+    } /* KEY4 */
+    if (((r38 >> 12) & mask) == target) {
+        return true;
+    } /* KEY5 */
     return false;
 }

@@ -29,16 +29,16 @@ extern "C" {
 
 /* ---------- Constants ---------------------------------------------------- */
 
-#define STUB_KM_K2_INFO_SIZE          64
-#define STUB_KM_K1_ENCRYPTED_SIZE     32
-#define STUB_KM_ECDH0_INFO_SIZE       64  /* k1*G or k2*G as LE-x || LE-y */
-#define STUB_KM_KEY_RECOVERY_INFO_SIZE 64 /* per slot, before CRC */
-#define STUB_KM_HUK_INFO_SIZE        660  /* Matches IDF HUK_INFO_LEN in rom/km.h */
-#define STUB_KM_SW_INIT_KEY_SIZE      32
+#define STUB_KM_K2_INFO_SIZE           64
+#define STUB_KM_K1_ENCRYPTED_SIZE      32
+#define STUB_KM_ECDH0_INFO_SIZE        64  /* k1*G or k2*G as LE-x || LE-y */
+#define STUB_KM_KEY_RECOVERY_INFO_SIZE 64  /* per slot, before CRC */
+#define STUB_KM_HUK_INFO_SIZE          660 /* Matches IDF HUK_INFO_LEN in rom/km.h */
+#define STUB_KM_SW_INIT_KEY_SIZE       32
 #define STUB_KM_HUK_RISK_ALERT_LEVEL   4
 
 /* Magic for the on-flash key_recovery_info partition (matches IDF). */
-#define STUB_KM_KEY_HUK_SECTOR_MAGIC  0xDEA5CE5AU
+#define STUB_KM_KEY_HUK_SECTOR_MAGIC   0xDEA5CE5AU
 
 /* ---------- Enums (match IDF wire types) -------------------------------- */
 
@@ -51,35 +51,35 @@ typedef enum {
 
 typedef enum {
     STUB_KM_KEYGEN_MODE_RANDOM = 0,
-    STUB_KM_KEYGEN_MODE_AES    = 1,
-    STUB_KM_KEYGEN_MODE_ECDH0  = 2,
-    STUB_KM_KEYGEN_MODE_ECDH1  = 3,
+    STUB_KM_KEYGEN_MODE_AES = 1,
+    STUB_KM_KEYGEN_MODE_ECDH0 = 2,
+    STUB_KM_KEYGEN_MODE_ECDH1 = 3,
     STUB_KM_KEYGEN_MODE_RECOVER = 4,
     STUB_KM_KEYGEN_MODE_EXPORT = 5,
 } stub_km_keygen_mode_t;
 
 typedef enum {
-    STUB_KM_KEY_PURPOSE_INVALID    = 0,
-    STUB_KM_KEY_PURPOSE_ECDSA_192  = 1,
-    STUB_KM_KEY_PURPOSE_ECDSA_256  = 2,
+    STUB_KM_KEY_PURPOSE_INVALID = 0,
+    STUB_KM_KEY_PURPOSE_ECDSA_192 = 1,
+    STUB_KM_KEY_PURPOSE_ECDSA_256 = 2,
     STUB_KM_KEY_PURPOSE_FLASH_256_1 = 3,
     STUB_KM_KEY_PURPOSE_FLASH_256_2 = 4,
-    STUB_KM_KEY_PURPOSE_FLASH_128  = 5,
-    STUB_KM_KEY_PURPOSE_HMAC       = 6,
-    STUB_KM_KEY_PURPOSE_DS         = 7,
+    STUB_KM_KEY_PURPOSE_FLASH_128 = 5,
+    STUB_KM_KEY_PURPOSE_HMAC = 6,
+    STUB_KM_KEY_PURPOSE_DS = 7,
     STUB_KM_KEY_PURPOSE_PSRAM_256_1 = 8,
     STUB_KM_KEY_PURPOSE_PSRAM_256_2 = 9,
-    STUB_KM_KEY_PURPOSE_PSRAM_128  = 10,
+    STUB_KM_KEY_PURPOSE_PSRAM_128 = 10,
     STUB_KM_KEY_PURPOSE_ECDSA_384_L = 11,
     STUB_KM_KEY_PURPOSE_ECDSA_384_H = 12,
 } stub_km_key_purpose_t;
 
 typedef enum {
-    STUB_KM_KEY_TYPE_ECDSA          = 0,
-    STUB_KM_KEY_TYPE_FLASH_XTS_AES  = 1,
-    STUB_KM_KEY_TYPE_HMAC           = 2,
-    STUB_KM_KEY_TYPE_DS             = 3,
-    STUB_KM_KEY_TYPE_PSRAM_XTS_AES  = 4,
+    STUB_KM_KEY_TYPE_ECDSA = 0,
+    STUB_KM_KEY_TYPE_FLASH_XTS_AES = 1,
+    STUB_KM_KEY_TYPE_HMAC = 2,
+    STUB_KM_KEY_TYPE_DS = 3,
+    STUB_KM_KEY_TYPE_PSRAM_XTS_AES = 4,
 } stub_km_key_type_t;
 
 typedef enum {
@@ -92,7 +92,7 @@ typedef enum {
 } stub_km_key_len_t;
 
 typedef enum {
-    STUB_HUK_MODE_RECOVER  = 0,
+    STUB_HUK_MODE_RECOVER = 0,
     STUB_HUK_MODE_GENERATE = 1,
 } stub_huk_mode_t;
 
@@ -160,8 +160,7 @@ bool stub_target_km_is_huk_valid(void);
 /* Reads KEYMNG_KEY_VLD_REG bit corresponding to the given (key_type, key_len).
  * The KEY_VLD encoding is split by ECDSA length — pass the same key_len
  * the deploy operation used. */
-bool stub_target_km_is_key_deployment_valid(stub_km_key_type_t key_type,
-                                            stub_km_key_len_t key_len);
+bool stub_target_km_is_key_deployment_valid(stub_km_key_type_t key_type, stub_km_key_len_t key_len);
 
 /**
  * @brief Configure KEYMNG_USE_EFUSE_KEY for a given key type.
