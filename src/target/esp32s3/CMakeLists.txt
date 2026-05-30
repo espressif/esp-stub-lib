@@ -9,6 +9,7 @@ set(srcs
     src/clock.c
     src/aes_xts.c
     src/nand.c
+    src/sdmmc.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
