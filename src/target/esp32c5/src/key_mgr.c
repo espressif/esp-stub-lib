@@ -19,10 +19,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <esp-stub-lib/bit_utils.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <err.h>
 #include <target/key_mgr.h>
 
+#include <soc/efuse_reg.h>
 #include <soc/huk_reg.h>
 #include <soc/keymng_reg.h>
 
@@ -122,7 +126,8 @@ static void huk_recharge_puf_memory(void)
 int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf)
 {
     if (huk_info_buf == NULL) {
-        return -1;
+        STUB_LOGE("huk_info_buf is NULL\n");
+        return STUB_LIB_ERR_INVALID_ARG;
     }
     /* Clear FORCE_PD and assert FORCE_PU.  Clearing PD alone is enough for
      * the HUK Generator's own readout, but the KM peripheral's view of HUK
@@ -163,7 +168,11 @@ int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf)
         (void)esp_rom_km_huk_conf(rom_mode, huk_info_buf);
         stub_target_huk_get_status(&gen, NULL);
     }
-    return (gen == 1U) ? 0 : -1;
+    if (gen != 1U) {
+        STUB_LOGE("HUK Generator did not report gen_status=1 (got %u)\n", (unsigned)gen);
+        return STUB_LIB_FAIL;
+    }
+    return STUB_LIB_OK;
 }
 
 /* ---------- Key Manager bring-up ---------------------------------------- */
@@ -216,7 +225,7 @@ void stub_target_km_bringup(void)
      * unresolved expectation interferes with subsequent HUK operations,
      * showing up empirically as cross-boot HUK recovery returning
      * gen=2/risk=7. The bit is at KEYMNG_USE_EFUSE_KEY[1] for FLASH. */
-    REG_SET_BIT(KEYMNG_STATIC_REG, 1U << 1);
+    REG_SET_BIT(KEYMNG_STATIC_REG, BIT(1));
 
     REG_SET_BIT(PCR_KM_PD_CTRL_REG, PCR_KM_MEM_FORCE_PU_M);
 
@@ -269,7 +278,7 @@ void stub_target_km_set_key_purpose(stub_km_key_purpose_t purpose)
 
 void stub_target_km_use_sw_init_key(void)
 {
-    REG_SET_BIT(KEYMNG_STATIC_REG, 1U << KEYMNG_USE_SW_INIT_KEY_S);
+    REG_SET_BIT(KEYMNG_STATIC_REG, BIT(KEYMNG_USE_SW_INIT_KEY_S));
 }
 
 void stub_target_km_set_xts_aes_key_len(stub_km_key_type_t key_type, bool use_256)
@@ -283,9 +292,9 @@ void stub_target_km_set_xts_aes_key_len(stub_km_key_type_t key_type, bool use_25
         return; /* not an XTS-AES key type — KM ignores the len bit */
     }
     if (use_256) {
-        REG_SET_BIT(KEYMNG_STATIC_REG, 1U << shift);
+        REG_SET_BIT(KEYMNG_STATIC_REG, BIT(shift));
     } else {
-        REG_CLR_BIT(KEYMNG_STATIC_REG, 1U << shift);
+        REG_CLR_BIT(KEYMNG_STATIC_REG, BIT(shift));
     }
 }
 
@@ -303,26 +312,46 @@ void stub_target_km_continue(void)
 
 void stub_target_km_write_sw_init_key(const uint8_t *buf, size_t len)
 {
+    if (buf == NULL) {
+        STUB_LOGE("write_sw_init_key: NULL buf\n");
+        return;
+    }
     km_write_mem(KEYMNG_SW_INIT_KEY_MEM, buf, len);
 }
 
 void stub_target_km_write_assist_info(const uint8_t *buf, size_t len)
 {
+    if (buf == NULL) {
+        STUB_LOGE("write_assist_info: NULL buf\n");
+        return;
+    }
     km_write_mem(KEYMNG_ASSIST_INFO_MEM, buf, len);
 }
 
 void stub_target_km_write_public_info(const uint8_t *buf, size_t len)
 {
+    if (buf == NULL) {
+        STUB_LOGE("write_public_info: NULL buf\n");
+        return;
+    }
     km_write_mem(KEYMNG_PUBLIC_INFO_MEM, buf, len);
 }
 
 void stub_target_km_read_assist_info(uint8_t *buf, size_t len)
 {
+    if (buf == NULL) {
+        STUB_LOGE("read_assist_info: NULL buf\n");
+        return;
+    }
     km_read_mem(KEYMNG_ASSIST_INFO_MEM, buf, len);
 }
 
 void stub_target_km_read_public_info(uint8_t *buf, size_t len)
 {
+    if (buf == NULL) {
+        STUB_LOGE("read_public_info: NULL buf\n");
+        return;
+    }
     km_read_mem(KEYMNG_PUBLIC_INFO_MEM, buf, len);
 }
 
@@ -341,7 +370,7 @@ static uint32_t key_type_bit(stub_km_key_type_t key_type)
     if ((unsigned)key_type > 4U) {
         return 0U;
     }
-    return 1U << (unsigned)key_type;
+    return BIT((unsigned)key_type);
 }
 
 /* Per-bit lookup for KEYMNG_KEY_VLD — explicitly enumerated because the
@@ -401,45 +430,34 @@ void stub_target_km_set_key_usage(stub_km_key_type_t key_type, bool use_own_key)
 
 /* ---------- eFuse: KM_INIT_KEY presence ---------------------------------- */
 
-/* ESP32-C5 key purpose layout (esptool/targets/esp32c5.py):
- *   KEY0_PURPOSE: EFUSE_BASE + 0x34, bits[26:22]  (5-bit field)
- *   KEY1_PURPOSE: EFUSE_BASE + 0x34, bits[31:27]
- *   KEY2_PURPOSE: EFUSE_BASE + 0x38, bits[ 4: 0]
- *   KEY3_PURPOSE: EFUSE_BASE + 0x38, bits[ 9: 5]
- *   KEY4_PURPOSE: EFUSE_BASE + 0x38, bits[14:10]
- *   KEY5_PURPOSE: EFUSE_BASE + 0x38, bits[19:15]
- * KM_INIT_KEY purpose value = 12 (matches IDF esp_efuse_chip.h).
- *
- * The check unrolls the 6 slots inline — a slots[] table would land in
- * .rodata, which the plugin linker script forbids ("Plugin must not have
- * initialized .data — use BSS instead"). */
-#define EFUSE_C5_KEY_PURPOSE_MASK        0x1FU
+/* Inline-unrolled to keep the slot table out of .rodata (plugin linker
+ * script forbids initialized .data). */
 #define EFUSE_C5_KM_INIT_KEY_PURPOSE_VAL 12U
 
 bool stub_target_km_is_efuse_init_key_burned(void)
 {
-    uint32_t r34 = REG_READ(DR_REG_EFUSE_BASE + 0x34);
-    uint32_t r38 = REG_READ(DR_REG_EFUSE_BASE + 0x38);
-    const uint32_t mask = EFUSE_C5_KEY_PURPOSE_MASK;
+    uint32_t data1 = REG_READ(EFUSE_RD_REPEAT_DATA1_REG);
+    uint32_t data2 = REG_READ(EFUSE_RD_REPEAT_DATA2_REG);
+    const uint32_t mask = EFUSE_C5_KEY_PURPOSE_M;
     const uint32_t target = EFUSE_C5_KM_INIT_KEY_PURPOSE_VAL;
 
-    if (((r34 >> 22) & mask) == target) {
+    if (((data1 >> EFUSE_C5_KEY0_PURPOSE_IN_DATA1_S) & mask) == target) {
         return true;
-    } /* KEY0 */
-    if (((r34 >> 27) & mask) == target) {
+    }
+    if (((data1 >> EFUSE_C5_KEY1_PURPOSE_IN_DATA1_S) & mask) == target) {
         return true;
-    } /* KEY1 */
-    if (((r38 >> 0) & mask) == target) {
+    }
+    if (((data2 >> EFUSE_C5_KEY2_PURPOSE_IN_DATA2_S) & mask) == target) {
         return true;
-    } /* KEY2 */
-    if (((r38 >> 5) & mask) == target) {
+    }
+    if (((data2 >> EFUSE_C5_KEY3_PURPOSE_IN_DATA2_S) & mask) == target) {
         return true;
-    } /* KEY3 */
-    if (((r38 >> 10) & mask) == target) {
+    }
+    if (((data2 >> EFUSE_C5_KEY4_PURPOSE_IN_DATA2_S) & mask) == target) {
         return true;
-    } /* KEY4 */
-    if (((r38 >> 15) & mask) == target) {
+    }
+    if (((data2 >> EFUSE_C5_KEY5_PURPOSE_IN_DATA2_S) & mask) == target) {
         return true;
-    } /* KEY5 */
+    }
     return false;
 }

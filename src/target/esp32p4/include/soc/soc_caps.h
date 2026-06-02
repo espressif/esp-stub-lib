@@ -9,6 +9,7 @@
 /*-------------------------- COMMON CAPS ---------------------------------------*/
 #define SOC_UART_HP_NUM             (5)     /*!< HP UART number */
 #define SOC_UART_HAS_SYNC_REG_UPDATE 1
+#define SOC_KEY_MANAGER_SUPPORTED   1
 
 // Memory Caps
 #define SOC_RTC_FAST_MEM_SUPPORTED  1
