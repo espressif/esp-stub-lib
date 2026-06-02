@@ -26,11 +26,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <err.h>
+
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
-#include <err.h>
 #include <target/key_mgr.h>
 
 #include <soc/efuse_reg.h>

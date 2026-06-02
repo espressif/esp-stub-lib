@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include <err.h>
+
 #include <target/key_mgr.h>
 
 /*
