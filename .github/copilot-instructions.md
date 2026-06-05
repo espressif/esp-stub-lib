@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-**esp-stub-lib** is an experimental C library for creating flash stubs that can be loaded onto Espressif ESP chips. It uses a three-layer architecture to maximize code reuse across multiple ESP chip targets while eliminating circular dependencies.
+**esp-stub-lib** is a C library for creating flash stubs that can be loaded onto Espressif ESP chips. It uses a three-layer architecture to maximize code reuse across multiple ESP chip targets while eliminating circular dependencies.
 
 **Language/Tools:** C (C17), CMake, Ninja, Python, pre-commit hooks
 **Supported Targets:** ESP8266, ESP32, ESP32-S2, ESP32-S3, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-C61, ESP32-H2, ESP32-H21, ESP32-H4, ESP32-P4 (including P4-rev1), ESP32-S31
@@ -331,7 +331,6 @@ The common layer provides **weak** implementations that work generically. Target
 
 ## Important Notes
 
-- **Experimental status:** This library is not production-ready (stated in README)
 - **No tests:** There is no test infrastructure in this repository
 - **Build artifacts:** Use `.gitignore` to exclude `build/`, `toolchain/`, and temporary files
 - **Documentation:** Update README.md if adding significant new features
