@@ -2,7 +2,7 @@
 
 # esp-stub-lib
 
-This project is experimental and not yet ready for production use.
+**esp-stub-lib** is a C library for creating flash stubs that can be loaded onto Espressif ESP chips.
 
 ## Supported Targets
 
@@ -23,7 +23,7 @@ This project is experimental and not yet ready for production use.
 
 ## How to use
 
-The library provides a simple interface for creating stubs that can be loaded onto ESP chips.
+The library provides a simple interface for creating stubs.
 
 A complete example project is provided in the [example](example/) directory. It demonstrates:
 - Basic stub implementation
