@@ -20,6 +20,8 @@
 
 extern void Cache_Freeze_Enable(uint32_t map, int mode);
 extern void Cache_Freeze_Disable(uint32_t map);
+extern uint32_t Cache_Suspend_Cache(uint32_t map);
+extern void Cache_Resume_Cache(uint32_t map, uint32_t autoload);
 extern void Cache_Invalidate_All(uint32_t map);
 extern int Cache_Invalidate_Addr(uint32_t map, uint32_t addr, uint32_t size);
 extern void Cache_WriteBack_All(void);
@@ -31,6 +33,8 @@ extern void ROM_Boot_Cache_Init(void);
 #define CACHE_MAP_DCACHE      BIT(4)
 #define CACHE_MAP_ALL         (CACHE_MAP_ICACHE0 | CACHE_MAP_ICACHE1 | CACHE_MAP_DCACHE)
 #define CACHE_FREEZE_ACK_BUSY 0
+
+static uint32_t s_saved_autoload;
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -59,10 +63,20 @@ void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
 
 void stub_target_cache_stop(void)
 {
-    Cache_Freeze_Enable(CACHE_MAP_ALL, CACHE_FREEZE_ACK_BUSY);
+    s_saved_autoload = Cache_Suspend_Cache(CACHE_MAP_ALL);
 }
 
 void stub_target_cache_start(void)
+{
+    Cache_Resume_Cache(CACHE_MAP_ALL, s_saved_autoload);
+}
+
+void stub_target_cache_freeze(void)
+{
+    Cache_Freeze_Enable(CACHE_MAP_ALL, CACHE_FREEZE_ACK_BUSY);
+}
+
+void stub_target_cache_unfreeze(void)
 {
     Cache_Freeze_Disable(CACHE_MAP_ALL);
 }
