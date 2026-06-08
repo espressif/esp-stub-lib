@@ -58,7 +58,9 @@ extern "C" {
 #define HUK_RISK_LEVEL_S      2U
 #define HUK_RISK_LEVEL_M      0x7U
 
-/** HUK_INFO_MEM: 384-byte memory block holding huk_info. Used for
+/** HUK_INFO_MEM: 384-byte MMIO window — NOT the full huk_info. The ROM
+ *  routine esp_rom_km_huk_conf iterates this window across multiple passes to
+ *  read/write the full STUB_KM_HUK_INFO_SIZE (660) byte huk_info blob during
  *  generation (read out) and recovery (write in). */
 #define HUK_INFO_MEM          (DR_REG_HUK_BASE + 0x0100)
 #define HUK_INFO_MEM_SIZE     384

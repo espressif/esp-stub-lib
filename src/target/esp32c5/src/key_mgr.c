@@ -176,6 +176,13 @@ int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf)
     return STUB_LIB_OK;
 }
 
+/* ---------- Capability -------------------------------------------------- */
+
+bool stub_target_km_is_supported(void)
+{
+    return true; /* ESP32-C5: Key Manager (660-byte HUK) on all revisions */
+}
+
 /* ---------- Key Manager bring-up ---------------------------------------- */
 
 void stub_target_km_bringup(void)
@@ -225,8 +232,9 @@ void stub_target_km_bringup(void)
      * to materialise on a chip without flash encryption — and that
      * unresolved expectation interferes with subsequent HUK operations,
      * showing up empirically as cross-boot HUK recovery returning
-     * gen=2/risk=7. The bit is at KEYMNG_USE_EFUSE_KEY[1] for FLASH. */
-    REG_SET_BIT(KEYMNG_STATIC_REG, BIT(1));
+     * gen=2/risk=7. USE_EFUSE_KEY is keyed by key type, so derive the bit
+     * from the enum rather than a literal to track any enum reordering. */
+    REG_SET_BIT(KEYMNG_STATIC_REG, BIT(STUB_KM_KEY_TYPE_FLASH_XTS_AES));
 
     REG_SET_BIT(PCR_KM_PD_CTRL_REG, PCR_KM_MEM_FORCE_PU_M);
 
@@ -317,6 +325,9 @@ void stub_target_km_write_sw_init_key(const uint8_t *buf, size_t len)
         STUB_LOGE("write_sw_init_key: NULL buf\n");
         return;
     }
+    if (len > KEYMNG_SW_INIT_KEY_MEM_SIZE) {
+        len = KEYMNG_SW_INIT_KEY_MEM_SIZE; /* never spill past the MMIO window */
+    }
     km_write_mem(KEYMNG_SW_INIT_KEY_MEM, buf, len);
 }
 
@@ -325,6 +336,9 @@ void stub_target_km_write_assist_info(const uint8_t *buf, size_t len)
     if (buf == NULL) {
         STUB_LOGE("write_assist_info: NULL buf\n");
         return;
+    }
+    if (len > KEYMNG_ASSIST_INFO_MEM_SIZE) {
+        len = KEYMNG_ASSIST_INFO_MEM_SIZE;
     }
     km_write_mem(KEYMNG_ASSIST_INFO_MEM, buf, len);
 }
@@ -335,6 +349,9 @@ void stub_target_km_write_public_info(const uint8_t *buf, size_t len)
         STUB_LOGE("write_public_info: NULL buf\n");
         return;
     }
+    if (len > KEYMNG_PUBLIC_INFO_MEM_SIZE) {
+        len = KEYMNG_PUBLIC_INFO_MEM_SIZE;
+    }
     km_write_mem(KEYMNG_PUBLIC_INFO_MEM, buf, len);
 }
 
@@ -344,6 +361,9 @@ void stub_target_km_read_assist_info(uint8_t *buf, size_t len)
         STUB_LOGE("read_assist_info: NULL buf\n");
         return;
     }
+    if (len > KEYMNG_ASSIST_INFO_MEM_SIZE) {
+        len = KEYMNG_ASSIST_INFO_MEM_SIZE;
+    }
     km_read_mem(KEYMNG_ASSIST_INFO_MEM, buf, len);
 }
 
@@ -352,6 +372,9 @@ void stub_target_km_read_public_info(uint8_t *buf, size_t len)
     if (buf == NULL) {
         STUB_LOGE("read_public_info: NULL buf\n");
         return;
+    }
+    if (len > KEYMNG_PUBLIC_INFO_MEM_SIZE) {
+        len = KEYMNG_PUBLIC_INFO_MEM_SIZE;
     }
     km_read_mem(KEYMNG_PUBLIC_INFO_MEM, buf, len);
 }

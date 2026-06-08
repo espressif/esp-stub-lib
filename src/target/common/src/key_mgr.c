@@ -36,6 +36,11 @@ int __attribute__((weak)) stub_target_huk_configure(stub_huk_mode_t mode, uint8_
     return STUB_LIB_FAIL;
 }
 
+bool __attribute__((weak)) stub_target_km_is_supported(void)
+{
+    return false; /* no Key Manager on this chip/revision by default */
+}
+
 void __attribute__((weak)) stub_target_km_bringup(void)
 {
 }

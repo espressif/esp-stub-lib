@@ -3,8 +3,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  *
- * Public API for the Key Manager peripheral on ESP32-P4 (>= v3.0) and
- * ESP32-C5 (any revision).
+ * Internal target HAL interface for the Key Manager peripheral on
+ * ESP32-P4 (>= v3.0) and ESP32-C5 (any revision). This is a target-private
+ * interface, not part of the library's public API under include/esp-stub-lib/.
  *
  * This header is the contract between the keymanager stub plugin and the
  * chip-specific HAL implementation. The plugin uses these accessors to
@@ -110,13 +111,32 @@ void stub_target_huk_get_status(uint8_t *gen_status, uint8_t *risk_level);
  * @brief Drive the HUK Generator state machine through one cycle.
  *
  * In GENERATE mode, populates @p huk_info_buf with the freshly generated
- * 384-byte HUK info. In RECOVER mode, @p huk_info_buf is loaded into the
- * HUK and the function returns ESP_OK once the HUK is valid.
+ * huk_info. In RECOVER mode, @p huk_info_buf is loaded into the HUK and the
+ * function returns 0 once the HUK is valid.
+ *
+ * @p huk_info_buf must be STUB_KM_HUK_INFO_SIZE (660) bytes. The 660-byte
+ * blob is the caller-facing huk_info (IDF HUK_INFO_LEN); esp_rom_km_huk_conf
+ * fills/consumes it by iterating the HUK state machine over the 384-byte
+ * HUK_INFO_MEM MMIO window across multiple passes. (384 = hardware window,
+ * 660 = persisted blob — not the same thing.)
  *
  * @return 0 on success; negative if HUK could not be brought to a valid
  * state (for RECOVER) or if HUK generation failed (for GENERATE).
  */
 int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf);
+
+/* ---------- Capability -------------------------------------------------- */
+
+/**
+ * @brief Whether this chip/revision supports the Key Manager flow this HAL
+ * implements (the 660-byte HUK_INFO generation/recovery).
+ *
+ * ESP32-C5: true on all revisions. ESP32-P4: true only for >= v3.0 (ROM
+ * ECO >= 5); earlier P4 silicon used a 384-byte HUK and is not supported.
+ * Callers must check this before driving any other stub_target_km_* /
+ * stub_target_huk_* operation.
+ */
+bool stub_target_km_is_supported(void);
 
 /* ---------- Key Manager bring-up ---------------------------------------- */
 
@@ -146,6 +166,10 @@ void stub_target_km_continue(void);
 
 /* ---------- KM memory I/O (LOAD / GAIN phases) -------------------------- */
 
+/* @p len must not exceed the destination MMIO window: 32 bytes for the
+ * SW_INIT_KEY block, 64 bytes for ASSIST_INFO / PUBLIC_INFO. The
+ * implementations clamp @p len to the window size as a safety net so an
+ * oversized len can never spill into adjacent KM registers. */
 void stub_target_km_write_sw_init_key(const uint8_t *buf, size_t len);
 void stub_target_km_write_assist_info(const uint8_t *buf, size_t len);
 void stub_target_km_write_public_info(const uint8_t *buf, size_t len);

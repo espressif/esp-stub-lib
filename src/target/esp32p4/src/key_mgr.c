@@ -119,7 +119,11 @@ int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf)
 
     /* P4 doesn't need the LP_AON PUF SRAM recharge that C5 requires on cold
      * boot — SOC_HUK_MEM_NEEDS_RECHARGE=0 in IDF's P4 soc_caps. The ROM
-     * HUK configure routine sequences power-up and state polling on its own. */
+     * HUK configure routine sequences power-up and state polling on its own.
+     *
+     * The return value is intentionally ignored: esp_rom_km_huk_conf always
+     * returns 0 (its result carries no information per the ROM source), so
+     * success is judged solely by HUK_STATUS gen_status == 1 below. */
     (void)esp_rom_km_huk_conf(rom_mode, huk_info_buf);
 
     uint8_t gen = 0;
@@ -129,6 +133,19 @@ int stub_target_huk_configure(stub_huk_mode_t mode, uint8_t *huk_info_buf)
         return STUB_LIB_FAIL;
     }
     return STUB_LIB_OK;
+}
+
+/* ---------- Capability -------------------------------------------------- */
+
+bool stub_target_km_is_supported(void)
+{
+    /* P4 KM uses the 660-byte HUK_INFO only on >= v3.0 (ROM ECO >= 5); earlier
+     * silicon had a 384-byte HUK and is unsupported. Wafer version lives in
+     * EFUSE_RD_MAC_SYS_2: major = (bit23 << 2) | major_lo[5:4] (matches esptool). */
+    uint32_t w = REG_READ(EFUSE_RD_MAC_SYS_2_REG);
+    uint32_t major = (((w >> 23) & 0x1U) << 2) |
+                     ((w >> EFUSE_WAFER_VERSION_MAJOR_LO_S) & EFUSE_WAFER_VERSION_MAJOR_LO_V);
+    return major >= 3U;
 }
 
 /* ---------- Key Manager bring-up ---------------------------------------- */
@@ -178,8 +195,11 @@ void stub_target_km_bringup(void)
      * decryption, which can interfere with subsequent HUK operations. The
      * HUK peripheral's own register/memory clock gates are configured by
      * the ROM huk_conf routine on demand — no separate setup needed here,
-     * unlike C5 which has LP_AON power control to drive. */
-    REG_SET_BIT(KEYMNG_STATIC_REG, BIT(1));
+     * unlike C5 which has LP_AON power control to drive.
+     *
+     * USE_EFUSE_KEY is keyed by key type, so derive the bit from the enum
+     * rather than a literal to track any enum reordering. */
+    REG_SET_BIT(KEYMNG_STATIC_REG, BIT(STUB_KM_KEY_TYPE_FLASH_XTS_AES));
 }
 
 /* ---------- Key Manager state machine ----------------------------------- */
@@ -252,6 +272,9 @@ void stub_target_km_write_sw_init_key(const uint8_t *buf, size_t len)
         STUB_LOGE("write_sw_init_key: NULL buf\n");
         return;
     }
+    if (len > KEYMNG_SW_INIT_KEY_MEM_SIZE) {
+        len = KEYMNG_SW_INIT_KEY_MEM_SIZE; /* never spill past the MMIO window */
+    }
     km_write_mem(KEYMNG_SW_INIT_KEY_MEM, buf, len);
 }
 
@@ -260,6 +283,9 @@ void stub_target_km_write_assist_info(const uint8_t *buf, size_t len)
     if (buf == NULL) {
         STUB_LOGE("write_assist_info: NULL buf\n");
         return;
+    }
+    if (len > KEYMNG_ASSIST_INFO_MEM_SIZE) {
+        len = KEYMNG_ASSIST_INFO_MEM_SIZE;
     }
     km_write_mem(KEYMNG_ASSIST_INFO_MEM, buf, len);
 }
@@ -270,6 +296,9 @@ void stub_target_km_write_public_info(const uint8_t *buf, size_t len)
         STUB_LOGE("write_public_info: NULL buf\n");
         return;
     }
+    if (len > KEYMNG_PUBLIC_INFO_MEM_SIZE) {
+        len = KEYMNG_PUBLIC_INFO_MEM_SIZE;
+    }
     km_write_mem(KEYMNG_PUBLIC_INFO_MEM, buf, len);
 }
 
@@ -279,6 +308,9 @@ void stub_target_km_read_assist_info(uint8_t *buf, size_t len)
         STUB_LOGE("read_assist_info: NULL buf\n");
         return;
     }
+    if (len > KEYMNG_ASSIST_INFO_MEM_SIZE) {
+        len = KEYMNG_ASSIST_INFO_MEM_SIZE;
+    }
     km_read_mem(KEYMNG_ASSIST_INFO_MEM, buf, len);
 }
 
@@ -287,6 +319,9 @@ void stub_target_km_read_public_info(uint8_t *buf, size_t len)
     if (buf == NULL) {
         STUB_LOGE("read_public_info: NULL buf\n");
         return;
+    }
+    if (len > KEYMNG_PUBLIC_INFO_MEM_SIZE) {
+        len = KEYMNG_PUBLIC_INFO_MEM_SIZE;
     }
     km_read_mem(KEYMNG_PUBLIC_INFO_MEM, buf, len);
 }
