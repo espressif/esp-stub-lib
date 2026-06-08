@@ -143,8 +143,8 @@ bool stub_target_km_is_supported(void)
      * silicon had a 384-byte HUK and is unsupported. Wafer version lives in
      * EFUSE_RD_MAC_SYS_2: major = (bit23 << 2) | major_lo[5:4] (matches esptool). */
     uint32_t w = REG_READ(EFUSE_RD_MAC_SYS_2_REG);
-    uint32_t major = (((w >> 23) & 0x1U) << 2) |
-                     ((w >> EFUSE_WAFER_VERSION_MAJOR_LO_S) & EFUSE_WAFER_VERSION_MAJOR_LO_V);
+    uint32_t major =
+        (((w >> 23) & 0x1U) << 2) | ((w >> EFUSE_WAFER_VERSION_MAJOR_LO_S) & EFUSE_WAFER_VERSION_MAJOR_LO_V);
     return major >= 3U;
 }
 
