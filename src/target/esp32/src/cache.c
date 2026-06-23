@@ -47,15 +47,14 @@ void stub_target_cache_writeback_all(void)
         Cache_Read_Enable_rom(0);
 
     volatile uint8_t *psram = (volatile uint8_t *)SOC_EXTRAM_DATA_LOW;
-    volatile int i = 0;
     bool lowhigh = DPORT_REG_GET_BIT(DPORT_PRO_CACHE_CTRL_REG, DPORT_PRO_DRAM_HL);
 
     STUB_LOGD("Writing back all cache (lowhigh: %d)\n", lowhigh);
 
     for (int x = 0; x < 1024 * 64; x += 32) {
-        i += psram[x];
+        (void)psram[x];
         if (lowhigh)
-            i += psram[x + (1024 * 1024 * 2)];
+            (void)psram[x + (1024 * 1024 * 2)];
     }
 
     if (!was_enabled)
