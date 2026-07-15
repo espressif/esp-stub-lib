@@ -7,6 +7,7 @@ set(common_srcs
     src/flash_4byte.c
     src/mem_utils.c
     src/security.c
+    src/key_mgr.c
     src/sha256.c
     src/sdio.c
     src/uart.c
