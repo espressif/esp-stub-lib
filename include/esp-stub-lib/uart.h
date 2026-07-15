@@ -55,6 +55,13 @@ void stub_lib_uart_wait_idle(uart_port_t uart_num);
 void stub_lib_uart_init(uart_port_t uart_num);
 
 /**
+ * @brief Get UART baud rate from the ROM download-mode UART device
+ *
+ * @return Baud rate, or 0 if ROM does not report a valid baud rate
+ */
+uint32_t stub_lib_uart_rominit_get_baudrate(void);
+
+/**
  * @brief Set UART baud rate
  *
  * @param uart_num UART port number

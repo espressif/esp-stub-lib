@@ -20,6 +20,14 @@ extern void esp_rom_isr_unmask(int int_num);
 extern uint8_t esp_rom_uart_tx_one_char(uint8_t ch);
 extern uint8_t esp_rom_uart_rx_one_char(void);
 
+typedef struct {
+    // ROM type is UartBautRate, but the field stores the actual integer baud.
+    int baud_rate;
+    // ... following fields not needed
+} uart_device_t;
+
+extern uart_device_t *esp_rom_get_uart_device(void);
+
 void stub_lib_uart_wait_idle(uart_port_t uart_num)
 {
     stub_target_uart_wait_idle(uart_num);
@@ -28,6 +36,15 @@ void stub_lib_uart_wait_idle(uart_port_t uart_num)
 void stub_lib_uart_init(uart_port_t uart_num)
 {
     stub_target_uart_init(uart_num);
+}
+
+uint32_t stub_lib_uart_rominit_get_baudrate(void)
+{
+    uart_device_t *uart = esp_rom_get_uart_device();
+    if (uart == NULL || uart->baud_rate <= 0) {
+        return 0;
+    }
+    return (uint32_t)uart->baud_rate;
 }
 
 void stub_lib_uart_rominit_set_baudrate(uart_port_t uart_num, uint32_t baudrate)
