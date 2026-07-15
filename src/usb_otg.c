@@ -42,7 +42,7 @@ typedef struct {
 // State
 static int s_usb_int_num = 0;
 static void (*s_rx_callback)(uint8_t) = NULL;
-static char s_cdcacm_txbuf[ACM_BYTES_PER_TX];
+static uint8_t s_cdcacm_txbuf[ACM_BYTES_PER_TX];
 static int s_cdcacm_txpos = 0;
 static uint32_t s_cdcacm_old_rts = 0;
 static volatile bool s_reset_requested = false;
@@ -113,10 +113,8 @@ uint8_t stub_lib_usb_otg_tx_one_char(uint8_t c)
 
 void stub_lib_usb_otg_tx_flush(void)
 {
-    if (s_cdcacm_txpos > 0) {
-        esp_rom_cdc_acm_fifo_fill(uart_acm_dev, (const uint8_t *)s_cdcacm_txbuf, s_cdcacm_txpos);
-        s_cdcacm_txpos = 0;
-    }
+    esp_rom_cdc_acm_fifo_fill(uart_acm_dev, s_cdcacm_txbuf, s_cdcacm_txpos);
+    s_cdcacm_txpos = 0;
 }
 
 void stub_lib_usb_otg_rx_async_enable(bool enable)

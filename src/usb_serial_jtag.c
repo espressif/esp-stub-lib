@@ -113,6 +113,13 @@ uint8_t stub_lib_usb_serial_jtag_tx_one_char(uint8_t c)
 void stub_lib_usb_serial_jtag_tx_flush(void)
 {
 #if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
+    /*
+     * USB-Serial-JTAG auto-flushes a full 64-byte FIFO. Per ESP-IDF's HAL,
+     * an immediate WR_DONE after that is a no-op; wait until the FIFO is
+     * writable so WR_DONE either commits pending bytes or sends the ZLP.
+     */
+    uint64_t timeout_us = 50000;
+    stub_target_wait_reg_bit_set(USB_SERIAL_JTAG_EP1_CONF_REG, USB_SERIAL_JTAG_SERIAL_IN_EP_DATA_FREE, &timeout_us);
     SET_PERI_REG_MASK(USB_SERIAL_JTAG_EP1_CONF_REG, USB_SERIAL_JTAG_WR_DONE);
 #endif
 }
