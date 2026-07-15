@@ -28,7 +28,10 @@ static esp_rom_spiflash_chip_t g_rom_flashchip_custom = {
 };
 
 extern int esp_rom_spiflash_write(uint32_t flash_addr, const void *data, uint32_t size);
-extern void esp_rom_spiflash_attach(void);
+/* ESP8266 ROM ABI: spi_flash_attach takes no arguments (unlike later chips).
+ * Use a distinct symbol name so LTO does not see conflicting prototypes with
+ * the common esp_rom_spiflash_attach(uint32_t, bool) declaration. */
+extern void esp8266_rom_spiflash_attach(void);
 extern void esp_rom_spiflash_select_padsfunc(void);
 
 void stub_target_reset_default_spi_pins(void)
@@ -65,7 +68,7 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy)
     (void)ishspi;
     (void)legacy;
     esp_rom_spiflash_select_padsfunc();
-    esp_rom_spiflash_attach();
+    esp8266_rom_spiflash_attach();
 }
 
 uint32_t stub_target_flash_get_flash_id(void)

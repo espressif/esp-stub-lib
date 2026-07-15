@@ -5,13 +5,13 @@
  */
 #include <stdint.h>
 
-int32_t __bswapsi2(int32_t u)
+int32_t __attribute__((used, externally_visible)) __bswapsi2(int32_t u)
 {
     return (int32_t)(((((uint32_t)u) & 0xff000000) >> 24) | ((((uint32_t)u) & 0x00ff0000) >> 8) |
                      ((((uint32_t)u) & 0x0000ff00) << 8) | ((((uint32_t)u) & 0x000000ff) << 24));
 }
 
-int64_t __ashldi3(int64_t a, int b)
+int64_t __attribute__((used, externally_visible)) __ashldi3(int64_t a, int b)
 {
     const int bits_in_word = 32;
 

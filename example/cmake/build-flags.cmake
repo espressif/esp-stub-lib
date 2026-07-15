@@ -27,6 +27,7 @@ set(ESP8266_COMPILER_FLAGS
     -mlongcalls
     -mtext-section-literals
     -DESP8266
+    -flto
 )
 
 set(RISCV_COMPILER_FLAGS
