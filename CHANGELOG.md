@@ -1,3 +1,17 @@
+## v1.2.0 (2026-07-16)
+
+### ✨ New Features
+
+- **uart**: expose ROM baudrate getter *(Jaroslav Burian - d875321)*
+
+### 🐛 Bug Fixes
+
+- **esp32p4**: Align stub DCDC handoff and run CPU at CPLL/2 *(Michael.B - 04c2c1d)*
+- **esp8266**: allow LTO builds *(vvzvlad - 974b471)*
+- **cache**: variable set but not used error *(erhankur - 4f277e2)*
+- handle USB full-packet flush termination *(Jaroslav Burian - 18225f8)*
+
+
 ## v1.1.2 (2026-05-25)
 
 ### 🐛 Bug Fixes
