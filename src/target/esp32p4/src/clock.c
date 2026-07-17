@@ -150,9 +150,9 @@ static void stub_target_apply_cpu_cpll_div2(void)
 
     /*
      * Upscale from ROM download ~100 MHz (CPLL/4) to 200 MHz (CPLL/2).
-     * Match IDF rtc_clk_cpu_freq_to_cpll_mhz(200) upscale order:
-     * APB -> SYS -> MEM -> CPU. Do not retouch LP_CLKRST_HP_ROOT_CLK_SRC_SEL
-     * or recalibrate CPLL — ROM already selected CPLL @ 400 MHz.
+     * Match IDF rtc_clk_cpu_freq_to_cpll_mhz(200): APB -> SYS -> MEM -> CPU,
+     * then switch root mux to CPLL last (ROM may still be on XTAL). Do not
+     * recalibrate CPLL.
      *
      * Divider register fields store (divider - 1), same as clk_ll_*_set_divider().
      */
@@ -171,6 +171,8 @@ static void stub_target_apply_cpu_cpll_div2(void)
     ctrl0 |= (1U << HP_SYS_CLKRST_REG_CPU_CLK_DIV_NUM_S);
     WRITE_PERI_REG(HP_SYS_CLKRST_ROOT_CLK_CTRL0_REG, ctrl0);
     stub_target_bus_update();
+
+    REG_SET_FIELD(LP_CLKRST_HP_CLK_CTRL_REG, LP_CLKRST_HP_ROOT_CLK_SRC_SEL, 1);
 }
 
 void stub_target_clock_init(void)
