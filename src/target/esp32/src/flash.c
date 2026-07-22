@@ -14,11 +14,18 @@
 
 #include <private/rom_flash.h>
 
+#include <soc/reg_base.h>
 #include <soc/spi_mem_compat.h>
 
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern uint8_t g_rom_spiflash_dummy_len_plus[];
+
+#define GPIO_STRAP_REG             (DR_REG_GPIO_BASE + 0x38)
+
+/* Boot-mode strap bits [4:2]. 0x08 => GPIO1 (U0TXD) low, HSPI flash mode. */
+#define ESP32_STRAP_BOOT_MODE_MASK 0x1cU
+#define ESP32_STRAP_HSPI_FLASH     0x08U
 
 enum {
     SPI_USER_REG_ID = 0,
@@ -164,6 +171,15 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
 
     if (attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach()) {
         uint32_t spiconfig = stub_target_flash_get_spiconfig_efuse();
+        /*
+         * Match ROM boot: if eFuse SPI pin config is default (0) and GPIO1
+         * (U0TXD) is strapped low with no other boot mode selected, flash is
+         * on HSPI pins.
+         */
+        uint32_t strapping = REG_READ(GPIO_STRAP_REG);
+        if (spiconfig == 0 && (strapping & ESP32_STRAP_BOOT_MODE_MASK) == ESP32_STRAP_HSPI_FLASH) {
+            spiconfig = 1; /* HSPI flash mode */
+        }
         stub_target_flash_attach(spiconfig, 0);
     } else {
         stub_target_spi_init();
