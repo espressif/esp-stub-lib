@@ -13,3 +13,5 @@
 // Memory Caps
 #define SOC_RTC_FAST_MEM_SUPPORTED  1
 #define SOC_RTC_MEM_SUPPORTED       1
+
+#define SOC_SPI_FLASH_4B_ADDR_SUPPORTED 1
