@@ -18,6 +18,14 @@
 #include <private/rom_flash.h>
 #include <private/rom_flash_config.h>
 
+#include <soc/soc_caps.h>
+
+#if defined(SOC_SPI_FLASH_4B_ADDR_SUPPORTED) && SOC_SPI_FLASH_4B_ADDR_SUPPORTED
+#define STUB_FLASH_4BYTE_ADDR_SUPPORTED 1
+#else
+#define STUB_FLASH_4BYTE_ADDR_SUPPORTED 0
+#endif
+
 extern void *memcpy(void *dest, const void *src, size_t n);
 
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
@@ -27,7 +35,7 @@ static bool large_flash_mode = false;
 
 static int flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)
 {
-    if (large_flash_mode) {
+    if (STUB_FLASH_4BYTE_ADDR_SUPPORTED && large_flash_mode) {
         return stub_target_flash_4byte_write(FLASH_SPI_NUM, addr, (const uint8_t *)buffer, size, encrypt);
     }
     return stub_target_flash_write_buff(addr, buffer, size, encrypt);
@@ -90,7 +98,7 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
         return_code = STUB_LIB_ERR_UNKNOWN_FLASH_ID;
     }
 
-    if (flash_size > MIB(16)) {
+    if (STUB_FLASH_4BYTE_ADDR_SUPPORTED && flash_size > MIB(16)) {
         large_flash_mode = true;
         if (enable_4byte_cache_mode) {
             stub_target_flash_set_4byte_cache_mode(true);
@@ -112,7 +120,7 @@ int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_po
 
 void stub_lib_flash_deinit(const void *state)
 {
-    if (large_flash_mode) {
+    if (STUB_FLASH_4BYTE_ADDR_SUPPORTED && large_flash_mode) {
         stub_target_flash_set_4byte_cache_mode(false);
         large_flash_mode = false;
     }
@@ -140,7 +148,7 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
         return STUB_LIB_ERR_FLASH_READ_UNALIGNED;
     }
 
-    if (large_flash_mode) {
+    if (STUB_FLASH_4BYTE_ADDR_SUPPORTED && large_flash_mode) {
         return stub_target_flash_4byte_read(FLASH_SPI_NUM, addr, buffer, size);
     }
 
@@ -253,7 +261,7 @@ int stub_lib_flash_start_next_erase(uint32_t *next_erase_addr, uint32_t *remaini
         }
     }
 
-    if (large_flash_mode) {
+    if (STUB_FLASH_4BYTE_ADDR_SUPPORTED && large_flash_mode) {
         /* Use 4-byte addressing for large flash */
         if (block_erase) {
             int res = stub_target_flash_4byte_erase_block_start(FLASH_SPI_NUM, addr);
@@ -302,7 +310,7 @@ int stub_lib_flash_erase_area(uint32_t addr, uint32_t size)
 
 int stub_lib_flash_rom_erase_area(uint32_t addr, uint32_t size)
 {
-    if (large_flash_mode) {
+    if (STUB_FLASH_4BYTE_ADDR_SUPPORTED && large_flash_mode) {
         return STUB_LIB_ERR_NOT_SUPPORTED;
     }
 
