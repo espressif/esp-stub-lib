@@ -55,6 +55,7 @@ PROVIDE ( esp_rom_output_set_as_console = uart_tx_switch );
 PROVIDE ( esp_rom_output_putc           = ets_write_char_uart );
 
 PROVIDE ( esp_rom_get_xtal_freq = ets_clk_get_xtal_freq );
+PROVIDE ( esp_rom_get_cpu_freq = ets_clk_get_cpu_freq );
 
 PROVIDE ( esp_rom_md5_init   = MD5Init );
 PROVIDE ( esp_rom_md5_update = MD5Update );
