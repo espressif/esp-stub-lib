@@ -10,6 +10,13 @@
 
 #include "reg_base.h"
 
+/* CPU clock configuration */
+#define DPORT_CPU_PER_CONF_REG      (DR_REG_DPORT_BASE + 0x03C)
+#define DPORT_CPUPERIOD_SEL         0x00000003
+#define DPORT_CPUPERIOD_SEL_M       ((DPORT_CPUPERIOD_SEL_V) << (DPORT_CPUPERIOD_SEL_S))
+#define DPORT_CPUPERIOD_SEL_V       0x3
+#define DPORT_CPUPERIOD_SEL_S       0
+
 /* PRO CPU cache control */
 #define DPORT_PRO_CACHE_CTRL_REG    (DR_REG_DPORT_BASE + 0x040)
 #define DPORT_PRO_CACHE_ENABLE      BIT(3)
