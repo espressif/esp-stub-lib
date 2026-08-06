@@ -19,12 +19,16 @@
 
 extern void ROM_Boot_Cache_Init(void);
 extern void Cache_Disable_ICache(void);
+extern uint32_t Cache_Suspend_ICache(void);
+extern void Cache_Resume_ICache(uint32_t autoload);
 extern void Cache_Freeze_ICache_Enable(int mode);
 extern void Cache_Freeze_ICache_Disable(void);
 extern void Cache_Invalidate_ICache_All(void);
 extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
 
 #define CACHE_FREEZE_ACK_BUSY 0
+
+static uint32_t s_saved_autoload;
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -43,10 +47,20 @@ void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
 
 void stub_target_cache_stop(void)
 {
-    Cache_Freeze_ICache_Enable(CACHE_FREEZE_ACK_BUSY);
+    s_saved_autoload = Cache_Suspend_ICache();
 }
 
 void stub_target_cache_start(void)
+{
+    Cache_Resume_ICache(s_saved_autoload);
+}
+
+void stub_target_cache_freeze(void)
+{
+    Cache_Freeze_ICache_Enable(CACHE_FREEZE_ACK_BUSY);
+}
+
+void stub_target_cache_unfreeze(void)
 {
     Cache_Freeze_ICache_Disable();
 }

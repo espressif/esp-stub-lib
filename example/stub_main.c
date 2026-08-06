@@ -137,6 +137,8 @@ static __attribute__((unused)) void test_cache(void)
     stub_lib_cache_invalidate_addr(0x1000, 0x1000);
     stub_lib_cache_stop();
     stub_lib_cache_start();
+    stub_lib_cache_freeze();
+    stub_lib_cache_unfreeze();
 }
 
 static int __attribute__((unused)) handle_test_uart(void)

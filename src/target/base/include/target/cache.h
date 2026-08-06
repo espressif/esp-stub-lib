@@ -60,6 +60,19 @@ void stub_target_cache_stop(void);
 void stub_target_cache_start(void);
 
 /**
+ * @brief Freeze the cache
+ *
+ * Pairs with stub_target_cache_unfreeze(). Weak default falls back to
+ * stub_target_cache_stop().
+ */
+void stub_target_cache_freeze(void);
+
+/**
+ * @brief Unfreeze the cache after a previous stub_target_cache_freeze().
+ */
+void stub_target_cache_unfreeze(void);
+
+/**
  * @brief Return the size in bytes needed for the target cache state buffer.
  *
  * Weak default returns 0 (no state). Targets that save cache/MMU state

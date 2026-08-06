@@ -24,11 +24,15 @@ extern void Cache_Disable_Cache(void);
 extern void Cache_Invalidate_All(void);
 extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
 extern void Cache_WriteBack_All(void);
+extern uint32_t Cache_Suspend_Cache(void);
+extern void Cache_Resume_Cache(uint32_t autoload);
 extern void Cache_Freeze_Enable(int mode);
 extern void Cache_Freeze_Disable(void);
 
 #define CACHE_BUS_MASK        (CACHE_L1_CACHE_SHUT_BUS0 | CACHE_L1_CACHE_SHUT_BUS1)
 #define CACHE_FREEZE_ACK_BUSY 0
+
+static uint32_t s_saved_autoload;
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -52,10 +56,20 @@ void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
 
 void stub_target_cache_stop(void)
 {
-    Cache_Freeze_Enable(CACHE_FREEZE_ACK_BUSY);
+    s_saved_autoload = Cache_Suspend_Cache();
 }
 
 void stub_target_cache_start(void)
+{
+    Cache_Resume_Cache(s_saved_autoload);
+}
+
+void stub_target_cache_freeze(void)
+{
+    Cache_Freeze_Enable(CACHE_FREEZE_ACK_BUSY);
+}
+
+void stub_target_cache_unfreeze(void)
 {
     Cache_Freeze_Disable();
 }
