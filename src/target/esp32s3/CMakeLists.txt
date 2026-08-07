@@ -2,6 +2,7 @@ set(srcs
     src/cache.c
     src/flash.c
     src/mmu.c
+    src/spi.c
     src/trax.c
     src/uart.c
     src/usb_serial_jtag.c

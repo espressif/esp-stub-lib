@@ -19,6 +19,7 @@
 #include <esp-stub-lib/sdio.h>
 #include <esp-stub-lib/security.h>
 #include <esp-stub-lib/sha256.h>
+#include <esp-stub-lib/spi.h>
 #include <esp-stub-lib/uart.h>
 #include <esp-stub-lib/usb_serial_jtag.h>
 
@@ -106,6 +107,18 @@ static void __attribute__((unused)) test_sdio(void)
     (void)stub_lib_sdio_take_rx_frame(&rx_len);
     (void)stub_lib_sdio_rearm(rx_buf, sizeof(rx_buf));
     (void)stub_lib_sdio_tx_frame(rx_buf, sizeof(rx_buf));
+}
+
+static void __attribute__((unused)) test_spi(void)
+{
+    uint8_t rx_buf[512] __attribute__((aligned(4)));
+    size_t rx_len;
+
+    (void)stub_lib_spi_is_active();
+    stub_lib_spi_init();
+    (void)stub_lib_spi_take_rx_frame(&rx_len);
+    (void)stub_lib_spi_rearm(rx_buf, sizeof(rx_buf));
+    (void)stub_lib_spi_tx_frame(rx_buf, sizeof(rx_buf));
 }
 
 static __attribute__((unused)) void test_md5(void)
@@ -225,6 +238,7 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     test_md5();
     test_usb_serial_jtag();
     test_sdio();
+    test_spi();
     test_miniz();
     test_clock_init();
 
