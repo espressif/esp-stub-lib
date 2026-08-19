@@ -16,6 +16,7 @@
 #include <target/flash.h>
 
 #include <soc/efuse_reg.h>
+#include <soc/pmu_reg.h>
 #include <soc/spi_mem_compat.h>
 
 /* ECO version from ROM - used to route to correct ROM functions */
@@ -181,14 +182,14 @@ bool stub_target_flash_needs_attach(void)
 
 void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
-    if (_rom_eco_version >= 7) {
-        if (REG_GET_FIELD(EFUSE_RD_REPEAT_DATA1_REG, EFUSE_DOWNLOAD_MODE_XPD_ON)) {
-            // If DOWNLOAD_MODE_XPD_ON eFuse is set, ROM powers on the flash chip
-            // inside esp_rom_spiflash_attach.
-            // This power-on sequence cannot run twice, let's skip it.
-            esp_rom_spiflash_boot_attach(ishspi, legacy, true);
-            return;
-        }
+    /* If DOWNLOAD_MODE_XPD_ON eFuse is set, ROM powers on the flash chip
+     * inside esp_rom_spiflash_attach.
+     * This power-on sequence cannot run twice, so skip it when PMU_DATE[1:0]
+     * already force the rail on. */
+    if (_rom_eco_version >= 7 && REG_GET_FIELD(EFUSE_RD_REPEAT_DATA1_REG, EFUSE_DOWNLOAD_MODE_XPD_ON) &&
+        (REG_READ(PMU_DATE_REG) & 0x3) == 0x3) {
+        esp_rom_spiflash_boot_attach(ishspi, legacy, true);
+        return;
     }
     esp_rom_spiflash_attach(ishspi, legacy);
 }
