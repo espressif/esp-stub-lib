@@ -20,10 +20,10 @@
 #include <private/flash_commands.h>
 #include <private/rom_flash.h>
 
-// Timeout values for flash operations, inspired by esptool
+// Timeout values for flash operations
 #define DEFAULT_TIMEOUT_US        10000U
-#define ERASE_PER_KB_TIMEOUT_US   30000U
-#define WRITE_PER_KB_TIMEOUT_US   30000U
+#define ERASE_PER_KB_TIMEOUT_US   100000U
+#define WRITE_PER_KB_TIMEOUT_US   40000U
 
 // AES-XTS encryption block sizes for encrypted flash write operations
 // The hardware AES-XTS engine can process multiple 128-bit blocks simultaneously when
