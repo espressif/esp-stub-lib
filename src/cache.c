@@ -43,6 +43,16 @@ void stub_lib_cache_start(void)
     stub_target_cache_start();
 }
 
+void stub_lib_cache_freeze(void)
+{
+    stub_target_cache_freeze();
+}
+
+void stub_lib_cache_unfreeze(void)
+{
+    stub_target_cache_unfreeze();
+}
+
 size_t stub_lib_cache_state_size(void)
 {
     return stub_target_cache_state_size();
