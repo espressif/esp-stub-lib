@@ -36,8 +36,8 @@ extern void Cache_Resume_L1_CORE1_ICache_Autoload(uint32_t autoload);
 
 extern uint32_t Cache_Suspend_L1_DCache_Autoload(void);
 extern void Cache_Resume_L1_DCache_Autoload(uint32_t autoload);
-extern uint32_t Cache_Suspend_L2_Cache(void);
-extern void Cache_Resume_L2_Cache(uint32_t autoload);
+extern uint32_t Cache_Suspend_L2_Cache_Autoload(void);
+extern void Cache_Resume_L2_Cache_Autoload(uint32_t autoload);
 
 extern void ROM_Boot_Cache_Init(void);
 extern void Cache_Enable_L2_Cache(uint32_t autoload);
@@ -72,10 +72,9 @@ void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
     Cache_Invalidate_Addr(CACHE_MAP_L1_DCACHE, vaddr, size);
 }
 
-/* CRITICAL: Do NOT call full L1 ICache suspend — stub runs from L1-cached
- * region, full suspend blocks instruction fetch and causes a PMP fault.
- * Use autoload-only suspend for all L1; full suspend only for L2.
- */
+/* Suspend only the autoload engines. Taking L1 or L2 fully offline
+ * during a flash operation can leave the cache in a state that trips a
+ * cache-error interrupt when the application resumes cached fetches. */
 static uint32_t s_saved_autoload;
 
 void stub_target_cache_stop(void)
@@ -88,13 +87,13 @@ void stub_target_cache_stop(void)
         s_saved_autoload |= BIT(1);
     if (Cache_Suspend_L1_DCache_Autoload())
         s_saved_autoload |= BIT(2);
-    if (Cache_Suspend_L2_Cache())
+    if (Cache_Suspend_L2_Cache_Autoload())
         s_saved_autoload |= BIT(3);
 }
 
 void stub_target_cache_start(void)
 {
-    Cache_Resume_L2_Cache(s_saved_autoload & BIT(3) ? 1 : 0);
+    Cache_Resume_L2_Cache_Autoload(s_saved_autoload & BIT(3) ? 1 : 0);
     Cache_Resume_L1_DCache_Autoload(s_saved_autoload & BIT(2) ? 1 : 0);
     Cache_Resume_L1_CORE0_ICache_Autoload(s_saved_autoload & BIT(0) ? 1 : 0);
     Cache_Resume_L1_CORE1_ICache_Autoload(s_saved_autoload & BIT(1) ? 1 : 0);
