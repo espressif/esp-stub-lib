@@ -24,6 +24,7 @@ extern void esp_rom_uart_set_as_console(uint8_t uart_no);
 extern void esp_rom_uart_div_modify(uint8_t uart_no, uint32_t divisor);
 extern void esp_rom_isr_attach(int int_num, void *handler, void *arg);
 extern void esp_rom_isr_unmask(int int_num);
+extern uint32_t esp_rom_get_xtal_freq(void);
 
 void stub_target_rom_uart_attach(void *rxBuffer)
 {
@@ -39,7 +40,7 @@ void stub_target_uart_init(uint8_t uart_num)
 {
     extern bool g_uart_print;
     stub_target_rom_uart_attach(NULL);
-    stub_target_rom_uart_init(uart_num, stub_target_get_apb_freq());
+    stub_target_rom_uart_init(uart_num, esp_rom_get_xtal_freq());
     esp_rom_uart_set_as_console(uart_num);
     g_uart_print = true;
 }
@@ -48,7 +49,7 @@ void stub_target_uart_rominit_set_baudrate(uint8_t uart_num, uint32_t baudrate)
 {
     stub_lib_delay_us(5 * 1000);
 
-    uint32_t clk_div = (stub_target_get_apb_freq() << 4) / baudrate;
+    uint32_t clk_div = (esp_rom_get_xtal_freq() << 4) / baudrate;
     stub_target_uart_wait_idle(uart_num);
     esp_rom_uart_div_modify(uart_num, clk_div);
 
