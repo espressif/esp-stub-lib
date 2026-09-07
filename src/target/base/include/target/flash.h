@@ -22,26 +22,8 @@
 #define STUB_FLASH_PAGE_SIZE   0x100U
 #define STUB_FLASH_STATUS_MASK 0xFFFFU
 
-/**
- * @brief SPI flash read mode for OPI operations
- */
-typedef enum {
-    SPI_FLASH_QIO_MODE = 0,
-    SPI_FLASH_QOUT_MODE,
-    SPI_FLASH_DIO_MODE,
-    SPI_FLASH_DOUT_MODE,
-    SPI_FLASH_FASTRD_MODE,
-    SPI_FLASH_SLOWRD_MODE,
-    SPI_FLASH_OPI_STR_MODE,
-    SPI_FLASH_OPI_DTR_MODE,
-    SPI_FLASH_OOUT_MODE,
-    SPI_FLASH_OIO_STR_MODE,
-    SPI_FLASH_OIO_DTR_MODE,
-    SPI_FLASH_QPI_MODE,
-} spi_flash_mode_t;
-
-#define FLASH_SPI_NUM_INT 0 /* SPI flash controller used by cache */
-#define FLASH_SPI_NUM     1 /* SPI flash controller used by host CPU */
+#define FLASH_SPI_NUM_INT      0 /* SPI flash controller used by cache */
+#define FLASH_SPI_NUM          1 /* SPI flash controller used by host CPU */
 
 /**
  * @brief Reset default SPI IOMUX pins to GPIO mode
