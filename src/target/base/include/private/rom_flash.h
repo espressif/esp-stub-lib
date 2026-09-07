@@ -9,6 +9,25 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/**
+ * @brief SPI flash read mode, mirrors the ROM's SpiFlashRdMode
+ */
+typedef enum {
+    SPI_FLASH_QIO_MODE = 0,
+    SPI_FLASH_QOUT_MODE,
+    SPI_FLASH_DIO_MODE,
+    SPI_FLASH_DOUT_MODE,
+    SPI_FLASH_FASTRD_MODE,
+    SPI_FLASH_SLOWRD_MODE,
+    SPI_FLASH_OPI_STR_MODE,
+    SPI_FLASH_OPI_DTR_MODE,
+    SPI_FLASH_OOUT_MODE,
+    SPI_FLASH_OIO_STR_MODE,
+    SPI_FLASH_OIO_DTR_MODE,
+    SPI_FLASH_QPI_MODE,
+    SPI_FLASH_OPI_HEX_DTR_MODE,
+} spi_flash_mode_t;
+
 typedef struct {
     uint32_t flash_id;
     uint32_t chip_size; // chip size in bytes
@@ -97,3 +116,39 @@ int esp_rom_opiflash_erase_sector(uint32_t sector_num);
  * @return Result code
  */
 int esp_rom_opiflash_erase_block_64k(uint32_t block_num);
+
+/**
+ * @brief Dispatch table of the ROM SPI user-command primitives
+ *
+ * The functions themselves live in revision specific ROM sections and move
+ * between revisions, but the table is populated by the ROM, so calling through
+ * it works on any revision. Only the table pointer needs a fixed address.
+ *
+ * Only exec_flash_cmd is typed; the preceding members exist to place it at the
+ * right offset.
+ */
+typedef struct {
+    void *set_mode;
+    void *reset_mode;
+    void *cmd_start;
+    void *usr_cmd_config;
+    void *conf_flash_cmd;
+    void (*exec_flash_cmd)(int spi_num,
+                           spi_flash_mode_t mode,
+                           uint32_t cmd,
+                           int cmd_bit_len,
+                           uint32_t addr,
+                           int addr_bit_len,
+                           int dummy_bits,
+                           const uint8_t *mosi_data,
+                           int mosi_bit_len,
+                           uint8_t *miso_data,
+                           int miso_bit_len,
+                           uint32_t cs_mask,
+                           bool is_write_erase_operation);
+    void *reg_backup;
+    void *reg_recover;
+    uint32_t *regs;
+} esp_rom_spi_usr_cmd_legacy_funcs_t;
+
+extern const esp_rom_spi_usr_cmd_legacy_funcs_t *rom_spi_usr_cmd_legacy_funcs;
