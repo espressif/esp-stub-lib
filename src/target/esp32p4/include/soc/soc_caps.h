@@ -16,3 +16,6 @@
 #define SOC_MEM_TCM_SUPPORTED       1
 
 #define SOC_SPI_FLASH_4B_ADDR_SUPPORTED 1
+
+// DMA Caps
+#define SOC_DMA_BUF_ALIGN          64  /*!< DMA buffer alignment (L1 dcache line size) */
