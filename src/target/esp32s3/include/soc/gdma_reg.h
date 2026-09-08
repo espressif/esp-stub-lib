@@ -1,0 +1,49 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0 OR MIT
+ */
+#pragma once
+
+#include <esp-stub-lib/bit_utils.h>
+#include <soc/reg_base.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* GDMA channel-0 subset needed by the SPI-slave DMA path.
+ * S3 lays each channel out as a contiguous in/out block, so the in and out
+ * engines have separate INT_RAW/INT_CLR registers. */
+
+/* Rx (IN) channel 0 */
+#define GDMA_IN_CONF0_CH0_REG (DR_REG_GDMA_BASE + 0x0)
+#define GDMA_IN_RST_CH0 (BIT(0))
+
+#define GDMA_IN_INT_RAW_CH0_REG (DR_REG_GDMA_BASE + 0x8)
+#define GDMA_IN_SUC_EOF_CH0_INT_RAW (BIT(1))
+
+#define GDMA_IN_INT_CLR_CH0_REG (DR_REG_GDMA_BASE + 0x14)
+#define GDMA_IN_SUC_EOF_CH0_INT_CLR (BIT(1))
+#define GDMA_INFIFO_UDF_L1_CH0_INT_CLR (BIT(7))
+
+#define GDMA_IN_LINK_CH0_REG (DR_REG_GDMA_BASE + 0x20)
+#define GDMA_INLINK_ADDR_CH0 0x000FFFFFU
+#define GDMA_INLINK_START_CH0 (BIT(22))
+
+/* Tx (OUT) channel 0 */
+#define GDMA_OUT_CONF0_CH0_REG (DR_REG_GDMA_BASE + 0x60)
+#define GDMA_OUT_RST_CH0 (BIT(0))
+
+#define GDMA_OUT_INT_RAW_CH0_REG (DR_REG_GDMA_BASE + 0x68)
+#define GDMA_OUT_DONE_CH0_INT_RAW (BIT(0))
+
+#define GDMA_OUT_INT_CLR_CH0_REG (DR_REG_GDMA_BASE + 0x74)
+#define GDMA_OUT_DONE_CH0_INT_CLR (BIT(0))
+
+#define GDMA_OUT_LINK_CH0_REG (DR_REG_GDMA_BASE + 0x80)
+#define GDMA_OUTLINK_START_CH0 (BIT(21))
+
+#ifdef __cplusplus
+}
+#endif
