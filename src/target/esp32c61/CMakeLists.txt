@@ -1,4 +1,5 @@
 set(srcs
+    src/aes_xts.c
     src/cache.c
     src/flash.c
     src/mmu.c
