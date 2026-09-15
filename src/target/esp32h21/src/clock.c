@@ -39,7 +39,10 @@
  * boots at. It has to be brought up before the CPU clock is raised.
  */
 
-/* Output voltage setting, shared by both conduction modes. */
+/* VDD_DIG setpoint, shared by both conduction modes. Valid for VDDX at 3.3 V;
+ * the full VDDX range would need VDD_DIG adjusted from monitored VDDX. ESP-IDF
+ * does not do this at the time of writing, so the complexity is unknown and the
+ * fixed setpoint is taken as safe for now. */
 #define DCDC_DREG_VALUE     12U
 
 /* Peak current limits, which have to allow for the higher load at 96 MHz. */
