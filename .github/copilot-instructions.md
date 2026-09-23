@@ -24,8 +24,8 @@ Base (src/target/base/) - Interface headers only
 ```
 
 **Key Directories:**
-- `include/esp-stub-lib/` - Public API headers (bit_utils.h, cache.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, mmu.h, rom_wrappers.h, security.h, sha256.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
-- `src/` - Top-level implementation layer (cache.c, clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, log_usj.c, md5.c, mem_utils.c, mmu.c, rom_wrappers.c, security.c, sha256.c, uart.c, usb_otg.c, usb_serial_jtag.c)
+- `include/esp-stub-lib/` - Public API headers (bit_utils.h, cache.h, clock.h, err.h, flash.h, log.h, md5.h, mem_utils.h, miniz.h, mmu.h, rom_wrappers.h, security.h, sha256.h, slave_spi.h, soc_utils.h, trax_mem.h, uart.h, usb_otg.h, usb_serial_jtag.h) - **Only these should be used by library clients**
+- `src/` - Top-level implementation layer (cache.c, clock.c, flash.c, log_buf.c, log_common.c, log_uart.c, log_usj.c, md5.c, mem_utils.c, mmu.c, rom_wrappers.c, security.c, sha256.c, slave_spi.c, uart.c, usb_otg.c, usb_serial_jtag.c)
 - `src/target/base/include/` - Internal interface headers split into:
   - `target/` - Internal API between common/target layers
   - `private/` - Internal ROM/hardware details
@@ -303,6 +303,7 @@ The library provides the following public API headers in `include/esp-stub-lib/`
 - **rom_wrappers.h** - ROM function wrappers (delay_us, crc16_le)
 - **security.h** - Security information retrieval
 - **sha256.h** - SHA256 hardware hashing operations
+- **slave_spi.h** - SPI (download boot) slave-HD transport (activity detection, init, receive DMA arm/claim, frame send)
 - **soc_utils.h** - Register read/write macros (REG_READ, REG_WRITE)
 - **trax_mem.h** - Xtensa trace memory access
 - **uart.h** - UART communication interface
