@@ -15,6 +15,9 @@
 
 #include <soc/spi_mem_compat.h>
 
+extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
+extern void stub_target_clock_restore_mspi(void);
+
 void stub_target_spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_MST_ST) ||
@@ -36,4 +39,10 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
         STUB_LOGD("Attach spi flash...\n");
         stub_target_flash_attach(0, false);
     }
+}
+
+void stub_target_flash_attach(uint32_t ishspi, bool legacy)
+{
+    esp_rom_spiflash_attach(ishspi, legacy);
+    stub_target_clock_restore_mspi();
 }
