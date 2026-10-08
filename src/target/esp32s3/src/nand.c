@@ -10,6 +10,7 @@
 
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/err.h>
+#include <esp-stub-lib/log.h>
 #include <esp-stub-lib/rom_wrappers.h>
 #include <esp-stub-lib/soc_utils.h>
 
@@ -406,13 +407,21 @@ int stub_target_nand_read_id(uint8_t *manufacturer_id, uint16_t *device_id)
     return 0;
 }
 
-int stub_target_nand_attach(uint32_t hspi_arg)
+int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size)
 {
-    /* W25N01GVZEIG geometry — hardcoded as this is the only supported NAND chip.
-     * Future multi-chip support should read JEDEC parameter pages instead. */
-    s_nand_config.page_size = 2048;
-    s_nand_config.pages_per_block = 64;
-    s_nand_config.block_size = 128 * 1024;
+    /* The column address still fits in 16 bits, with CA[15] selecting the even/odd cache. */
+    if (page_size != NAND_PAGE_SIZE_2K && page_size != NAND_PAGE_SIZE_4K) {
+        STUB_LOGE("NAND page size %u is not %u or %u\n", page_size, NAND_PAGE_SIZE_2K, NAND_PAGE_SIZE_4K);
+        return STUB_LIB_ERR_INVALID_ARG;
+    }
+    if (block_size == 0 || (block_size % page_size) != 0) {
+        STUB_LOGE("NAND block size %u is not a multiple of page size %u\n", block_size, page_size);
+        return STUB_LIB_ERR_INVALID_ARG;
+    }
+
+    s_nand_config.page_size = page_size;
+    s_nand_config.pages_per_block = block_size / page_size;
+    s_nand_config.block_size = block_size;
     s_nand_config.initialized = false;
     s_last_status_byte = 0xFF;
 
@@ -772,4 +781,14 @@ int stub_target_nand_read_page(uint32_t page_number, uint8_t *buf, uint32_t buf_
 uint32_t stub_target_nand_get_page_size(void)
 {
     return s_nand_config.page_size;
+}
+
+uint32_t stub_target_nand_get_pages_per_block(void)
+{
+    return s_nand_config.pages_per_block;
+}
+
+uint32_t stub_target_nand_get_block_size(void)
+{
+    return s_nand_config.block_size;
 }
