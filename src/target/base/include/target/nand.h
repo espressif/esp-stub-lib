@@ -61,6 +61,10 @@ extern "C" {
 #define NAND_ERR_PROTECTION          (-50)
 #define NAND_ERR_RESET_FAILED        (-100)
 
+/* SPI NAND data-page sizes. A 16-bit column address covers both, and CA[15] is the plane bit. */
+#define NAND_PAGE_SIZE_2K            2048
+#define NAND_PAGE_SIZE_4K            4096
+
 // Extract a 6-bit pin number from a packed hspi_arg word
 #define HSPI_PIN_FIELD(arg, shift)   ((uint8_t)(((arg) >> (shift)) & 0x3FU))
 
@@ -87,9 +91,11 @@ typedef struct {
  *        Pass 0 to use the default native FSPI pins.
  *
  *        On targets that do not implement pin remapping, this argument is ignored.
+ * @param page_size Page size in bytes. NAND_PAGE_SIZE_2K or NAND_PAGE_SIZE_4K.
+ * @param block_size Erase block size in bytes. Must be a multiple of page_size.
  * @return 0 on success, negative on error
  */
-int stub_target_nand_attach(uint32_t hspi_arg);
+int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size);
 
 /**
  * @brief Read bad-block marker from the spare area of a page
@@ -136,7 +142,7 @@ int stub_target_nand_read_page(uint32_t page_number, uint8_t *buf, uint32_t buf_
 int stub_target_nand_write_page(uint32_t page_number, const uint8_t *buf, uint32_t buf_size);
 
 /**
- * @brief Erase a block (64 pages, 128KB)
+ * @brief Erase one block at the size given to stub_target_nand_attach
  * @param page_number First page number of the block (must be block-aligned)
  * @return 0 on success, negative on error
  */
@@ -147,6 +153,16 @@ int stub_target_nand_erase_block(uint32_t page_number);
  * @return Page size in bytes
  */
 uint32_t stub_target_nand_get_page_size(void);
+
+/**
+ * @brief Get the configured number of pages in one erase block
+ */
+uint32_t stub_target_nand_get_pages_per_block(void);
+
+/**
+ * @brief Get the configured erase block size in bytes
+ */
+uint32_t stub_target_nand_get_block_size(void);
 
 /**
  * @brief Read a NAND configuration register (status, protect, config)
