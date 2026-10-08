@@ -410,8 +410,8 @@ int stub_target_nand_read_id(uint8_t *manufacturer_id, uint16_t *device_id)
 int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size)
 {
     /* The column address still fits in 16 bits, with CA[15] selecting the even/odd cache. */
-    if (page_size != NAND_PAGE_SIZE_2K && page_size != NAND_PAGE_SIZE_4K) {
-        STUB_LOGE("NAND page size %u is not %u or %u\n", page_size, NAND_PAGE_SIZE_2K, NAND_PAGE_SIZE_4K);
+    if (page_size != 2048 && page_size != 4096) {
+        STUB_LOGE("NAND page size %u is not 2048 or 4096\n", page_size);
         return STUB_LIB_ERR_INVALID_ARG;
     }
     if (block_size == 0 || (block_size % page_size) != 0) {
