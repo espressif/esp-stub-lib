@@ -61,10 +61,6 @@ extern "C" {
 #define NAND_ERR_PROTECTION          (-50)
 #define NAND_ERR_RESET_FAILED        (-100)
 
-/* SPI NAND data-page sizes. A 16-bit column address covers both, and CA[15] is the plane bit. */
-#define NAND_PAGE_SIZE_2K            2048
-#define NAND_PAGE_SIZE_4K            4096
-
 // Extract a 6-bit pin number from a packed hspi_arg word
 #define HSPI_PIN_FIELD(arg, shift)   ((uint8_t)(((arg) >> (shift)) & 0x3FU))
 
@@ -91,7 +87,7 @@ typedef struct {
  *        Pass 0 to use the default native FSPI pins.
  *
  *        On targets that do not implement pin remapping, this argument is ignored.
- * @param page_size Page size in bytes. NAND_PAGE_SIZE_2K or NAND_PAGE_SIZE_4K.
+ * @param page_size Page size in bytes. 2048 or 4096.
  * @param block_size Erase block size in bytes. Must be a multiple of page_size.
  * @return 0 on success, negative on error
  */
