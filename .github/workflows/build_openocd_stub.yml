@@ -1,0 +1,221 @@
+---
+name: Build OpenOCD Stub
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      openocd_ref:
+        description: openocd-esp32 branch, tag or commit to build against
+        required: false
+        default: master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  OPENOCD_REF: ${{ inputs.openocd_ref || 'master' }}
+  STUB_DIR: openocd/contrib/loaders/flash/espressif
+
+jobs:
+  resolve:
+    name: Resolve OpenOCD commit
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+      targets: ${{ steps.targets.outputs.targets }}
+    steps:
+      - name: Resolve ${{ env.OPENOCD_REF }}
+        id: resolve
+        run: |
+          ref="$OPENOCD_REF"
+          if [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then
+            sha="$ref"
+          else
+            sha=$(git ls-remote https://github.com/espressif/openocd-esp32.git "$ref" "$ref^{}" | awk -v r="$ref" '
+              $2 == ("refs/heads/" r) { head = $1 }
+              $2 == ("refs/tags/" r "^{}") { peeled = $1 }
+              $2 == ("refs/tags/" r) { tag = $1 }
+              END { print head ? head : (peeled ? peeled : tag) }')
+          fi
+          if [ -z "$sha" ]; then
+            echo "::error::Cannot resolve openocd-esp32 ref '$ref'. Use a branch, a tag or a full commit SHA."
+            exit 1
+          fi
+          echo "openocd-esp32 $ref is $sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Read stub targets
+        id: targets
+        env:
+          SHA: ${{ steps.resolve.outputs.sha }}
+        run: |
+          curl -fsSL -o build.sh \
+            "https://raw.githubusercontent.com/espressif/openocd-esp32/$SHA/contrib/loaders/flash/espressif/build.sh"
+          targets=$(python3 -c '
+          import json, re, sys
+          match = re.search(r"^TARGETS=\"([^\"]*)\"", open("build.sh").read(), re.M)
+          targets = match.group(1).replace("\\", " ").split() if match else []
+          print(json.dumps(targets) if targets else "")
+          ')
+          if [ -z "$targets" ]; then
+            echo "::error::Cannot read TARGETS from openocd-esp32 build.sh"
+            exit 1
+          fi
+          echo "Targets: $targets"
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: resolve
+    runs-on: ubuntu-latest
+    container: espressif/idf:v6.1
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.resolve.outputs.targets) }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout openocd-esp32
+        uses: actions/checkout@v7
+        with:
+          repository: espressif/openocd-esp32
+          ref: ${{ needs.resolve.outputs.sha }}
+          path: openocd
+          submodules: false
+          persist-credentials: false
+
+      - name: Checkout esp-stub-lib
+        uses: actions/checkout@v7
+        with:
+          path: ${{ env.STUB_DIR }}/esp-stub-lib
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build base and head
+        working-directory: ${{ env.STUB_DIR }}
+        env:
+          TARGET: ${{ matrix.target }}
+          EVENT_NAME: ${{ github.event_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config --global --add safe.directory '*'
+          . "$IDF_PATH/export.sh" > /dev/null
+
+          openocd_commit=$(git -C ../../../.. rev-parse HEAD)
+          head=$(git -C esp-stub-lib rev-parse HEAD)
+          if [ "$EVENT_NAME" = pull_request ]; then
+            base=$(git -C esp-stub-lib rev-parse HEAD^1)
+          else
+            base=$(git -C esp-stub-lib merge-base HEAD "origin/$DEFAULT_BRANCH")
+          fi
+
+          build_side() {
+            local side=$1 commit=$2
+            local out="out/$side"
+            mkdir -p "$out/build/$TARGET" "$out/logs" "$out/status"
+            echo "$openocd_commit" > "$out/openocd_commit"
+            echo "$commit" > "$out/stub_lib_commit"
+            git -C esp-stub-lib checkout -q --detach "$commit"
+            rm -rf "build/$TARGET"
+            echo "::group::Build $TARGET ($side ${commit:0:10})"
+            if ./build.sh "$TARGET" 2>&1 | tee "$out/logs/$TARGET.log" &&
+              compgen -G "build/$TARGET/stub_*.elf" > /dev/null; then
+              cp "build/$TARGET"/stub_*.elf "build/$TARGET"/stub_*.map "$out/build/$TARGET/"
+              touch "$out/status/$TARGET.ok"
+            fi
+            echo "::endgroup::"
+          }
+
+          build_side base "$base"
+          if [ ! -f "out/base/status/$TARGET.ok" ]; then
+            echo "::warning::Base build failed for $TARGET. The report has no baseline for it."
+          fi
+          build_side head "$head"
+          if [ ! -f "out/head/status/$TARGET.ok" ]; then
+            echo "::error::Head build failed for $TARGET"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: stub-${{ matrix.target }}
+          path: ${{ env.STUB_DIR }}/out/
+          if-no-files-found: warn
+
+  report:
+    name: Size report
+    needs: [resolve, build]
+    if: ${{ !cancelled() && needs.resolve.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout report script
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: stub-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Generate size report
+        env:
+          TARGETS: ${{ needs.resolve.outputs.targets }}
+        run: |
+          pip install --quiet pyelftools==0.33
+          python .github/scripts/stub_size_report.py \
+            --head artifacts/head \
+            --base artifacts/base \
+            --targets "$TARGETS" \
+            --out report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload size report
+        uses: actions/upload-artifact@v7
+        with:
+          name: size-report
+          path: report.md
+
+  comment:
+    name: Post size report
+    needs: report
+    if: >-
+      !cancelled() && needs.report.result == 'success' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write  # Sticky size comment. This job runs no PR code.
+    steps:
+      - name: Download size report
+        uses: actions/download-artifact@v8
+        with:
+          name: size-report
+
+      - name: Post PR comment
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88  # v3.0.5
+        with:
+          header: stub-size
+          path: report.md

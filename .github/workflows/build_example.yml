@@ -8,6 +8,13 @@ on:
     branches: [master]
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build
@@ -19,21 +26,22 @@ jobs:
           esp32p4, esp32p4-rev1, esp32s31]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: 'recursive'
+          persist-credentials: false
 
       - name: Build targets with ESP-IDF
         uses: espressif/esp-idf-ci-action@v1
         with:
-          esp_idf_version: "latest"
+          esp_idf_version: "v6.1"
           target: ${{ matrix.espidf_target }}
           path: 'example'
           command: |
             ./build.sh ${{ matrix.espidf_target }}
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stub_${{ matrix.espidf_target }}_artifacts
           path: |
@@ -47,9 +55,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: 'recursive'
+          persist-credentials: false
 
       - name: Build ESP8266 with custom toolchain
         run: |
@@ -57,7 +66,7 @@ jobs:
           ./build.sh esp8266
 
       - name: Upload ESP8266 build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stub_esp8266_artifacts
           path: |
