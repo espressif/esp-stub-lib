@@ -11,9 +11,11 @@
 
 #include <target/nand.h>
 
-__attribute__((weak)) int stub_target_nand_attach(uint32_t hspi_arg)
+__attribute__((weak)) int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size)
 {
     (void)hspi_arg;
+    (void)page_size;
+    (void)block_size;
     return STUB_LIB_ERR_NOT_SUPPORTED;
 }
 
@@ -61,6 +63,16 @@ __attribute__((weak)) int stub_target_nand_erase_block(uint32_t page_number)
 }
 
 __attribute__((weak)) uint32_t stub_target_nand_get_page_size(void)
+{
+    return 0;
+}
+
+__attribute__((weak)) uint32_t stub_target_nand_get_pages_per_block(void)
+{
+    return 0;
+}
+
+__attribute__((weak)) uint32_t stub_target_nand_get_block_size(void)
 {
     return 0;
 }
