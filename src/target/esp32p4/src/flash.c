@@ -95,6 +95,20 @@ extern void esp_rom_opiflash_exec_cmd_eco7(int spi_num,
                                            uint32_t cs_mask,
                                            bool is_write_erase_operation);
 
+extern void esp_rom_opiflash_exec_cmd_eco8(int spi_num,
+                                           spi_flash_mode_t mode,
+                                           uint32_t cmd,
+                                           int cmd_bit_len,
+                                           uint32_t addr,
+                                           int addr_bit_len,
+                                           int dummy_bits,
+                                           const uint8_t *mosi_data,
+                                           int mosi_bit_len,
+                                           uint8_t *miso_data,
+                                           int miso_bit_len,
+                                           uint32_t cs_mask,
+                                           bool is_write_erase_operation);
+
 void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
 {
     if (_rom_eco_version == 2) {
@@ -153,8 +167,22 @@ void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
                                        params->miso_bit_len,
                                        params->cs_mask,
                                        params->is_write_erase_operation);
-    } else {
+    } else if (_rom_eco_version == 7) {
         esp_rom_opiflash_exec_cmd_eco7(params->spi_num,
+                                       params->mode,
+                                       params->cmd,
+                                       params->cmd_bit_len,
+                                       params->addr,
+                                       params->addr_bit_len,
+                                       params->dummy_bits,
+                                       params->mosi_data,
+                                       params->mosi_bit_len,
+                                       params->miso_data,
+                                       params->miso_bit_len,
+                                       params->cs_mask,
+                                       params->is_write_erase_operation);
+    } else {
+        esp_rom_opiflash_exec_cmd_eco8(params->spi_num,
                                        params->mode,
                                        params->cmd,
                                        params->cmd_bit_len,
@@ -184,9 +212,10 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
     /* If DOWNLOAD_MODE_XPD_ON eFuse is set, ROM powers on the flash chip
      * inside esp_rom_spiflash_attach.
-     * This power-on sequence cannot run twice, so skip it when PMU_DATE[1:0]
-     * already force the rail on. */
-    if (_rom_eco_version >= 7 && REG_GET_FIELD(EFUSE_RD_REPEAT_DATA1_REG, EFUSE_DOWNLOAD_MODE_XPD_ON) &&
+     * The ECO7 power-on sequence cannot run twice, so skip it when PMU_DATE[1:0]
+     * already force the rail on. ECO8 ROM powers the rail off first, so it can run again.
+     * esp_rom_spiflash_boot_attach is not exported, its address is valid for ECO7 only. */
+    if (_rom_eco_version == 7 && REG_GET_FIELD(EFUSE_RD_REPEAT_DATA1_REG, EFUSE_DOWNLOAD_MODE_XPD_ON) &&
         (REG_READ(PMU_DATE_REG) & 0x3) == 0x3) {
         esp_rom_spiflash_boot_attach(ishspi, legacy, true);
         return;
