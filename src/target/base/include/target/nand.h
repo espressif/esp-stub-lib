@@ -32,6 +32,8 @@ extern "C" {
 #define NAND_CMD_READ_ID             0x9F
 #define NAND_CMD_RESET               0xFF
 
+#define NAND_MFR_MICRON              0x2C
+
 // NAND Flash registers
 #define NAND_REG_PROTECT             0xA0
 #define NAND_REG_CONFIG              0xB0
@@ -49,6 +51,7 @@ extern "C" {
 // ECC status field: bits [5:4] — 00=clean, 01=corrected, 10=uncorrectable, 11=reserved
 #define NAND_STAT_ECC_MASK           (BIT(5) | BIT(4))
 #define NAND_STAT_ECC_UNCORR         BIT(5) /* bit5=1, bit4=0 → uncorrectable (0x20) */
+#define NAND_STAT_ECC_MASK_MICRON    (BIT(6) | BIT(5) | BIT(4))
 
 // Error codes returned by NAND functions
 #define NAND_ERR_NOT_INITIALIZED     (-1)
@@ -87,9 +90,12 @@ typedef struct {
  *        Pass 0 to use the default native FSPI pins.
  *
  *        On targets that do not implement pin remapping, this argument is ignored.
+ * @param page_size Page size in bytes. 2048 or 4096.
+ * @param block_size Erase block size in bytes. Must be a multiple of page_size.
+ * @param wp_pin GPIO number for the active-low write-protect signal.
  * @return 0 on success, negative on error
  */
-int stub_target_nand_attach(uint32_t hspi_arg);
+int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size, uint32_t wp_pin);
 
 /**
  * @brief Read bad-block marker from the spare area of a page
@@ -136,7 +142,7 @@ int stub_target_nand_read_page(uint32_t page_number, uint8_t *buf, uint32_t buf_
 int stub_target_nand_write_page(uint32_t page_number, const uint8_t *buf, uint32_t buf_size);
 
 /**
- * @brief Erase a block (64 pages, 128KB)
+ * @brief Erase one block at the size given to stub_target_nand_attach
  * @param page_number First page number of the block (must be block-aligned)
  * @return 0 on success, negative on error
  */
@@ -147,6 +153,16 @@ int stub_target_nand_erase_block(uint32_t page_number);
  * @return Page size in bytes
  */
 uint32_t stub_target_nand_get_page_size(void);
+
+/**
+ * @brief Get the configured number of pages in one erase block
+ */
+uint32_t stub_target_nand_get_pages_per_block(void);
+
+/**
+ * @brief Get the configured erase block size in bytes
+ */
+uint32_t stub_target_nand_get_block_size(void);
 
 /**
  * @brief Read a NAND configuration register (status, protect, config)
