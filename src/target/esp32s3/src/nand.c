@@ -39,7 +39,7 @@ extern void gpio_output_disable(uint32_t gpio_num);
 extern void gpio_pad_set_drv(uint32_t gpio_num, uint32_t drv);
 extern void gpio_pad_input_enable(uint32_t gpio_num);
 
-int nand_spi_init(uint32_t hspi_arg)
+int nand_spi_init(uint32_t hspi_arg, uint32_t wp_pin)
 {
     uint8_t pin_clk, pin_q, pin_d, pin_cs, pin_hd;
 
@@ -59,7 +59,7 @@ int nand_spi_init(uint32_t hspi_arg)
 
     // Validate pin numbers (ESP32-S3 GPIOs 0–47)
     if (pin_clk >= MAX_PAD_GPIO_NUM || pin_q >= MAX_PAD_GPIO_NUM || pin_d >= MAX_PAD_GPIO_NUM ||
-        pin_cs >= MAX_PAD_GPIO_NUM || pin_hd >= MAX_PAD_GPIO_NUM) {
+        pin_cs >= MAX_PAD_GPIO_NUM || pin_hd >= MAX_PAD_GPIO_NUM || wp_pin >= MAX_PAD_GPIO_NUM) {
         return NAND_ERR_PIN_INVALID;
     }
 
@@ -94,8 +94,8 @@ int nand_spi_init(uint32_t hspi_arg)
     REG_SET_BIT(SPI_DMA_CONF_REG(NAND_SPI_NUM), SPI_BUF_AFIFO_RST);
     REG_CLR_BIT(SPI_DMA_CONF_REG(NAND_SPI_NUM), SPI_BUF_AFIFO_RST);
 
-    bool use_iomux =
-        (pin_clk == PIN_CLK && pin_q == PIN_MISO && pin_d == PIN_MOSI && pin_cs == PIN_CS && pin_hd == PIN_HD);
+    bool use_iomux = (pin_clk == PIN_CLK && pin_q == PIN_MISO && pin_d == PIN_MOSI && pin_cs == PIN_CS &&
+                      pin_hd == PIN_HD && wp_pin == PIN_WP);
 
 // Set MCU_SEL=4 (FSPI) on one pin using its named IO_MUX register constant.
 // Defined as a local macro to avoid array initializers, which the compiler may
@@ -126,8 +126,8 @@ int nand_spi_init(uint32_t hspi_arg)
         gpio_output_disable(pin_q);
     } else {
         // GPIO matrix path: set pins to GPIO, then route FSPI signals
-        // Include PIN_WP so /WP is driven high (avoids floating write-protect)
-        uint8_t pins[] = { pin_clk, pin_q, pin_d, pin_cs, pin_hd, PIN_WP };
+        // Include wp_pin so /WP is driven high (avoids floating write-protect)
+        uint8_t pins[] = { pin_clk, pin_q, pin_d, pin_cs, pin_hd, (uint8_t)wp_pin };
         for (int i = 0; i < 6; i++) {
             esp_rom_gpio_pad_select_gpio(pins[i]);
             gpio_pad_input_enable(pins[i]);
@@ -139,13 +139,13 @@ int nand_spi_init(uint32_t hspi_arg)
         esp_rom_gpio_connect_out_signal(pin_cs, FSPICS0_OUT_IDX, false, false);
         esp_rom_gpio_connect_in_signal(pin_q, FSPIQ_IN_IDX, false);
         esp_rom_gpio_connect_out_signal(pin_hd, FSPIHD_OUT_IDX, false, false);
-        esp_rom_gpio_connect_out_signal(PIN_WP, FSPIWP_OUT_IDX, false, false);
+        esp_rom_gpio_connect_out_signal(wp_pin, FSPIWP_OUT_IDX, false, false);
 
         gpio_output_enable(pin_clk);
         gpio_output_enable(pin_d);
         gpio_output_enable(pin_cs);
         gpio_output_enable(pin_hd);
-        gpio_output_enable(PIN_WP);
+        gpio_output_enable(wp_pin);
         gpio_output_disable(pin_q);
     }
 #undef SET_IOMUX_FSPI

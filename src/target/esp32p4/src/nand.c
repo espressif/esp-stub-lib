@@ -28,7 +28,6 @@
 #define PIN_MISO                            13
 #define PIN_CLK                             12
 #define PIN_CS                              10
-#define PIN_WP                              14
 #define PIN_HD                              9
 
 #define NAND_GPIO_NUM                       55
@@ -38,7 +37,6 @@
 #define SPI2_Q_IN_IDX                       54
 #define SPI2_D_OUT_IDX                      55
 #define SPI2_HD_OUT_IDX                     56
-#define SPI2_WP_OUT_IDX                     57
 #define SPI2_CS_OUT_IDX                     62
 
 /* HP_SYS_CLKRST fields for GPSPI2. */
@@ -56,6 +54,7 @@
 extern void rom_gpio_pad_select_gpio(uint32_t gpio_num);
 extern void rom_gpio_pad_input_enable(uint32_t gpio_num);
 extern void rom_gpio_pad_set_drv(uint32_t gpio_num, uint32_t drv);
+extern void rom_gpio_set_output_level(uint32_t gpio_num, uint32_t level);
 extern void rom_gpio_output_enable(uint32_t gpio_num);
 extern void rom_gpio_output_disable(uint32_t gpio_num);
 extern void rom_gpio_matrix_out(uint32_t gpio_num, uint32_t signal_idx, bool out_inv, bool oen_inv);
@@ -68,7 +67,7 @@ static void route_pin(uint8_t pin)
     rom_gpio_pad_set_drv(pin, 2);
 }
 
-int nand_spi_init(uint32_t hspi_arg)
+int nand_spi_init(uint32_t hspi_arg, uint32_t wp_pin)
 {
     uint8_t pin_clk, pin_q, pin_d, pin_cs, pin_hd;
 
@@ -87,7 +86,7 @@ int nand_spi_init(uint32_t hspi_arg)
     }
 
     if (pin_clk >= NAND_GPIO_NUM || pin_q >= NAND_GPIO_NUM || pin_d >= NAND_GPIO_NUM || pin_cs >= NAND_GPIO_NUM ||
-        pin_hd >= NAND_GPIO_NUM) {
+        pin_hd >= NAND_GPIO_NUM || wp_pin >= NAND_GPIO_NUM) {
         return NAND_ERR_PIN_INVALID;
     }
 
@@ -124,20 +123,20 @@ int nand_spi_init(uint32_t hspi_arg)
     route_pin(pin_d);
     route_pin(pin_cs);
     route_pin(pin_hd);
-    route_pin(PIN_WP);
+    route_pin((uint8_t)wp_pin);
 
     rom_gpio_matrix_out(pin_clk, SPI2_CK_OUT_IDX, false, false);
     rom_gpio_matrix_out(pin_d, SPI2_D_OUT_IDX, false, false);
     rom_gpio_matrix_out(pin_cs, SPI2_CS_OUT_IDX, false, false);
     rom_gpio_matrix_in(pin_q, SPI2_Q_IN_IDX, false);
     rom_gpio_matrix_out(pin_hd, SPI2_HD_OUT_IDX, false, false);
-    rom_gpio_matrix_out(PIN_WP, SPI2_WP_OUT_IDX, false, false);
+    rom_gpio_set_output_level(wp_pin, 1);
 
     rom_gpio_output_enable(pin_clk);
     rom_gpio_output_enable(pin_d);
     rom_gpio_output_enable(pin_cs);
     rom_gpio_output_enable(pin_hd);
-    rom_gpio_output_enable(PIN_WP);
+    rom_gpio_output_enable(wp_pin);
     rom_gpio_output_disable(pin_q);
 
     /* XTAL 40 MHz / 2 = 20 MHz. */

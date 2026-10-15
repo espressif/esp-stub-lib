@@ -11,11 +11,13 @@
 
 #include <target/nand.h>
 
-__attribute__((weak)) int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size)
+__attribute__((weak)) int
+stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size, uint32_t wp_pin)
 {
     (void)hspi_arg;
     (void)page_size;
     (void)block_size;
+    (void)wp_pin;
     return STUB_LIB_ERR_NOT_SUPPORTED;
 }
 

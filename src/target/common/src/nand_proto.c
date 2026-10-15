@@ -168,6 +168,17 @@ static nand_config_t s_nand_config;
  *   page read tRD max = 60us.
  */
 static uint8_t s_last_status_byte;
+static uint8_t s_nand_manufacturer_id;
+
+static uint32_t nand_cache_plane_bit(uint32_t block_number)
+{
+    if ((block_number & 1u) == 0) {
+        return 0;
+    }
+    /* Micron places the plane selector above its 12-bit column address.
+     * Winbond and GigaDevice place it at CA[15]. */
+    return s_nand_manufacturer_id == NAND_MFR_MICRON ? 0x1000u : 0x8000u;
+}
 
 static int nand_wait_ready(void)
 {
@@ -261,9 +272,9 @@ int stub_target_nand_read_id(uint8_t *manufacturer_id, uint16_t *device_id)
     return 0;
 }
 
-int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size)
+int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t block_size, uint32_t wp_pin)
 {
-    /* The column address still fits in 16 bits, with CA[15] selecting the even/odd cache. */
+    /* The column address and vendor-specific plane selector fit in 16 bits. */
     if (page_size != 2048 && page_size != 4096) {
         STUB_LOGE("NAND page size %u is not 2048 or 4096\n", page_size);
         return STUB_LIB_ERR_INVALID_ARG;
@@ -278,8 +289,9 @@ int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t bloc
     s_nand_config.block_size = block_size;
     s_nand_config.initialized = false;
     s_last_status_byte = 0xFF;
+    s_nand_manufacturer_id = 0;
 
-    int ret = nand_spi_init(hspi_arg);
+    int ret = nand_spi_init(hspi_arg, wp_pin);
     if (ret != 0) {
         return ret;
     }
@@ -301,7 +313,10 @@ int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t bloc
         return ret;
     }
 
-    s_nand_config.initialized = true;
+    ret = stub_target_nand_read_id(&s_nand_manufacturer_id, NULL);
+    if (ret != 0) {
+        return NAND_ERR_SPI_FAIL;
+    }
 
     ret = nand_write_register(NAND_REG_PROTECT, 0x00);
     if (ret != 0) {
@@ -317,8 +332,8 @@ int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t bloc
         return NAND_ERR_PROTECTION;
     }
 
-    /* Enable hardware ECC and Buffer Mode (BUF=1, ECC_EN=1, bits [4:3] of
-     * NAND_REG_CONFIG).
+    /* Enable hardware ECC. Winbond and GigaDevice also use bit 3 for Buffer
+     * Mode; Micron reserves that bit.
      *
      * ECC (ECC_EN=1): the on-chip ECC engine covers columns 0–2047 (data
      * area). The spare area layout with ECC on:
@@ -327,8 +342,8 @@ int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t bloc
      *   Bytes 4–63 : chip-managed ECC parity (computed during PROGRAM_EXECUTE,
      *                returned in READ_FROM_CACHE but writes to these bytes are
      *                silently ignored by the chip).
-     * After each PAGE_READ the STATUS register bits [5:4] report the ECC
-     * result: 00=clean, 01=1–4 bits corrected, 10=uncorrectable, 11=reserved.
+     * After each PAGE_READ the STATUS register reports the ECC result. Winbond
+     * and GigaDevice use bits [5:4]; Micron uses bits [6:4].
      *
      * BUF=1 (Buffer Mode): disables auto-prefetch that exists in BUF=0
      * (Continuous Mode). In BUF=0, READ_FROM_CACHE completion triggers an
@@ -337,35 +352,37 @@ int stub_target_nand_attach(uint32_t hspi_arg, uint32_t page_size, uint32_t bloc
      * the chip ignores it, leaving the OCA unloaded. All odd-block reads then
      * return the OCA power-on state (all zeros). BUF=1 avoids this entirely.
      *
-     * In Buffer Mode the chip still has two cache registers — ECA for even
-     * blocks (plane 0) and OCA for odd blocks (plane 1). CA[15] in
-     * READ_FROM_CACHE, PROGRAM_LOAD, and PROGRAM_LOAD_RANDOM selects which
-     * cache to access: CA[15]=0 → ECA, CA[15]=1 → OCA. */
+     * The chip still has two cache registers, selected by a vendor-specific
+     * column-address bit. */
     uint8_t cfg = 0;
     ret = nand_read_register(NAND_REG_CONFIG, &cfg);
     if (ret != 0) {
         return NAND_ERR_SPI_FAIL;
     }
-    /* Enable ECC (ECC_EN=1) and Buffer Mode (BUF=1). */
-    cfg = (uint8_t)(cfg | NAND_CFG_ECC_EN | NAND_CFG_BUF);
+    cfg = (uint8_t)(cfg | NAND_CFG_ECC_EN);
+    if (s_nand_manufacturer_id != NAND_MFR_MICRON) {
+        cfg = (uint8_t)(cfg | NAND_CFG_BUF);
+    }
     ret = nand_write_register(NAND_REG_CONFIG, cfg);
     if (ret != 0) {
         return NAND_ERR_SPI_FAIL;
     }
 
-    /* Verify CONFIG register: BUF=1 and ECC_EN=1 must both be set. */
+    /* Micron reserves BUF. Winbond and GigaDevice require it to prevent
+     * continuous-read prefetch from racing explicit PAGE_READ commands. */
     uint8_t cfg_after = 0;
     ret = nand_read_register(NAND_REG_CONFIG, &cfg_after);
     if (ret != 0) {
         return NAND_ERR_SPI_FAIL;
     }
-    if ((cfg_after & NAND_CFG_BUF) != NAND_CFG_BUF) {
+    if (s_nand_manufacturer_id != NAND_MFR_MICRON && (cfg_after & NAND_CFG_BUF) != NAND_CFG_BUF) {
         return NAND_ERR_SPI_FAIL;
     }
     if ((cfg_after & NAND_CFG_ECC_EN) == 0) {
         return NAND_ERR_SPI_FAIL;
     }
 
+    s_nand_config.initialized = true;
     return 0;
 }
 
@@ -397,7 +414,8 @@ int stub_target_nand_read_bbm(uint32_t page_number, uint8_t *spare_data)
      * READ_FROM_CACHE (0x03) format: CMD(8) + CA_H(8) + CA_L(8) + DUMMY(8) + DATA.
      * Shift col_addr left by 8 so the 24-bit addr phase carries [CA_H, CA_L, 0x00]
      * with the trailing 0x00 serving as the required dummy byte. */
-    uint32_t col_spare = (uint32_t)s_nand_config.page_size; /* 2048 */
+    uint32_t block_number = page_number / s_nand_config.pages_per_block;
+    uint32_t col_spare = (uint32_t)s_nand_config.page_size | nand_cache_plane_bit(block_number);
     ret = spi_nand_transaction(NAND_CMD_READ_FROM_CACHE, col_spare << 8, 24, NULL, 0, spare_data, 32);
     if (ret != 0) {
         return NAND_ERR_SPI_FAIL;
@@ -441,11 +459,9 @@ int stub_target_nand_write_bbm(uint32_t page_number, uint8_t is_bad)
         return ret;
     }
 
-    /* Column 2048 is the spare area.
-     * Spare-area writes also require CA[15]=1 for odd blocks — same plane
-     * selection rule as spare-area reads. */
+    /* Column page_size is the spare area. */
     uint32_t block_number = page_number / s_nand_config.pages_per_block;
-    uint32_t plane_bit = (block_number & 1u) ? 0x8000u : 0u;
+    uint32_t plane_bit = nand_cache_plane_bit(block_number);
     uint32_t col_addr = (uint32_t)s_nand_config.page_size | plane_bit;
 
     ret = spi_nand_transaction(NAND_CMD_PROGRAM_LOAD_RANDOM, col_addr, 16, bad_block_marker, 32, NULL, 0);
@@ -486,9 +502,8 @@ int stub_target_nand_write_page(uint32_t page_number, const uint8_t *buf, uint32
         return ret;
     }
 
-    /* In Buffer Mode (BUF=1), CA[15] selects ECA (even blocks) or OCA (odd blocks). */
     uint32_t block_number = page_number / s_nand_config.pages_per_block;
-    uint32_t plane_bit = (block_number & 1u) ? 0x8000u : 0u;
+    uint32_t plane_bit = nand_cache_plane_bit(block_number);
 
     uint32_t offset = 0;
     while (offset < write_len) {
@@ -563,6 +578,16 @@ int stub_target_nand_erase_block(uint32_t page_number)
  */
 static int nand_check_ecc_after_read(void)
 {
+    if (s_nand_manufacturer_id == NAND_MFR_MICRON) {
+        uint8_t ecc_field = s_last_status_byte & NAND_STAT_ECC_MASK_MICRON;
+        /* 000 is clean; 001, 011 and 101 are corrected. 010 is
+         * uncorrectable and the other values are reserved. */
+        if (ecc_field == 0 || ecc_field == BIT(4) || ecc_field == (BIT(5) | BIT(4)) || ecc_field == (BIT(6) | BIT(4))) {
+            return 0;
+        }
+        return NAND_ERR_ECC_UNCORRECTABLE;
+    }
+
     uint8_t ecc_field = s_last_status_byte & NAND_STAT_ECC_MASK;
     /* Both 0x20 (10 = uncorrectable) and 0x30 (11 = reserved) are >= 0x20
      * and have bit5 set. Treat both as uncorrectable. */
@@ -602,9 +627,8 @@ int stub_target_nand_read_page(uint32_t page_number, uint8_t *buf, uint32_t buf_
         return ret;
     }
 
-    /* In Buffer Mode (BUF=1), CA[15] selects ECA (even blocks) or OCA (odd blocks). */
     uint32_t block_number = page_number / s_nand_config.pages_per_block;
-    uint32_t plane_bit = (block_number & 1u) ? 0x8000u : 0u;
+    uint32_t plane_bit = nand_cache_plane_bit(block_number);
 
     uint32_t offset = 0;
     while (offset < read_len) {
