@@ -132,3 +132,14 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
 
     REG_SET_BIT(SPI_MEM_USER_REG(FLASH_SPI_NUM), SPI_MEM_USR_COMMAND);
 }
+
+/*
+ * S2 ROM does not export esp_rom_spi_set_address_bit_len. Hardware SE/BE/RDSR
+ * still need USER.USR_ADDR and USER1.USR_ADDR_BITLEN set to 24 bits. This does
+ * not touch the SPI0 cache 4-byte command bit.
+ */
+void esp_rom_spi_set_address_bit_len(int spi, int addr_bits)
+{
+    SET_PERI_REG_BITS(SPI_MEM_USER_REG(spi), SPI_MEM_USR_ADDR_V, (addr_bits > 0 ? 1 : 0), SPI_MEM_USR_ADDR_S);
+    REG_SET_FIELD(SPI_MEM_USER1_REG(spi), SPI_MEM_USR_ADDR_BITLEN, addr_bits - 1);
+}

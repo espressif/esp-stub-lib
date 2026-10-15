@@ -10,6 +10,9 @@
 #define SPI_MEM_ADDR_REG(i)       SPI_ADDR_REG(i)
 #define SPI_MEM_CMD_REG(i)        SPI_CMD_REG(i)
 #define SPI_MEM_RD_STATUS_REG(i)  SPI_RD_STATUS_REG(i)
+#define SPI_MEM_USER_REG(i)       SPI_USER_REG(i)
 #define SPI_MEM_FLASH_SE          SPI_FLASH_SE
 #define SPI_MEM_FLASH_BE          SPI_FLASH_BE
 #define SPI_MEM_FLASH_RDSR        SPI_FLASH_RDSR
+#define SPI_MEM_USR_DUMMY         SPI_USR_DUMMY
+/* ESP32 has no SPI_MEM_FLASH_PE; hardware SE/BE are used alone. */

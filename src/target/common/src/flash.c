@@ -31,6 +31,8 @@ extern int esp_rom_spiflash_write_enable(esp_rom_spiflash_chip_t *flash_chip);
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
 extern int esp_rom_spiflash_unlock(void);
+/* Not present on all ROM generations (e.g. ESP32 / ESP8266); NULL when absent. */
+extern void esp_rom_spi_set_address_bit_len(int spi_num, int addr_bits) __attribute__((weak));
 
 extern void esp_rom_gpio_pad_select_gpio(uint32_t gpio_num);
 
@@ -177,9 +179,34 @@ int __attribute__((weak)) stub_target_flash_erase_chip(void)
     return STUB_LIB_FAIL;
 }
 
+/*
+ * Match ROM _esp_rom_spiflash_erase_sector / SPI_sector_erase prep:
+ * clear USR_DUMMY and (when available) set 24-bit address length so hardware
+ * SE/BE/RDSR work after the app left SPI1 in QIO/cache-user state.
+ */
+static void stub_flash_hw_cmd_prep(void)
+{
+#if defined(SPI_MEM_USR_DUMMY) && defined(SPI_MEM_USER_REG)
+    REG_CLR_BIT(SPI_MEM_USER_REG(FLASH_SPI_NUM), SPI_MEM_USR_DUMMY);
+#endif
+    if (esp_rom_spi_set_address_bit_len) {
+        esp_rom_spi_set_address_bit_len(FLASH_SPI_NUM, 24);
+    }
+}
+
+static uint32_t stub_flash_erase_cmd(uint32_t erase_bit)
+{
+#if defined(SPI_MEM_FLASH_PE)
+    return erase_bit | SPI_MEM_FLASH_PE;
+#else
+    return erase_bit;
+#endif
+}
+
 bool __attribute__((weak)) stub_target_flash_is_busy(void)
 {
     stub_target_spi_wait_ready();
+    stub_flash_hw_cmd_prep();
 
     REG_WRITE(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM), 0);
     REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_RDSR);
@@ -193,11 +220,12 @@ bool __attribute__((weak)) stub_target_flash_is_busy(void)
 
 void __attribute__((weak)) stub_target_flash_erase_sector_start(uint32_t addr)
 {
+    stub_flash_hw_cmd_prep();
     stub_target_flash_write_enable();
     stub_target_spi_wait_ready();
 
     REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_SE);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), stub_flash_erase_cmd(SPI_MEM_FLASH_SE));
     while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
         /* busy wait */
     }
@@ -207,11 +235,12 @@ void __attribute__((weak)) stub_target_flash_erase_sector_start(uint32_t addr)
 
 void __attribute__((weak)) stub_target_flash_erase_block_start(uint32_t addr)
 {
+    stub_flash_hw_cmd_prep();
     stub_target_flash_write_enable();
     stub_target_spi_wait_ready();
 
     REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_BE);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), stub_flash_erase_cmd(SPI_MEM_FLASH_BE));
     while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
         /* busy wait */
     }
