@@ -88,3 +88,6 @@
 #define LP_ROM_DRAM_START 0x5010fa80 // Value taken from ROM elf, includes LP ROM stack
 #define LP_RAM_END 0x50110000
 #define LP_ROM_DRAM_SIZE (LP_RAM_END - LP_ROM_DRAM_START)
+
+/* GPSPI hosts are numbered from SPI2, same spacing as on the ESP32-S3. */
+#define REG_SPI_BASE(i) (DR_REG_SPI2_BASE + ((i) - 2) * 0x1000)
