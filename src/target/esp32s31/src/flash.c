@@ -172,6 +172,8 @@ void stub_target_flash_set_4byte_cache_mode(bool enable)
 
 bool stub_target_flash_needs_attach(void)
 {
+    /* cache_is_enabled() is false when SPI0 has no read command (cold after
+     * stall-through-SYS_SW_RST) or when cache/MMU are down — both need attach. */
     return !stub_target_cache_is_enabled();
 }
 

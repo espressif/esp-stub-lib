@@ -16,6 +16,7 @@
 #include <target/mmu.h>
 
 #include <soc/cache_reg.h>
+#include <soc/spi_mem_c_reg.h>
 
 #define CACHE_MAP_L1_ICACHE_0 BIT(0)
 #define CACHE_MAP_L1_ICACHE_1 BIT(1)
@@ -108,6 +109,14 @@ void stub_target_cache_start(void)
 
 int stub_target_cache_is_enabled(void)
 {
+    /* SPI0 must have a programmed cache/user read command. After SYS_SW_RST
+     * with CPUs PMU-stalled, ROM never runs esp_rom_spiflash_attach and this
+     * field stays 0 even when cache shut bits look clear / MMU looks live.
+     * Treat that as "not enabled" so flash_init attaches SPI and cache_init
+     * runs ROM_Boot_Cache_Init instead of skipping both. */
+    if (REG_GET_FIELD(SPI_MEM_C_USER2_REG, SPI_MEM_C_USR_COMMAND_VALUE) == 0)
+        return 0;
+
     uint32_t icache_ctrl = REG_READ(CACHE_L1_ICACHE_CTRL_REG);
     if (icache_ctrl & (CACHE_L1_ICACHE_SHUT_IBUS0 | CACHE_L1_ICACHE_SHUT_IBUS1))
         return 0;
