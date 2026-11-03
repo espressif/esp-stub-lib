@@ -22,6 +22,13 @@ uint32_t stub_target_flash_get_spiconfig_efuse(void)
     return esp_rom_efuse_get_flash_gpio_info();
 }
 
+/* C3 ROM legacy_funcs starts at read_sub_len; it has no se/be_addr_bit_len. */
+uint8_t stub_target_flash_erase_addr_bits(bool block)
+{
+    (void)block;
+    return 24;
+}
+
 void stub_target_spi_wait_ready(void)
 {
     /* There is no HW arbiter on SPI0, so we need to wait for it to be ready */
