@@ -58,8 +58,7 @@
  * Bit 15: TX_SUC_EOF     — host finished writing a packet (host→slave data ready)
  * Bit 16: RX_DONE        — slave→host DMA descriptor processed (owner reclaimed)
  * Bit 17: RX_EOF         — slave→host DMA transfer completed (eof descriptor sent)
- * Bit 18: RX_DSCR_EMPTY  — slave→host descriptor chain exhausted; must be cleared
- *                           before restarting RXLINK_START or the new DMA is ignored
+ * Bit 18: TOHOST         — slave generated an interrupt to the host
  * Bit 19: TX_DSCR_ERR    — TX descriptor error (fatal)
  * Bit 20: RX_DSCR_ERR    — RX descriptor error (fatal)
  * Bit 21: TX_DSCR_EMPTY  — TX descriptor chain exhausted (fatal)
@@ -67,7 +66,7 @@
 #define SDIO_SLC0_TX_SUC_EOF_INT    BIT(15)
 #define SDIO_SLC0_RX_DONE_INT       BIT(16)
 #define SDIO_SLC0_RX_EOF_INT        BIT(17)
-#define SDIO_SLC0_RX_DSCR_EMPTY_INT BIT(18)
+#define SDIO_SLC0_TOHOST_INT        BIT(18)
 #define SDIO_SLC0_TX_DSCR_ERR_INT   BIT(19)
 #define SDIO_SLC0_RX_DSCR_ERR_INT   BIT(20)
 #define SDIO_SLC0_TX_DSCR_EMPTY_INT BIT(21)
