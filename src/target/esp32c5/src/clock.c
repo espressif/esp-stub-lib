@@ -17,6 +17,7 @@
 #define CPU_FREQ_MHZ       192
 #define AHB_FREQ_MHZ       40
 #define PLL_F160M_FREQ_MHZ 160
+#define CPU_DIV            1U
 
 extern uint32_t esp_rom_get_cpu_freq(void);
 extern void esp_rom_set_cpu_ticks_per_us(uint32_t ticks_per_us);
@@ -32,6 +33,8 @@ void stub_target_clock_init(void)
 
     /* An application can leave this gate closed after a CPU-only reset, which does not reset it. */
     REG_SET_BIT(PCR_PLL_DIV_CLK_EN_REG, PCR_PLL_160M_CLK_EN);
+    /* Resets other than a chip reset keep the application's CPU divider; f_cpu must be a multiple of f_ahb. */
+    REG_SET_FIELD(PCR_CPU_FREQ_CONF_REG, PCR_CPU_DIV_NUM, CPU_DIV - 1U);
     REG_SET_FIELD(PCR_AHB_FREQ_CONF_REG, PCR_AHB_DIV_NUM, (PLL_F160M_FREQ_MHZ / AHB_FREQ_MHZ) - 1U);
     REG_SET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL, 2);
     REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
