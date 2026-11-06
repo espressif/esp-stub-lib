@@ -13,7 +13,9 @@
 #define SPI_MEM_ADDR_REG(FLASH_SPI_NUM)     SPI1_MEM_C_ADDR_REG
 #define SPI_MEM_FLASH_SE                    SPI1_MEM_C_FLASH_SE
 #define SPI_MEM_FLASH_BE                    SPI1_MEM_C_FLASH_BE
+#define SPI_MEM_FLASH_PE                    SPI1_MEM_C_FLASH_PE
 #define SPI_MEM_FLASH_RDSR                  SPI1_MEM_C_FLASH_RDSR
+#define SPI_MEM_USR_DUMMY                   SPI1_MEM_C_USR_DUMMY
 
 #define SPI_MEM_MST_ST                      SPI1_MEM_C_MST_ST
 #define SPI_MEM_MST_ST_S                    SPI1_MEM_C_MST_ST_S
