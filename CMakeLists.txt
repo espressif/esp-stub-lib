@@ -21,6 +21,7 @@ set(srcs
     src/mmu.c
     src/flash.c
     src/mem_utils.c
+    src/nand.c
     src/rom_wrappers.c
     src/security.c
     src/sha256.c
