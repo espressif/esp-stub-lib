@@ -24,6 +24,13 @@ extern void esp_rom_set_cpu_ticks_per_us(uint32_t ticks_per_us);
 
 static uint32_t s_cpu_freq = 0;
 
+static void update_bus_clocks(void)
+{
+    REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
+    while (REG_GET_BIT(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE)) {
+    }
+}
+
 void stub_target_clock_init(void)
 {
     // TODO: Investigate why 192 MHz instead of 160 MHz
@@ -37,7 +44,7 @@ void stub_target_clock_init(void)
     REG_SET_FIELD(PCR_CPU_FREQ_CONF_REG, PCR_CPU_DIV_NUM, CPU_DIV - 1U);
     REG_SET_FIELD(PCR_AHB_FREQ_CONF_REG, PCR_AHB_DIV_NUM, (PLL_F160M_FREQ_MHZ / AHB_FREQ_MHZ) - 1U);
     REG_SET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL, 2);
-    REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
+    update_bus_clocks();
 }
 
 uint32_t stub_target_get_cpu_freq(void)
