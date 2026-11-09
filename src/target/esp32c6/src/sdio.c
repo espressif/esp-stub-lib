@@ -250,7 +250,7 @@ static bool sdio_wait_tx_done(void)
 
     uint32_t raw = REG_READ(SDIO_SLC0INT_RAW_REG);
     if (raw & SDIO_SLC0_RX_EOF_INT) {
-        REG_WRITE(SDIO_SLC0INT_CLR_REG, SDIO_SLC0_RX_DONE_INT | SDIO_SLC0_RX_EOF_INT | SDIO_SLC0_RX_DSCR_EMPTY_INT);
+        REG_WRITE(SDIO_SLC0INT_CLR_REG, SDIO_SLC0_RX_DONE_INT | SDIO_SLC0_RX_EOF_INT | SDIO_SLC0_TOHOST_INT);
         lldesc_t *head, *tail;
         slc_to_host_chain_recycle(&head, &tail);
         return true;
@@ -275,7 +275,7 @@ int stub_target_sdio_tx_frame(const void *data, size_t len)
     STAILQ_NEXT(&s_tx_desc, qe) = NULL;
 
     REG_WRITE(SDIO_SLC0INT_CLR_REG,
-              SDIO_SLC0_RX_DONE_INT | SDIO_SLC0_RX_EOF_INT | SDIO_SLC0_RX_DSCR_EMPTY_INT | SDIO_SLC0_RX_DSCR_ERR_INT);
+              SDIO_SLC0_RX_DONE_INT | SDIO_SLC0_RX_EOF_INT | SDIO_SLC0_TOHOST_INT | SDIO_SLC0_RX_DSCR_ERR_INT);
     REG_WRITE(SLCHOST_CONF_W0_REG, (uint32_t)len);
     slc_send_to_host_chain(&s_tx_desc, &s_tx_desc);
 

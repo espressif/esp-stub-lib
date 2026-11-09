@@ -7,7 +7,7 @@
  *
  * The struct layouts here must match the ROM's internal structures exactly.
  * Layout is derived from static analysis of the ESP32-C6 ROM and confirmed
- * to match ESP32-C5 (same SIP/SLC ROM API, same struct layout).
+ * to match ESP32-C5 and ESP32-C61 ECO3+ (same SIP/SLC ROM API, same struct layout).
  *   - lldesc_t: standard ESP DMA linked-list descriptor (12 bytes)
  *   - sip_t:    ROM SIP control block (~88 bytes)
  *
