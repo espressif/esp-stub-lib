@@ -120,7 +120,7 @@ static int mmu_mmap(uint32_t flash_paddr, uint32_t size, const void **out_vaddr)
               entry_start,
               vaddr_base);
 
-    stub_lib_cache_stop();
+    stub_lib_cache_freeze();
 
     /* Save existing MMU entries */
     for (uint32_t i = 0; i < page_count; i++) {
@@ -139,7 +139,7 @@ static int mmu_mmap(uint32_t flash_paddr, uint32_t size, const void **out_vaddr)
 
     mmu_invalidate_region(vaddr_base, page_count * page_size);
 
-    stub_lib_cache_start();
+    stub_lib_cache_unfreeze();
 
     *out_vaddr = (const void *)(uintptr_t)(vaddr_base + offset);
 
@@ -157,7 +157,7 @@ static void mmu_munmap(void)
         return;
 
     uint32_t page_size = stub_target_mmu_get_page_size();
-    stub_lib_cache_stop();
+    stub_lib_cache_freeze();
 
     /* Restore saved MMU entries */
     for (uint32_t i = 0; i < s_mmap_state.page_count; i++) {
@@ -166,7 +166,7 @@ static void mmu_munmap(void)
 
     mmu_invalidate_region(s_mmap_state.vaddr_base, s_mmap_state.page_count * page_size);
 
-    stub_lib_cache_start();
+    stub_lib_cache_unfreeze();
 
     s_mmap_state.page_count = 0;
 }
