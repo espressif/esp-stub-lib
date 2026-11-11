@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -56,12 +57,31 @@ bool stub_lib_usb_serial_jtag_is_data_available(void);
 uint8_t stub_lib_usb_serial_jtag_read_rxfifo_byte(void);
 
 /**
+ * @brief Read the available bytes from the USB-Serial/JTAG RX FIFO
+ *
+ * @param buf Destination buffer
+ * @param max_len Maximum number of bytes to read
+ * @return Number of bytes read
+ */
+size_t stub_lib_usb_serial_jtag_read_rxfifo(uint8_t *buf, size_t max_len);
+
+/**
  * @brief Transmit a single byte over USB-Serial/JTAG
  *
  * @param c Byte to transmit
  * @return 0 if successful, non-zero if error occurred
  */
 uint8_t stub_lib_usb_serial_jtag_tx_one_char(uint8_t c);
+
+/**
+ * @brief Transmit bytes over USB-Serial/JTAG
+ *
+ * Stops early if the host does not take data within the same timeout as tx_one_char.
+ *
+ * @param data Bytes to transmit
+ * @param len Number of bytes
+ */
+void stub_lib_usb_serial_jtag_tx_write(const uint8_t *data, size_t len);
 
 /**
  * @brief Flush any buffered USB-Serial/JTAG transmit data

@@ -88,12 +88,16 @@ static __attribute__((unused)) void test_miniz(void)
 
 static void __attribute__((unused)) test_usb_serial_jtag(void)
 {
+    uint8_t buf[64] = { 0 };
+
     (void)stub_lib_usb_serial_jtag_is_active();
     (void)stub_lib_usb_serial_jtag_rominit_intr_attach(17, NULL, 0);
     (void)stub_lib_usb_serial_jtag_clear_intr_flags();
     (void)stub_lib_usb_serial_jtag_is_data_available();
     (void)stub_lib_usb_serial_jtag_read_rxfifo_byte();
+    (void)stub_lib_usb_serial_jtag_read_rxfifo(buf, sizeof(buf));
     (void)stub_lib_usb_serial_jtag_tx_one_char('A');
+    stub_lib_usb_serial_jtag_tx_write(buf, sizeof(buf));
     (void)stub_lib_usb_serial_jtag_tx_flush();
 }
 
