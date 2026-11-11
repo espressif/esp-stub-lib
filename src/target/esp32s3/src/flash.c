@@ -24,7 +24,6 @@
 extern void spi_cache_mode_switch(uint32_t modebit);
 extern void spi_common_set_flash_cs_timing(void);
 extern void esp_rom_opiflash_mode_reset(int spi_num);
-extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
 extern esp_rom_spiflash_legacy_data_t *rom_spiflash_legacy_data;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern void esp_rom_opiflash_exec_cmd(int spi_num,

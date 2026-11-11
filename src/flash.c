@@ -28,6 +28,9 @@
 
 extern void *memcpy(void *dest, const void *src, size_t n);
 
+/* The ROM reads 16 and programs 32 bytes per command, the SPI data buffer holds 64 (as ESP-IDF uses) */
+#define FLASH_ROM_BYTES_PER_CMD 64U
+
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
@@ -83,6 +86,7 @@ int stub_lib_flash_init(void *state)
 int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy, bool enable_4byte_cache_mode)
 {
     stub_target_flash_init(state, attach_policy);
+    stub_target_flash_set_rom_bytes_per_cmd(FLASH_ROM_BYTES_PER_CMD);
 
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);

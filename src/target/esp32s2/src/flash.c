@@ -132,3 +132,9 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
 
     REG_SET_BIT(SPI_MEM_USER_REG(FLASH_SPI_NUM), SPI_MEM_USR_COMMAND);
 }
+
+void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes)
+{
+    // The ROM has no rom_spiflash_legacy_funcs, so its read and program lengths are fixed
+    (void)bytes;
+}
