@@ -35,6 +35,8 @@ typedef struct {
 
 // Constants
 #define ACM_BYTES_PER_TX             64
+#define ACM_IN_EP_ADDR               0x84
+#define ACM_TX_TIMEOUT_US            100000
 #define LINE_CTRL_RTS                (1 << 1)
 #define ACM_STATUS_LINESTATE_CHANGED -1
 #define ACM_STATUS_RX                -4
@@ -50,6 +52,7 @@ static volatile bool s_reset_requested = false;
 // USB-OTG specific CDC ACM device type and functions
 typedef void cdc_acm_device;
 extern cdc_acm_device *uart_acm_dev;
+extern int usb_write_would_block(uint8_t ep);
 extern int esp_rom_cdc_acm_fifo_fill(cdc_acm_device *dev, const uint8_t *tx_data, int len);
 extern int esp_rom_cdc_acm_fifo_read(cdc_acm_device *dev, uint8_t *rx_data, const int size);
 extern int esp_rom_cdc_acm_rx_fifo_cnt(cdc_acm_device *dev);
@@ -113,6 +116,10 @@ uint8_t stub_lib_usb_otg_tx_one_char(uint8_t c)
 
 void stub_lib_usb_otg_tx_flush(void)
 {
+    // cdc_acm_fifo_fill() polls a busy endpoint in 1 ms steps, which caps TX at one packet per ms
+    for (uint32_t us = 0; us < ACM_TX_TIMEOUT_US && usb_write_would_block(ACM_IN_EP_ADDR) > 0; us++) {
+        stub_lib_delay_us(1);
+    }
     esp_rom_cdc_acm_fifo_fill(uart_acm_dev, s_cdcacm_txbuf, s_cdcacm_txpos);
     s_cdcacm_txpos = 0;
 }
