@@ -28,6 +28,21 @@
 
 extern void *memcpy(void *dest, const void *src, size_t n);
 
+/* Only the ROMs of newer chips provide this; it resolves to NULL elsewhere */
+extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs __attribute__((weak));
+
+/* The ROM reads 16 and programs 32 bytes per command, the SPI data buffer holds 64 (as ESP-IDF uses) */
+#define FLASH_ROM_SUB_LEN 64U
+
+static void flash_use_full_spi_buffer(void)
+{
+    if (&rom_spiflash_legacy_funcs == NULL || rom_spiflash_legacy_funcs == NULL) {
+        return;
+    }
+    rom_spiflash_legacy_funcs->read_sub_len = FLASH_ROM_SUB_LEN;
+    rom_spiflash_legacy_funcs->write_sub_len = FLASH_ROM_SUB_LEN;
+}
+
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
@@ -83,6 +98,7 @@ int stub_lib_flash_init(void *state)
 int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy, bool enable_4byte_cache_mode)
 {
     stub_target_flash_init(state, attach_policy);
+    flash_use_full_spi_buffer();
 
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);
