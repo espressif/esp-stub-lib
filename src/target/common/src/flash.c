@@ -124,6 +124,16 @@ bool __attribute__((weak)) stub_target_flash_needs_attach(void)
     return true;
 }
 
+bool __attribute__((weak)) stub_target_flash_dout_supported(void)
+{
+    return true;
+}
+
+uint8_t __attribute__((weak)) stub_target_flash_dout_clk_div(void)
+{
+    return 2;
+}
+
 void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
     esp_rom_spiflash_attach(ishspi, legacy);
@@ -161,6 +171,16 @@ int __attribute__((weak)) stub_target_flash_write_buff(uint32_t addr, const void
         res = esp_rom_spiflash_write(addr, buffer, size);
     }
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_WRITE;
+}
+
+void __attribute__((weak)) stub_target_flash_set_dout_read(bool enable)
+{
+    // The ROM read picks the command, dummy cycles and data lines from these bits
+    if (enable) {
+        REG_SET_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_FREAD_DUAL | SPI_MEM_FASTRD_MODE);
+    } else {
+        REG_CLR_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_FREAD_DUAL | SPI_MEM_FASTRD_MODE);
+    }
 }
 
 int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)

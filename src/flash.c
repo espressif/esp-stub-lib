@@ -34,6 +34,22 @@ extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs __attribute__(
 /* The ROM reads 16 and programs 32 bytes per command, the SPI data buffer holds 64 (as ESP-IDF uses) */
 #define FLASH_ROM_SUB_LEN 64U
 
+/* Missing in the ESP32 and ESP8266 ROMs, it resolves to NULL there */
+extern int esp_rom_spiflash_config_clk(uint8_t freqdiv, uint8_t spi) __attribute__((weak));
+
+static bool s_dout_read;
+
+/* The ROM attach leaves slow single line reads at a quarter of the MSPI core clock.
+ * Dual output uses only the D0/D1 lines every flash has, and as a fast read it can run at 40 MHz. */
+static void flash_use_dout_read(void)
+{
+    if (esp_rom_spiflash_config_clk == NULL || !stub_target_flash_dout_supported()) {
+        return;
+    }
+    esp_rom_spiflash_config_clk(stub_target_flash_dout_clk_div(), 1);
+    s_dout_read = true;
+}
+
 static void flash_use_full_spi_buffer(void)
 {
     if (&rom_spiflash_legacy_funcs == NULL || rom_spiflash_legacy_funcs == NULL) {
@@ -83,6 +99,7 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
 {
     stub_target_reset_default_spi_pins();
     stub_target_flash_attach(ishspi, legacy);
+    flash_use_dout_read();
 }
 
 size_t stub_lib_flash_state_size(void)
@@ -97,8 +114,12 @@ int stub_lib_flash_init(void *state)
 
 int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy, bool enable_4byte_cache_mode)
 {
+    bool attach = attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach();
     stub_target_flash_init(state, attach_policy);
     flash_use_full_spi_buffer();
+    if (attach) {
+        flash_use_dout_read();
+    }
 
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);
@@ -140,6 +161,7 @@ void stub_lib_flash_deinit(const void *state)
         stub_target_flash_set_4byte_cache_mode(false);
         large_flash_mode = false;
     }
+    s_dout_read = false;
     stub_target_flash_deinit(state);
 }
 
@@ -168,7 +190,13 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
         return stub_target_flash_4byte_read(FLASH_SPI_NUM, addr, buffer, size);
     }
 
-    return stub_target_flash_read_buff(addr, buffer, size);
+    if (!s_dout_read) {
+        return stub_target_flash_read_buff(addr, buffer, size);
+    }
+    stub_target_flash_set_dout_read(true);
+    int res = stub_target_flash_read_buff(addr, buffer, size);
+    stub_target_flash_set_dout_read(false);
+    return res;
 }
 
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)

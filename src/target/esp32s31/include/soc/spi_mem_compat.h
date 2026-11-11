@@ -25,6 +25,8 @@
 
 /* SPI1 registers used by stub_target_flash_init */
 #define SPI_MEM_CTRL_REG(i)     SPI1_MEM_C_CTRL_REG
+#define SPI_MEM_FREAD_DUAL      SPI1_MEM_C_FREAD_DUAL
+#define SPI_MEM_FASTRD_MODE     SPI1_MEM_C_FASTRD_MODE
 #define SPI_MEM_CTRL2_REG(i)    SPI1_MEM_C_CTRL2_REG
 #define SPI_MEM_USER_REG(i)     SPI1_MEM_C_USER_REG
 #define SPI_MEM_SUS_STATUS_REG(i) SPI1_MEM_C_SUS_STATUS_REG
