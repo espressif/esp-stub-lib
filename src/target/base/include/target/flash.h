@@ -52,6 +52,18 @@ size_t stub_target_flash_state_size(void) __attribute__((const));
 void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy);
 
 /**
+ * @brief Set how many bytes the ROM flash functions read and program per SPI command.
+ *
+ * The default weak implementation sets the read and write lengths in the ROM
+ * rom_spiflash_legacy_funcs. Targets whose ROM has no such struct override it
+ * to do nothing, and targets with a different struct layout override it to
+ * write their own fields.
+ *
+ * @param bytes Bytes per SPI command, at most the size of the SPI data buffer.
+ */
+void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes);
+
+/**
  * @brief Check whether flash attach is needed for the current hardware state.
  *
  * The default weak implementation returns true. Targets with live cache/MMU/XIP

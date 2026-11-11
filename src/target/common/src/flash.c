@@ -119,6 +119,12 @@ void __attribute__((weak)) stub_target_flash_init(void *state, stub_lib_flash_at
     }
 }
 
+void __attribute__((weak)) stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes)
+{
+    rom_spiflash_legacy_funcs->read_sub_len = bytes;
+    rom_spiflash_legacy_funcs->write_sub_len = bytes;
+}
+
 bool __attribute__((weak)) stub_target_flash_needs_attach(void)
 {
     return true;
