@@ -113,11 +113,11 @@ static inline uint8_t get_write_block_size_encrypted(uint32_t flash_addr, uint32
     return AES_XTS_MIN_BLOCK_SIZE;
 }
 
-static int stub_target_flash_4byte_write_unencrypted(int spi_num,
-                                                     uint32_t flash_addr,
-                                                     const uint8_t *data,
-                                                     uint32_t size,
-                                                     uint64_t timeout_us)
+int __attribute__((weak)) stub_target_flash_4byte_program(int spi_num,
+                                                          uint32_t flash_addr,
+                                                          const uint8_t *data,
+                                                          uint32_t size,
+                                                          uint64_t timeout_us)
 {
     if (stub_lib_flash_wait_ready(timeout_us) != STUB_LIB_OK) {
         return STUB_LIB_ERR_TIMEOUT;
@@ -206,7 +206,20 @@ int stub_target_flash_4byte_write(int spi_num, uint32_t flash_addr, const uint8_
     if (encrypt) {
         return stub_target_flash_4byte_write_encrypted(spi_num, flash_addr, data, size, timeout_us);
     }
-    return stub_target_flash_4byte_write_unencrypted(spi_num, flash_addr, data, size, timeout_us);
+    return stub_target_flash_4byte_program(spi_num, flash_addr, data, size, timeout_us);
+}
+
+void __attribute__((weak))
+stub_target_flash_4byte_read_data(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size, bool dout)
+{
+    while (size > 0) {
+        uint32_t chunk_size = (size > FLASH_READ_CHUNK_SIZE) ? FLASH_READ_CHUNK_SIZE : size;
+        exec_read_cmd_4b(spi_num, flash_addr, buffer, (int)(8 * chunk_size), dout);
+
+        size -= chunk_size;
+        buffer += chunk_size;
+        flash_addr += chunk_size;
+    }
 }
 
 int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size, bool dout)
@@ -216,15 +229,7 @@ int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buff
         return STUB_LIB_ERR_TIMEOUT;
     }
 
-    while (size > 0) {
-        uint32_t chunk_size = (size > FLASH_READ_CHUNK_SIZE) ? FLASH_READ_CHUNK_SIZE : size;
-        exec_read_cmd_4b(spi_num, flash_addr, buffer, (int)(8 * chunk_size), dout);
-
-        size -= chunk_size;
-        buffer += chunk_size;
-        flash_addr += chunk_size;
-    }
-
+    stub_target_flash_4byte_read_data(spi_num, flash_addr, buffer, size, dout);
     return STUB_LIB_OK;
 }
 
