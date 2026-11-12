@@ -18,6 +18,7 @@
 
 #if (ESP_ROM_USB_OTG_NUM >= 0)
 
+extern void *memcpy(void *dest, const void *src, size_t n);
 extern void *esp_rom_get_uart_device(void);
 extern void esp_rom_isr_unmask(int int_num);
 extern void esp_rom_isr_mask(int int_num);
@@ -36,6 +37,7 @@ typedef struct {
 // Constants
 // The ROM gives the CDC IN endpoint a 128-byte TX FIFO; one fifo_fill() call sends what fits in it
 #define ACM_BYTES_PER_TX             128
+#define ACM_BYTES_PER_RX             64
 #define ACM_IN_EP_ADDR               0x84
 #define ACM_TX_TIMEOUT_US            100000
 #define LINE_CTRL_RTS                (1 << 1)
@@ -45,6 +47,7 @@ typedef struct {
 // State
 static int s_usb_int_num = 0;
 static void (*s_rx_callback)(uint8_t) = NULL;
+static void (*s_rx_block_callback)(const uint8_t *data, size_t len) = NULL;
 static uint8_t s_cdcacm_txbuf[ACM_BYTES_PER_TX];
 static int s_cdcacm_txpos = 0;
 static uint32_t s_cdcacm_old_rts = 0;
@@ -77,6 +80,14 @@ bool stub_lib_usb_otg_is_active(void)
 void stub_lib_usb_otg_cdcacm_callback(cdc_acm_device *dev, int status)
 {
     if (status == ACM_STATUS_RX) {
+        if (s_rx_block_callback) {
+            uint8_t buf[ACM_BYTES_PER_RX];
+            int n;
+            while ((n = esp_rom_cdc_acm_fifo_read(dev, buf, sizeof(buf))) > 0) {
+                s_rx_block_callback(buf, (size_t)n);
+            }
+            return;
+        }
         while (esp_rom_cdc_acm_rx_fifo_cnt(dev) > 0) {
             uint8_t c;
             esp_rom_cdc_acm_fifo_read(dev, &c, 1);
@@ -92,10 +103,9 @@ void stub_lib_usb_otg_cdcacm_callback(cdc_acm_device *dev, int status)
     }
 }
 
-void stub_lib_usb_otg_rominit_intr_attach(int intr_num, void (*rx_callback)(uint8_t))
+static void usb_otg_intr_attach(int intr_num)
 {
     s_usb_int_num = intr_num;
-    s_rx_callback = rx_callback;
     s_cdcacm_txpos = 0;
     s_reset_requested = false;
 
@@ -106,6 +116,21 @@ void stub_lib_usb_otg_rominit_intr_attach(int intr_num, void (*rx_callback)(uint
     stub_target_usb_otg_rominit_intr_attach(intr_num, &stub_lib_usb_otg_cdcacm_callback);
 }
 
+void stub_lib_usb_otg_rominit_intr_attach(int intr_num, void (*rx_callback)(uint8_t))
+{
+    s_rx_callback = rx_callback;
+    s_rx_block_callback = NULL;
+    usb_otg_intr_attach(intr_num);
+}
+
+void stub_lib_usb_otg_rominit_intr_attach_rx_block(int intr_num,
+                                                   void (*rx_block_callback)(const uint8_t *data, size_t len))
+{
+    s_rx_callback = NULL;
+    s_rx_block_callback = rx_block_callback;
+    usb_otg_intr_attach(intr_num);
+}
+
 uint8_t stub_lib_usb_otg_tx_one_char(uint8_t c)
 {
     s_cdcacm_txbuf[s_cdcacm_txpos++] = c;
@@ -113,6 +138,23 @@ uint8_t stub_lib_usb_otg_tx_one_char(uint8_t c)
         stub_lib_usb_otg_tx_flush();
     }
     return 0;
+}
+
+void stub_lib_usb_otg_tx_write(const uint8_t *data, size_t len)
+{
+    while (len > 0) {
+        size_t n = sizeof(s_cdcacm_txbuf) - (size_t)s_cdcacm_txpos;
+        if (n > len) {
+            n = len;
+        }
+        memcpy(&s_cdcacm_txbuf[s_cdcacm_txpos], data, n);
+        s_cdcacm_txpos += (int)n;
+        data += n;
+        len -= n;
+        if (s_cdcacm_txpos == sizeof(s_cdcacm_txbuf)) {
+            stub_lib_usb_otg_tx_flush();
+        }
+    }
 }
 
 void stub_lib_usb_otg_tx_flush(void)
@@ -174,10 +216,23 @@ void stub_lib_usb_otg_rominit_intr_attach(int intr_num, void (*rx_callback)(uint
     (void)rx_callback;
 }
 
+void stub_lib_usb_otg_rominit_intr_attach_rx_block(int intr_num,
+                                                   void (*rx_block_callback)(const uint8_t *data, size_t len))
+{
+    (void)intr_num;
+    (void)rx_block_callback;
+}
+
 uint8_t stub_lib_usb_otg_tx_one_char(uint8_t c)
 {
     (void)c;
     return 0;
+}
+
+void stub_lib_usb_otg_tx_write(const uint8_t *data, size_t len)
+{
+    (void)data;
+    (void)len;
 }
 
 void stub_lib_usb_otg_tx_flush(void)
