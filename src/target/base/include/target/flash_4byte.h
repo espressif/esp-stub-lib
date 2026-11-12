@@ -33,11 +33,12 @@ int stub_target_flash_4byte_write(int spi_num, uint32_t flash_addr, const uint8_
  * @param flash_addr Flash address to read from
  * @param buffer Buffer to read data into
  * @param size Length of data to read
+ * @param dout Read in dual output mode instead of single line fast read
  * @return Result:
  * - STUB_LIB_OK
  * - STUB_LIB_ERR_TIMEOUT
  */
-int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size);
+int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size, bool dout);
 
 /**
  * @brief Start sector erase using 4-byte addressing (non-blocking)

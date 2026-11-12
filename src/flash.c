@@ -178,7 +178,7 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
     }
 
     if (STUB_FLASH_4BYTE_ADDR_SUPPORTED && large_flash_mode) {
-        return stub_target_flash_4byte_read(FLASH_SPI_NUM, addr, buffer, size);
+        return stub_target_flash_4byte_read(FLASH_SPI_NUM, addr, buffer, size, s_dout_read);
     }
 
     if (!s_fast_read) {

@@ -53,11 +53,12 @@ static void exec_write_cmd_4b(int spi_num, uint32_t flash_addr, const uint8_t *d
                                                             .is_write_erase_operation = true });
 }
 
-static void exec_read_cmd_4b(int spi_num, uint32_t flash_addr, uint8_t *buffer, int bit_len)
+static void exec_read_cmd_4b(int spi_num, uint32_t flash_addr, uint8_t *buffer, int bit_len, bool dout)
 {
+    // Both reads take 8 dummy cycles; dual output sends the command and address on one line
     stub_target_opiflash_exec_cmd(&(opiflash_cmd_params_t){ .spi_num = spi_num,
-                                                            .mode = SPI_FLASH_FASTRD_MODE,
-                                                            .cmd = CMD_FSTRD4B,
+                                                            .mode = dout ? SPI_FLASH_DOUT_MODE : SPI_FLASH_FASTRD_MODE,
+                                                            .cmd = dout ? CMD_DOUT_READ_4B : CMD_FSTRD4B,
                                                             .cmd_bit_len = 8,
                                                             .addr = flash_addr,
                                                             .addr_bit_len = 32,
@@ -208,7 +209,7 @@ int stub_target_flash_4byte_write(int spi_num, uint32_t flash_addr, const uint8_
     return stub_target_flash_4byte_write_unencrypted(spi_num, flash_addr, data, size, timeout_us);
 }
 
-int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size)
+int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buffer, uint32_t size, bool dout)
 {
     if (stub_lib_flash_wait_ready(DEFAULT_TIMEOUT_US) != STUB_LIB_OK) {
         STUB_LOG_TRACEF("Flash wait ready timeout\n");
@@ -217,7 +218,7 @@ int stub_target_flash_4byte_read(int spi_num, uint32_t flash_addr, uint8_t *buff
 
     while (size > 0) {
         uint32_t chunk_size = (size > FLASH_READ_CHUNK_SIZE) ? FLASH_READ_CHUNK_SIZE : size;
-        exec_read_cmd_4b(spi_num, flash_addr, buffer, (int)(8 * chunk_size));
+        exec_read_cmd_4b(spi_num, flash_addr, buffer, (int)(8 * chunk_size), dout);
 
         size -= chunk_size;
         buffer += chunk_size;

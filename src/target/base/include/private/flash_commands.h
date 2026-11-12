@@ -17,6 +17,7 @@
  * - CMD_WREN:                 Write Enable
  * - CMD_READ:                 Read Data
  * - CMD_FSTRD4B:              Fast Read (4-byte address)
+ * - CMD_DOUT_READ_4B:         Dual Output Fast Read (4-byte address)
  * - CMD_PROGRAM_PAGE:         Page Program
  * - CMD_PROGRAM_PAGE_4B:      Page Program (4-byte address)
  * - CMD_SECTOR_ERASE:         Sector Erase
@@ -32,6 +33,7 @@
 #define CMD_WREN                 0x06
 #define CMD_READ                 0x03
 #define CMD_FSTRD4B              0x0C
+#define CMD_DOUT_READ_4B         0x3C
 #define CMD_PROGRAM_PAGE         0x02
 #define CMD_PROGRAM_PAGE_4B      0x12
 #define CMD_SECTOR_ERASE         0x20
