@@ -21,6 +21,7 @@
 #include <esp-stub-lib/sha256.h>
 #include <esp-stub-lib/slave_spi.h>
 #include <esp-stub-lib/uart.h>
+#include <esp-stub-lib/usb_otg.h>
 #include <esp-stub-lib/usb_serial_jtag.h>
 
 #include "stub_main.h"
@@ -99,6 +100,14 @@ static void __attribute__((unused)) test_usb_serial_jtag(void)
     (void)stub_lib_usb_serial_jtag_tx_one_char('A');
     stub_lib_usb_serial_jtag_tx_write(buf, sizeof(buf));
     (void)stub_lib_usb_serial_jtag_tx_flush();
+}
+
+static void __attribute__((unused)) test_usb_otg(void)
+{
+    uint8_t buf[64] = { 0 };
+
+    stub_lib_usb_otg_rominit_intr_attach_rx_block(17, NULL);
+    stub_lib_usb_otg_tx_write(buf, sizeof(buf));
 }
 
 static void __attribute__((unused)) test_sdio(void)
@@ -241,6 +250,7 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     test_sha256();
     test_md5();
     test_usb_serial_jtag();
+    test_usb_otg();
     test_sdio();
     test_slave_spi();
     test_miniz();
