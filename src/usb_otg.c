@@ -34,7 +34,8 @@ typedef struct {
 } uart_device_t;
 
 // Constants
-#define ACM_BYTES_PER_TX             64
+// The ROM gives the CDC IN endpoint a 128-byte TX FIFO; one fifo_fill() call sends what fits in it
+#define ACM_BYTES_PER_TX             128
 #define ACM_IN_EP_ADDR               0x84
 #define ACM_TX_TIMEOUT_US            100000
 #define LINE_CTRL_RTS                (1 << 1)
@@ -116,11 +117,18 @@ uint8_t stub_lib_usb_otg_tx_one_char(uint8_t c)
 
 void stub_lib_usb_otg_tx_flush(void)
 {
-    // cdc_acm_fifo_fill() polls a busy endpoint in 1 ms steps, which caps TX at one packet per ms
-    for (uint32_t us = 0; us < ACM_TX_TIMEOUT_US && usb_write_would_block(ACM_IN_EP_ADDR) > 0; us++) {
-        stub_lib_delay_us(1);
+    int pos = 0;
+    while (pos < s_cdcacm_txpos) {
+        // cdc_acm_fifo_fill() polls a busy endpoint in 1 ms steps, which caps TX at one FIFO fill per ms
+        for (uint32_t us = 0; us < ACM_TX_TIMEOUT_US && usb_write_would_block(ACM_IN_EP_ADDR) > 0; us++) {
+            stub_lib_delay_us(1);
+        }
+        int sent = esp_rom_cdc_acm_fifo_fill(uart_acm_dev, &s_cdcacm_txbuf[pos], s_cdcacm_txpos - pos);
+        if (sent <= 0) {
+            break;
+        }
+        pos += sent;
     }
-    esp_rom_cdc_acm_fifo_fill(uart_acm_dev, s_cdcacm_txbuf, s_cdcacm_txpos);
     s_cdcacm_txpos = 0;
 }
 
