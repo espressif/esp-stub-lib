@@ -32,3 +32,6 @@ typedef struct {
     void *wait_idle;
     void *erase_area;
 } esp_rom_spiflash_legacy_funcs_t;
+
+/* Weak declaration only: a definition steals PROVIDE() on ESP32-S3. */
+extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs __attribute__((weak));
