@@ -124,6 +124,16 @@ bool __attribute__((weak)) stub_target_flash_needs_attach(void)
     return true;
 }
 
+bool __attribute__((weak)) stub_target_flash_dout_supported(void)
+{
+    return true;
+}
+
+uint8_t __attribute__((weak)) stub_target_flash_dout_clk_div(void)
+{
+    return 2;
+}
+
 void __attribute__((weak)) stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
     esp_rom_spiflash_attach(ishspi, legacy);
@@ -163,6 +173,16 @@ int __attribute__((weak)) stub_target_flash_write_buff(uint32_t addr, const void
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_WRITE;
 }
 
+void __attribute__((weak)) stub_target_flash_set_dout_read(bool enable)
+{
+    // The ROM read picks the command, dummy cycles and data lines from these bits
+    if (enable) {
+        REG_SET_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_FREAD_DUAL | SPI_MEM_FASTRD_MODE);
+    } else {
+        REG_CLR_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_FREAD_DUAL | SPI_MEM_FASTRD_MODE);
+    }
+}
+
 int __attribute__((weak)) stub_target_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
 {
     int res = esp_rom_spiflash_read(addr, buffer, (int32_t)size);
@@ -191,31 +211,35 @@ bool __attribute__((weak)) stub_target_flash_is_busy(void)
     return (status_value & BIT(0)) != 0;
 }
 
-void __attribute__((weak)) stub_target_flash_erase_sector_start(uint32_t addr)
+static void flash_erase_start(uint32_t addr, uint32_t cmd)
 {
     stub_target_flash_write_enable();
     stub_target_spi_wait_ready();
 
+#ifdef SPI_MEM_WAITI_EN
+    // With auto wait-idle the command only completes when the erase does
+    uint32_t waiti_ctrl = REG_READ(SPI_MEM_FLASH_WAITI_CTRL_REG(FLASH_SPI_NUM));
+    REG_WRITE(SPI_MEM_FLASH_WAITI_CTRL_REG(FLASH_SPI_NUM), waiti_ctrl & ~SPI_MEM_WAITI_EN);
+#endif
     REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_SE);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), cmd);
     while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
         /* busy wait */
     }
+#ifdef SPI_MEM_WAITI_EN
+    REG_WRITE(SPI_MEM_FLASH_WAITI_CTRL_REG(FLASH_SPI_NUM), waiti_ctrl);
+#endif
+}
 
+void __attribute__((weak)) stub_target_flash_erase_sector_start(uint32_t addr)
+{
+    flash_erase_start(addr, SPI_MEM_FLASH_SE);
     STUB_LOGV("Started sector erase at 0x%x\n", addr);
 }
 
 void __attribute__((weak)) stub_target_flash_erase_block_start(uint32_t addr)
 {
-    stub_target_flash_write_enable();
-    stub_target_spi_wait_ready();
-
-    REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_BE);
-    while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
-        /* busy wait */
-    }
-
+    flash_erase_start(addr, SPI_MEM_FLASH_BE);
     STUB_LOGV("Started block erase at 0x%x\n", addr);
 }
 

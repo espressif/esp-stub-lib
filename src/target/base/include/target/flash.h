@@ -63,6 +63,36 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
 bool stub_target_flash_needs_attach(void);
 
 /**
+ * @brief Check whether the attached flash can be read in dual output (DOUT) mode.
+ *
+ * The default weak implementation returns true. Targets supporting flash chips
+ * without DOUT (e.g. octal flash) override this.
+ *
+ * @return true if DOUT reads can be used, false otherwise.
+ */
+bool stub_target_flash_dout_supported(void);
+
+/**
+ * @brief Get the SPI1 clock divider for DOUT reads after a ROM flash attach.
+ *
+ * The default weak implementation returns 2, the ROM attach leaves the MSPI core
+ * clock at 80 MHz or below. Targets whose ROM attach resets it to XTAL override this.
+ *
+ * @return SPI1 clock divider.
+ */
+uint8_t stub_target_flash_dout_clk_div(void);
+
+/**
+ * @brief Switch SPI1 flash reads between dual output (DOUT) and the slow read set by the ROM attach.
+ *
+ * Called around each read, because the host issues raw SPI commands (e.g. RDID)
+ * that expect single line data.
+ *
+ * @param enable true for DOUT reads, false for slow reads.
+ */
+void stub_target_flash_set_dout_read(bool enable);
+
+/**
  * @brief Restore SPI Flash hardware state.
  *
  * @param state If non-NULL, the state is restored.

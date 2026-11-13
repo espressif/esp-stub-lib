@@ -26,6 +26,12 @@ void stub_target_spi_wait_ready(void)
     }
 }
 
+uint8_t stub_target_flash_dout_clk_div(void)
+{
+    /* The ROM attach resets the MSPI core clock to XTAL */
+    return 1;
+}
+
 bool stub_target_flash_needs_attach(void)
 {
     return !stub_target_cache_is_enabled();

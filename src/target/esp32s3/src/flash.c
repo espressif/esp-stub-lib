@@ -147,6 +147,11 @@ uint32_t stub_target_get_max_supported_flash_size(void)
     return GIB(1);
 }
 
+bool stub_target_flash_dout_supported(void)
+{
+    return !ets_efuse_flash_octal_mode();
+}
+
 bool stub_target_flash_needs_attach(void)
 {
     return (READ_PERI_REG(SPI_MEM_CACHE_FCTRL_REG(FLASH_SPI_NUM_INT)) & SPI_MEM_CACHE_FLASH_USR_CMD) == 0;

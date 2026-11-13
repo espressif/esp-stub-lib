@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -36,12 +37,34 @@ bool stub_lib_usb_otg_is_active(void);
 void stub_lib_usb_otg_rominit_intr_attach(int intr_num, void (*rx_callback)(uint8_t));
 
 /**
+ * @brief Initialize USB-OTG for communication, with received data passed in blocks
+ *
+ * Same as stub_lib_usb_otg_rominit_intr_attach(), but the callback gets up to one
+ * USB packet of received bytes per call instead of one byte.
+ *
+ * @param intr_num Interrupt number
+ * @param rx_block_callback Callback function to be called with the received bytes
+ */
+void stub_lib_usb_otg_rominit_intr_attach_rx_block(int intr_num,
+                                                   void (*rx_block_callback)(const uint8_t *data, size_t len));
+
+/**
  * @brief Transmit a single byte over USB-OTG
  *
  * @param c Byte to transmit
  * @return 0 if successful, non-zero if error occurred
  */
 uint8_t stub_lib_usb_otg_tx_one_char(uint8_t c);
+
+/**
+ * @brief Transmit bytes over USB-OTG
+ *
+ * Buffers the bytes like tx_one_char and sends each full buffer.
+ *
+ * @param data Bytes to transmit
+ * @param len Number of bytes
+ */
+void stub_lib_usb_otg_tx_write(const uint8_t *data, size_t len);
 
 /**
  * @brief Flush any buffered USB-OTG transmit data

@@ -61,6 +61,12 @@ uint32_t stub_target_get_max_supported_flash_size(void)
     return MIB(64);
 }
 
+uint8_t stub_target_flash_dout_clk_div(void)
+{
+    /* The ROM attach resets the MSPI core clock to XTAL */
+    return 1;
+}
+
 bool stub_target_flash_needs_attach(void)
 {
     return !stub_target_cache_is_enabled();
