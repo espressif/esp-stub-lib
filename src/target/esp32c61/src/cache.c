@@ -22,8 +22,10 @@
 extern void ROM_Boot_Cache_Init(void);
 extern void Cache_Disable_Cache(void);
 extern void Cache_Invalidate_All(void);
-extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
 extern void Cache_WriteBack_All(void);
+extern void Cache_WriteBack_Invalidate_All(void);
+extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
+extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
 extern void Cache_Freeze_Enable(int mode);
 extern void Cache_Freeze_Disable(void);
 
@@ -32,7 +34,11 @@ extern void Cache_Freeze_Disable(void);
 
 uint32_t stub_target_cache_get_caps(void)
 {
-    return STUB_CACHE_CAP_HAS_INVALIDATE_ADDR | STUB_CACHE_CAP_SHARED_IDCACHE;
+    /* Shared I/D cache with PSRAM: prefer writeback_all before flash sector
+     * program and invalidate_all after. A 2-byte invalidate_addr for a
+     * compressed ebreak can be rejected by ROM (unaligned size) and leave
+     * stale IROM lines after flash SW BP install. */
+    return STUB_CACHE_CAP_SHARED_IDCACHE;
 }
 
 void stub_target_cache_writeback_all(void)
@@ -40,9 +46,18 @@ void stub_target_cache_writeback_all(void)
     Cache_WriteBack_All();
 }
 
+void stub_target_cache_writeback_addr(uint32_t vaddr, uint32_t size)
+{
+    Cache_WriteBack_Addr(vaddr, size);
+}
+
 void stub_target_cache_invalidate_all(void)
 {
-    Cache_Invalidate_All();
+    /* WriteBack_Invalidate (not Invalidate alone) is required when PSRAM
+     * shares the I/D cache window with flash — same as C5. A plain
+     * Invalidate_All after flash SW BP install can drop dirty PSRAM lines and
+     * surface as Load access faults. */
+    Cache_WriteBack_Invalidate_All();
 }
 
 void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
