@@ -10,6 +10,14 @@ set(srcs
     src/aes_xts.c
 )
 
+# The NAND bus calls ECO5 ROM GPIO functions. rev1 keeps the weak "not supported" defaults.
+if(NOT (DEFINED ESP_TARGET_REV AND ESP_TARGET_REV STREQUAL "rev1"))
+    list(APPEND srcs
+        src/nand.c
+        ../common/src/nand_gpspi.c
+    )
+endif()
+
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})
 
 if(DEFINED ESP_TARGET_REV AND ESP_TARGET_REV STREQUAL "rev1")
