@@ -21,11 +21,17 @@
 #include <soc/soc.h>
 #include <soc/system_reg.h>
 
-#define CPU_FREQ_MHZ              240
+/* ESP-IDF's default CPU frequency. 240 MHz is not stable on every chip. */
+#define CPU_FREQ_MHZ              160
 
-/* ESP-IDF's default bootloader DBIAS values, used when eFuse PVT data is unavailable. */
-#define DIG_DBIAS_240M_DEFAULT    28U
-#define RTC_DBIAS_240M_DEFAULT    28U
+/*
+ * The default used when eFuse PVT data is unavailable is ESP-IDF's 240 MHz value,
+ * one step above its 160 MHz value of 27, for extra margin. The margin added to
+ * the PVT value is ESP-IDF's 160 MHz margin.
+ */
+#define DIG_DBIAS_DEFAULT         28U
+#define RTC_DBIAS_DEFAULT         28U
+#define DIG_DBIAS_PVT_MARGIN      2U
 
 /* ESP-IDF's nominal S3 LDO calibration values, scaled by 10000. */
 #define K_RTC_MID_MUL10000        198
@@ -127,10 +133,10 @@ static uint32_t get_rtc_dbias(uint32_t dig_dbias)
     return DBIAS_MAX;
 }
 
-static void get_240m_dbias(uint32_t *rtc_dbias, uint32_t *dig_dbias)
+static void get_dbias(uint32_t *rtc_dbias, uint32_t *dig_dbias)
 {
-    *rtc_dbias = RTC_DBIAS_240M_DEFAULT;
-    *dig_dbias = DIG_DBIAS_240M_DEFAULT;
+    *rtc_dbias = RTC_DBIAS_DEFAULT;
+    *dig_dbias = DIG_DBIAS_DEFAULT;
 
     if (!has_pvt_dbias_calibration()) {
         return;
@@ -141,7 +147,7 @@ static void get_240m_dbias(uint32_t *rtc_dbias, uint32_t *dig_dbias)
         return;
     }
 
-    *dig_dbias = MIN(get_dig_1v3_dbias(), hvt + 3U);
+    *dig_dbias = MIN(get_dig_1v3_dbias(), hvt + DIG_DBIAS_PVT_MARGIN);
     *rtc_dbias = get_rtc_dbias(*dig_dbias);
 }
 
@@ -219,21 +225,21 @@ void stub_target_clock_init(void)
     uint32_t dig_dbias;
 
     /* Raise the regulator voltage before enabling or switching to the BBPLL. */
-    get_240m_dbias(&rtc_dbias, &dig_dbias);
+    get_dbias(&rtc_dbias, &dig_dbias);
     set_regulator_dbias(rtc_dbias, dig_dbias);
     stub_lib_delay_us(DBIAS_SETTLE_US);
 
+    /* 160 MHz is available from both the 320 MHz and the 480 MHz PLL, so a running PLL is kept. */
     if (REG_GET_FIELD(SYSTEM_SYSCLK_CONF_REG, SYSTEM_SOC_CLK_SEL) != 1U) {
         configure_bbpll();
     }
 
-    /* At 240 MHz all six LDO slaves remain enabled (no slave power-down bits). */
+    /* At 160 MHz five of the six LDO slaves remain enabled. */
     REG_SET_FIELD(RTC_CNTL_DATE_REG, RTC_CNTL_SLAVE_PD, DEFAULT_LDO_SLAVE >> (CPU_FREQ_MHZ / 80U));
 
     s_cpu_freq = CPU_FREQ_MHZ * MHZ;
 
-    REG_SET_FIELD(SYSTEM_CPU_PER_CONF_REG, SYSTEM_PLL_FREQ_SEL, 1U);
-    REG_SET_FIELD(SYSTEM_CPU_PER_CONF_REG, SYSTEM_CPUPERIOD_SEL, 2U);
+    REG_SET_FIELD(SYSTEM_CPU_PER_CONF_REG, SYSTEM_CPUPERIOD_SEL, 1U);
     REG_SET_FIELD(SYSTEM_SYSCLK_CONF_REG, SYSTEM_PRE_DIV_CNT, 0U);
     REG_SET_FIELD(SYSTEM_SYSCLK_CONF_REG, SYSTEM_SOC_CLK_SEL, 1U);
     esp_rom_set_cpu_ticks_per_us(CPU_FREQ_MHZ);

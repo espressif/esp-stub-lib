@@ -14,19 +14,40 @@
 #include <soc/pcr_reg.h>
 #include <soc/soc.h>
 
-#define CPU_FREQ_MHZ 160
+/* CPU clock sources: 0 = XTAL, 1 = RC_FAST, 2 = PLL_F160M. */
+#define SOC_CPU_CLK_SRC_PLL_F160M 2U
+
+#define CPU_FREQ_MHZ              160
+
+/*
+ * AHB_CLK is derived from CPU_CLK and must not exceed 40 MHz, so the CPU
+ * divider of 1 pairs with an AHB divider of 4.
+ */
+#define CPU_DIV                   1U
+#define AHB_DIV                   4U
 
 extern uint32_t esp_rom_get_cpu_freq(void);
 extern void esp_rom_set_cpu_ticks_per_us(uint32_t ticks_per_us);
 
 static uint32_t s_cpu_freq = 0;
 
+static void update_bus_clocks(void)
+{
+    REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
+    while (REG_GET_BIT(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE)) {
+    }
+}
+
 void stub_target_clock_init(void)
 {
     s_cpu_freq = CPU_FREQ_MHZ * MHZ;
     esp_rom_set_cpu_ticks_per_us(CPU_FREQ_MHZ);
-    REG_SET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL, 2);
-    REG_SET_FIELD(PCR_BUS_CLK_UPDATE_REG, PCR_BUS_CLOCK_UPDATE, 1);
+
+    /* Resets other than a chip reset keep the application's dividers, which also apply to the PLL. */
+    REG_SET_FIELD(PCR_CPU_FREQ_CONF_REG, PCR_CPU_DIV_NUM, CPU_DIV - 1U);
+    REG_SET_FIELD(PCR_AHB_FREQ_CONF_REG, PCR_AHB_DIV_NUM, AHB_DIV - 1U);
+    REG_SET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL, SOC_CPU_CLK_SRC_PLL_F160M);
+    update_bus_clocks();
 }
 
 uint32_t stub_target_get_cpu_freq(void)
