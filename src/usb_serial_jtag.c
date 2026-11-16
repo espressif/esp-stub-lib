@@ -90,6 +90,20 @@ uint8_t stub_lib_usb_serial_jtag_read_rxfifo_byte(void)
 #endif
 }
 
+size_t stub_lib_usb_serial_jtag_read_rxfifo(uint8_t *buf, size_t max_len)
+{
+    size_t n = 0;
+#if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
+    while (n < max_len && (READ_PERI_REG(USB_SERIAL_JTAG_EP1_CONF_REG) & USB_SERIAL_JTAG_SERIAL_OUT_EP_DATA_AVAIL)) {
+        buf[n++] = READ_PERI_REG(USB_SERIAL_JTAG_EP1_REG) & 0xFF;
+    }
+#else
+    (void)buf;
+    (void)max_len;
+#endif
+    return n;
+}
+
 uint8_t stub_lib_usb_serial_jtag_tx_one_char(uint8_t c)
 {
 #if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
@@ -107,6 +121,26 @@ uint8_t stub_lib_usb_serial_jtag_tx_one_char(uint8_t c)
 #else
     (void)c;
     return 1;
+#endif
+}
+
+void stub_lib_usb_serial_jtag_tx_write(const uint8_t *data, size_t len)
+{
+#if (ESP_ROM_USB_SERIAL_DEVICE_NUM >= 0)
+    for (size_t i = 0; i < len; i++) {
+        if (!(READ_PERI_REG(USB_SERIAL_JTAG_EP1_CONF_REG) & USB_SERIAL_JTAG_SERIAL_IN_EP_DATA_FREE)) {
+            uint64_t timeout_us = 50000;
+            if (stub_target_wait_reg_bit_set(USB_SERIAL_JTAG_EP1_CONF_REG,
+                                             USB_SERIAL_JTAG_SERIAL_IN_EP_DATA_FREE,
+                                             &timeout_us) != STUB_LIB_OK) {
+                return;
+            }
+        }
+        WRITE_PERI_REG(USB_SERIAL_JTAG_EP1_REG, data[i]);
+    }
+#else
+    (void)data;
+    (void)len;
 #endif
 }
 

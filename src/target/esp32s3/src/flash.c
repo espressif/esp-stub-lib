@@ -20,11 +20,11 @@
 #include <private/rom_flash_config.h>
 
 #include <soc/spi_mem_compat.h>
+#include <soc/system_reg.h>
 
 extern void spi_cache_mode_switch(uint32_t modebit);
 extern void spi_common_set_flash_cs_timing(void);
 extern void esp_rom_opiflash_mode_reset(int spi_num);
-extern esp_rom_spiflash_legacy_funcs_t *rom_spiflash_legacy_funcs;
 extern esp_rom_spiflash_legacy_data_t *rom_spiflash_legacy_data;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern void esp_rom_opiflash_exec_cmd(int spi_num,
@@ -145,6 +145,11 @@ uint32_t stub_target_get_max_supported_flash_size(void)
 {
     /* ESP32-S3 supports up to 1GB with 4-byte addressing */
     return GIB(1);
+}
+
+bool stub_target_flash_dout_supported(void)
+{
+    return !ets_efuse_flash_octal_mode();
 }
 
 bool stub_target_flash_needs_attach(void)
@@ -426,4 +431,25 @@ void stub_target_flash_deinit(const void *state)
         stub_lib_cache_start();
     }
     stub_target_flash_state_restore(state);
+}
+
+uint32_t stub_target_flash_get_src_freq_mhz(void)
+{
+    /* Selected from the 480 MHz PLL with the PLL system clock. With the XTAL system clock
+     * the source is not confirmed, and 80 MHz keeps the flash at 40 MHz or below. */
+    static const uint16_t src_mhz[] = { 80, 120, 160, 240 };
+    if (REG_GET_FIELD(SYSTEM_SYSCLK_CONF_REG, SYSTEM_SOC_CLK_SEL) != 1) {
+        return 80;
+    }
+    return src_mhz[REG_GET_FIELD(SPI_MEM_CORE_CLK_SEL_REG(0), SPI_MEM_CORE_CLK_SEL)];
+}
+
+bool stub_target_flash_set_clk_div(uint8_t div)
+{
+    // Octal flash keeps the ROM clock
+    if (ets_efuse_flash_octal_mode()) {
+        return false;
+    }
+    esp_rom_spiflash_config_clk(div, FLASH_SPI_NUM);
+    return true;
 }

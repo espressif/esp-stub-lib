@@ -13,6 +13,7 @@
 #include <target/cache.h>
 #include <target/flash.h>
 
+#include <soc/pcr_reg.h>
 #include <soc/spi_mem_compat.h>
 
 extern void esp_rom_spiflash_attach(uint32_t ishspi, bool legacy);
@@ -45,4 +46,13 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy)
 {
     esp_rom_spiflash_attach(ishspi, legacy);
     stub_target_clock_restore_mspi();
+}
+
+uint32_t stub_target_flash_get_src_freq_mhz(void)
+{
+    /* The 480 MHz PLL with the PLL system clock, otherwise the 40 MHz XTAL */
+    if (REG_GET_FIELD(PCR_SYSCLK_CONF_REG, PCR_SOC_CLK_SEL) == 1) {
+        return 480 / (REG_GET_FIELD(PCR_MSPI_CLK_CONF_REG, PCR_MSPI_FAST_HS_DIV_NUM) + 1);
+    }
+    return 40 / (REG_GET_FIELD(PCR_MSPI_CLK_CONF_REG, PCR_MSPI_FAST_LS_DIV_NUM) + 1);
 }
