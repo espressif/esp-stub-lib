@@ -31,6 +31,20 @@ extern void *memcpy(void *dest, const void *src, size_t n);
 /* The ROM reads 16 and programs 32 bytes per command, the SPI data buffer holds 64 (as ESP-IDF uses) */
 #define FLASH_ROM_BYTES_PER_CMD 64U
 
+/* 40 MHz on 80 MHz sources and 48 MHz on 48 MHz sources, the ESP-IDF default flash frequencies */
+#define FLASH_MAX_FREQ_MHZ      48U
+
+static bool s_fast_read;
+
+/* The ROM attach leaves slow reads (0x03) at a quarter of the MSPI core clock. Not all flash chips
+ * specify 0x03 up to FLASH_MAX_FREQ_MHZ, so reads then use fast read (0x0B). */
+static void flash_use_fast_read(void)
+{
+    uint32_t src_freq_mhz = stub_target_flash_get_src_freq_mhz();
+    s_fast_read =
+        stub_target_flash_set_clk_div((uint8_t)((src_freq_mhz + FLASH_MAX_FREQ_MHZ - 1) / FLASH_MAX_FREQ_MHZ));
+}
+
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
 static bool large_flash_mode = false;
 
@@ -71,6 +85,7 @@ void stub_lib_flash_attach(uint32_t ishspi, bool legacy)
 {
     stub_target_reset_default_spi_pins();
     stub_target_flash_attach(ishspi, legacy);
+    flash_use_fast_read();
 }
 
 size_t stub_lib_flash_state_size(void)
@@ -85,8 +100,12 @@ int stub_lib_flash_init(void *state)
 
 int stub_lib_flash_init_ex(void *state, stub_lib_flash_attach_policy_t attach_policy, bool enable_4byte_cache_mode)
 {
+    bool attach = attach_policy == STUB_LIB_FLASH_ATTACH_ALWAYS || stub_target_flash_needs_attach();
     stub_target_flash_init(state, attach_policy);
     stub_target_flash_set_rom_bytes_per_cmd(FLASH_ROM_BYTES_PER_CMD);
+    if (attach) {
+        flash_use_fast_read();
+    }
 
     uint32_t flash_id = stub_target_flash_get_flash_id();
     uint32_t flash_size = stub_target_flash_id_to_flash_size(flash_id);
@@ -128,6 +147,7 @@ void stub_lib_flash_deinit(const void *state)
         stub_target_flash_set_4byte_cache_mode(false);
         large_flash_mode = false;
     }
+    s_fast_read = false;
     stub_target_flash_deinit(state);
 }
 
@@ -156,7 +176,13 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
         return stub_target_flash_4byte_read(FLASH_SPI_NUM, addr, buffer, size);
     }
 
-    return stub_target_flash_read_buff(addr, buffer, size);
+    if (!s_fast_read) {
+        return stub_target_flash_read_buff(addr, buffer, size);
+    }
+    stub_target_flash_set_fast_read(true);
+    int res = stub_target_flash_read_buff(addr, buffer, size);
+    stub_target_flash_set_fast_read(false);
+    return res;
 }
 
 int stub_lib_flash_write_buff(uint32_t addr, const void *buffer, uint32_t size, bool encrypt)

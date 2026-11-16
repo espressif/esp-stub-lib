@@ -10,6 +10,7 @@
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <target/clock.h>
 #include <target/flash.h>
 
 #include <private/rom_flash.h>
@@ -197,4 +198,9 @@ void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes)
 {
     // The ROM has no rom_spiflash_legacy_funcs, so its read and program lengths are fixed
     (void)bytes;
+}
+
+uint32_t stub_target_flash_get_src_freq_mhz(void)
+{
+    return stub_target_get_apb_freq() / MHZ;
 }

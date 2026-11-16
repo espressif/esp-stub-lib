@@ -80,6 +80,18 @@ int esp_rom_spiflash_read(uint32_t src_addr, uint32_t *dest, int32_t len);
 int esp_rom_spiflash_unlock(void);
 
 /**
+ * @brief Set the SPI clock divider of the MSPI core clock
+ *
+ * @param freqdiv Clock divider, 1 for the core clock frequency
+ * @param spi SPI peripheral number, 1 for SPI1
+ *
+ * @return Result
+ * - ESP_ROM_SPIFLASH_RESULT_OK
+ * - ESP_ROM_SPIFLASH_RESULT_ERR
+ */
+int esp_rom_spiflash_config_clk(uint8_t freqdiv, uint8_t spi);
+
+/**
  * @brief Erase an area of SPI flash using ROM implementation.
  *
  * @return Result

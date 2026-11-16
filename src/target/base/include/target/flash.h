@@ -75,6 +75,38 @@ void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes);
 bool stub_target_flash_needs_attach(void);
 
 /**
+ * @brief Get the frequency of the MSPI core clock that the SPI1 clock divider divides.
+ *
+ * The default weak implementation returns 80. Targets override this to read
+ * the selected clock source, as ESP-IDF spimem_flash_ll_get_source_freq_mhz() does.
+ *
+ * @return Source clock frequency in MHz.
+ */
+uint32_t stub_target_flash_get_src_freq_mhz(void);
+
+/**
+ * @brief Set the SPI1 clock divider of the MSPI core clock.
+ *
+ * The default weak implementation calls the ROM esp_rom_spiflash_config_clk().
+ * Targets that keep the ROM clock override this and return false.
+ *
+ * @param div SPI1 clock divider, 1 for the source clock frequency.
+ *
+ * @return true if the clock is set, false if the ROM clock is kept.
+ */
+bool stub_target_flash_set_clk_div(uint8_t div);
+
+/**
+ * @brief Switch SPI1 flash reads between fast read and the slow read set by the ROM attach.
+ *
+ * Called around each read, because the ROM status reads and the raw SPI commands
+ * of the host (e.g. RDID) run through the same registers and expect single line data.
+ *
+ * @param enable true for fast reads, false for slow reads.
+ */
+void stub_target_flash_set_fast_read(bool enable);
+
+/**
  * @brief Restore SPI Flash hardware state.
  *
  * @param state If non-NULL, the state is restored.

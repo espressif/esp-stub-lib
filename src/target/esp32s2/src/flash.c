@@ -15,6 +15,7 @@
 #include <private/rom_flash.h>
 
 #include <soc/spi_mem_compat.h>
+#include <soc/system_reg.h>
 
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
@@ -137,4 +138,15 @@ void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes)
 {
     // The ROM has no rom_spiflash_legacy_funcs, so its read and program lengths are fixed
     (void)bytes;
+}
+
+uint32_t stub_target_flash_get_src_freq_mhz(void)
+{
+    /* Selected from the 480 MHz PLL with the PLL system clock, the unused value as the fastest source.
+     * With the XTAL system clock the source is not confirmed, and 80 MHz keeps the flash at 40 MHz or below. */
+    static const uint16_t src_mhz[] = { 80, 120, 160, 160 };
+    if (REG_GET_FIELD(DPORT_SYSCLK_CONF_REG, DPORT_SOC_CLK_SEL) != 1) {
+        return 80;
+    }
+    return src_mhz[REG_GET_FIELD(SPI_MEM_CORE_CLK_SEL_REG(0), SPI_MEM_SPI01_CLK_SEL)];
 }

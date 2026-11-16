@@ -120,3 +120,10 @@ void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes)
     // The ROM has no rom_spiflash_legacy_funcs, so its read and program lengths are fixed
     (void)bytes;
 }
+
+bool stub_target_flash_set_clk_div(uint8_t div)
+{
+    // The ROM cannot set the SPI clock
+    (void)div;
+    return false;
+}
