@@ -75,6 +75,16 @@ void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes);
 bool stub_target_flash_needs_attach(void);
 
 /**
+ * @brief Check whether the attached flash can be read in dual output (DOUT) mode.
+ *
+ * The default weak implementation returns true. Targets supporting flash chips
+ * without DOUT (e.g. octal flash) override this.
+ *
+ * @return true if DOUT reads can be used, false otherwise.
+ */
+bool stub_target_flash_dout_supported(void);
+
+/**
  * @brief Get the frequency of the MSPI core clock that the SPI1 clock divider divides.
  *
  * The default weak implementation returns 80. Targets override this to read
@@ -103,8 +113,9 @@ bool stub_target_flash_set_clk_div(uint8_t div);
  * of the host (e.g. RDID) run through the same registers and expect single line data.
  *
  * @param enable true for fast reads, false for slow reads.
+ * @param dual true for dual output (DOUT) fast reads, ignored when enable is false.
  */
-void stub_target_flash_set_fast_read(bool enable);
+void stub_target_flash_set_fast_read(bool enable, bool dual);
 
 /**
  * @brief Restore SPI Flash hardware state.
