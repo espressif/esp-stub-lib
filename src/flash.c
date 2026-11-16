@@ -35,14 +35,18 @@ extern void *memcpy(void *dest, const void *src, size_t n);
 #define FLASH_MAX_FREQ_MHZ      48U
 
 static bool s_fast_read;
+static bool s_dout_read;
 
 /* The ROM attach leaves slow reads (0x03) at a quarter of the MSPI core clock. Not all flash chips
- * specify 0x03 up to FLASH_MAX_FREQ_MHZ, so reads then use fast read (0x0B). */
+ * specify 0x03 up to FLASH_MAX_FREQ_MHZ, so reads then use fast read (0x0B), and dual output (0x3B)
+ * where supported, which uses only the D0/D1 lines every flash has. */
 static void flash_use_fast_read(void)
 {
     uint32_t src_freq_mhz = stub_target_flash_get_src_freq_mhz();
-    s_fast_read =
+    bool fast_clk =
         stub_target_flash_set_clk_div((uint8_t)((src_freq_mhz + FLASH_MAX_FREQ_MHZ - 1) / FLASH_MAX_FREQ_MHZ));
+    s_dout_read = stub_target_flash_dout_supported();
+    s_fast_read = fast_clk || s_dout_read;
 }
 
 // For flash size > 16MB, we use 4-byte addressing, only some targets support this.
@@ -148,6 +152,7 @@ void stub_lib_flash_deinit(const void *state)
         large_flash_mode = false;
     }
     s_fast_read = false;
+    s_dout_read = false;
     stub_target_flash_deinit(state);
 }
 
@@ -179,9 +184,9 @@ int stub_lib_flash_read_buff(uint32_t addr, void *buffer, uint32_t size)
     if (!s_fast_read) {
         return stub_target_flash_read_buff(addr, buffer, size);
     }
-    stub_target_flash_set_fast_read(true);
+    stub_target_flash_set_fast_read(true, s_dout_read);
     int res = stub_target_flash_read_buff(addr, buffer, size);
-    stub_target_flash_set_fast_read(false);
+    stub_target_flash_set_fast_read(false, false);
     return res;
 }
 

@@ -15,6 +15,7 @@
 #define SPI_ADDR_REG      (SPI_BASE_REG + 0x04)
 #define SPI_CTRL_REG      (SPI_BASE_REG + 0x08)
 #define SPI_FASTRD_MODE   BIT(13)
+#define SPI_DOUT_MODE     BIT(14)
 #define SPI_FLASH_WREN    BIT(30)
 #define SPI_FLASH_RDID    BIT(28)
 #define SPI_FLASH_RDSR    BIT(27)
@@ -32,6 +33,7 @@
 #define SPI_MEM_CMD_REG(i)        SPI_CMD_REG
 #define SPI_MEM_CTRL_REG(i)       SPI_CTRL_REG
 #define SPI_MEM_FASTRD_MODE       SPI_FASTRD_MODE
+#define SPI_MEM_FREAD_DUAL        SPI_DOUT_MODE
 #define SPI_MEM_RD_STATUS_REG(i)  SPI_RD_STATUS_REG
 #define SPI_MEM_FLASH_SE          SPI_FLASH_SE
 #define SPI_MEM_FLASH_BE          SPI_FLASH_BE

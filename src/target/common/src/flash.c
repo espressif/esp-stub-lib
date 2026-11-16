@@ -130,6 +130,11 @@ bool __attribute__((weak)) stub_target_flash_needs_attach(void)
     return true;
 }
 
+bool __attribute__((weak)) stub_target_flash_dout_supported(void)
+{
+    return true;
+}
+
 uint32_t __attribute__((weak)) stub_target_flash_get_src_freq_mhz(void)
 {
     return 80;
@@ -180,13 +185,13 @@ int __attribute__((weak)) stub_target_flash_write_buff(uint32_t addr, const void
     return res == ESP_ROM_SPIFLASH_RESULT_OK ? STUB_LIB_OK : STUB_LIB_ERR_FLASH_WRITE;
 }
 
-void __attribute__((weak)) stub_target_flash_set_fast_read(bool enable)
+void __attribute__((weak)) stub_target_flash_set_fast_read(bool enable, bool dual)
 {
-    // The ROM read picks the command and dummy cycles from this bit
+    // The ROM read picks the command, dummy cycles and data lines from these bits
+    REG_CLR_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_FREAD_DUAL | SPI_MEM_FASTRD_MODE);
     if (enable) {
-        REG_SET_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_FASTRD_MODE);
-    } else {
-        REG_CLR_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM), SPI_MEM_FASTRD_MODE);
+        REG_SET_BIT(SPI_MEM_CTRL_REG(FLASH_SPI_NUM),
+                    dual ? SPI_MEM_FREAD_DUAL | SPI_MEM_FASTRD_MODE : SPI_MEM_FASTRD_MODE);
     }
 }
 
