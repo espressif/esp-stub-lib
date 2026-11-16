@@ -1791,6 +1791,15 @@
 #define SPI_MEM_CLK_EN_V  0x1
 #define SPI_MEM_CLK_EN_S  0
 
+#define SPI_MEM_CORE_CLK_SEL_REG(i)          (REG_SPI_MEM_BASE(i) + 0x0E0)
+/* SPI_MEM_SPI01_CLK_SEL : R/W ;bitpos:[1:0] ;default: 2'd0 ; */
+/*description: When the digital system clock selects PLL clock and the frequency
+ of PLL clock is 480MHz  the value of reg_spi01_clk_sel:  0: SPI0/1 module clock (clk) is 80MHz. 1: SPI0/1 module clock (clk) is 120MHz.  2: SPI0/1 module clock (clk) 160MHz. 3: Not used. When the digital system clock selects PLL clock and the frequency of PLL clock is 320MHz  the value of reg_spi01_clk_sel:  0: SPI0/1 module clock (clk) is 80MHz. 1: SPI0/1 module clock (clk) is 80MHz.  2: SPI0/1 module clock (clk) 160MHz. 3: Not used.*/
+#define SPI_MEM_SPI01_CLK_SEL  0x00000003
+#define SPI_MEM_SPI01_CLK_SEL_M  ((SPI_MEM_SPI01_CLK_SEL_V)<<(SPI_MEM_SPI01_CLK_SEL_S))
+#define SPI_MEM_SPI01_CLK_SEL_V  0x3
+#define SPI_MEM_SPI01_CLK_SEL_S  0
+
 #define SPI_MEM_DATE_REG(i)          (REG_SPI_MEM_BASE(i) + 0x3FC)
 /* SPI_MEM_DATE : R/W ;bitpos:[27:0] ;default: 28'h1905270 ; */
 /*description: SPI register version.*/
