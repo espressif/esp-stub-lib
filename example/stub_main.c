@@ -77,6 +77,7 @@ static void __attribute__((unused)) test_clock_init(void)
 {
     stub_lib_clock_init();
     stub_lib_clock_disable_watchdogs();
+    stub_lib_clock_enable_perf_counter();
 }
 
 static __attribute__((unused)) void test_miniz(void)

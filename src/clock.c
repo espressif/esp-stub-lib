@@ -20,3 +20,8 @@ void stub_lib_clock_disable_watchdogs(void)
 {
     stub_target_clock_disable_watchdogs();
 }
+
+void stub_lib_clock_enable_perf_counter(void)
+{
+    stub_target_clock_enable_perf_counter();
+}
