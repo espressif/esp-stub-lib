@@ -22,13 +22,6 @@ PROVIDE ( esp_rom_usb_dc_prepare_persist = usb_dc_prepare_persist );
 PROVIDE ( esp_rom_chip_usb_set_persist_flags = chip_usb_set_persist_flags );
 PROVIDE ( esp_rom_usb_dw_isr_handler = usb_dw_isr_handler );
 
-PROVIDE ( esp_rom_gpio_pad_select_gpio    = gpio_pad_select_gpio );
-PROVIDE ( esp_rom_gpio_pad_pullup_only    = gpio_pad_pullup );
-PROVIDE ( esp_rom_gpio_pad_set_drv        = gpio_pad_set_drv );
-PROVIDE ( esp_rom_gpio_pad_unhold         = gpio_pad_unhold );
-PROVIDE ( esp_rom_gpio_connect_in_signal  = gpio_matrix_in );
-PROVIDE ( esp_rom_gpio_connect_out_signal = gpio_matrix_out );
-
 PROVIDE ( esp_rom_efuse_mac_address_crc8       = esp_crc8 );
 PROVIDE ( esp_rom_efuse_is_secure_boot_enabled = ets_efuse_secure_boot_enabled );
 PROVIDE ( esp_rom_efuse_flash_encryption_enabled = ets_efuse_cache_encryption_enabled );
