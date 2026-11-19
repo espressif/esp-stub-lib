@@ -12,3 +12,6 @@
 // Memory Caps
 #define SOC_RTC_FAST_MEM_SUPPORTED  1
 #define SOC_RTC_MEM_SUPPORTED       1
+
+// CPU Caps
+#define SOC_CPU_HAS_CSR_PC          1       /*!< ROM delays read the cycle count from the mpccr CSR, not mcycle */

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  */
@@ -41,6 +41,14 @@ uint32_t stub_target_get_apb_freq(void);
  * and if application does not disable it, it will reset the device.
  */
 void stub_target_clock_disable_watchdogs(void);
+
+/**
+ * @brief Enable the CPU performance counter used by ROM delay functions
+ *
+ * The common implementation covers chips with SOC_CPU_HAS_CSR_PC, whose ROM delay reads
+ * a counter that is stopped after a CPU reset. It does nothing on other chips.
+ */
+void stub_target_clock_enable_perf_counter(void);
 
 #ifdef __cplusplus
 }
