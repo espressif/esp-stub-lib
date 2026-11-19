@@ -396,7 +396,7 @@ int stub_lib_nand_read_id(uint8_t *manufacturer_id, uint16_t *device_id)
 
 int stub_lib_nand_attach(const stub_lib_nand_pins_t *pins, stub_lib_nand_geometry_t *geometry)
 {
-    if (pins == NULL || geometry == NULL) {
+    if (geometry == NULL) {
         return STUB_LIB_ERR_INVALID_ARG;
     }
 

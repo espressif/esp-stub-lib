@@ -9,6 +9,7 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include <esp-stub-lib/bit_utils.h>
@@ -49,29 +50,23 @@ static void route_pin(uint8_t pin)
     esp_rom_gpio_pad_set_drv(pin, 2);
 }
 
-/* Returns the GPIO for a requested pin, or SOC_GPIO_PIN_COUNT when it is out of range. */
-static uint8_t resolve_pin(int8_t pin, uint8_t default_pin)
+static bool pin_valid(int pin)
 {
-    if (pin == STUB_LIB_NAND_PIN_DEFAULT) {
-        return default_pin;
-    }
-    if (pin < 0 || pin >= SOC_GPIO_PIN_COUNT) {
-        return SOC_GPIO_PIN_COUNT;
-    }
-    return (uint8_t)pin;
+    return pin >= 0 && pin < SOC_GPIO_PIN_COUNT;
 }
 
 int stub_target_nand_bus_init(const stub_lib_nand_pins_t *pins)
 {
-    uint8_t pin_clk = resolve_pin(pins->clk, PIN_CLK);
-    uint8_t pin_q = resolve_pin(pins->q, PIN_MISO);
-    uint8_t pin_d = resolve_pin(pins->d, PIN_MOSI);
-    uint8_t pin_cs = resolve_pin(pins->cs, PIN_CS);
-    uint8_t pin_hd = resolve_pin(pins->hd, PIN_HD);
-    uint8_t wp_pin = resolve_pin(pins->wp, PIN_WP);
+    int pin_clk = pins == NULL ? PIN_CLK : pins->clk;
+    int pin_q = pins == NULL ? PIN_MISO : pins->q;
+    int pin_d = pins == NULL ? PIN_MOSI : pins->d;
+    int pin_cs = pins == NULL ? PIN_CS : pins->cs;
+    int pin_hd = pins == NULL ? PIN_HD : pins->hd;
+    int wp_pin = pins == NULL ? PIN_WP : pins->wp;
 
-    if (pin_clk >= SOC_GPIO_PIN_COUNT || pin_q >= SOC_GPIO_PIN_COUNT || pin_d >= SOC_GPIO_PIN_COUNT ||
-        pin_cs >= SOC_GPIO_PIN_COUNT || pin_hd >= SOC_GPIO_PIN_COUNT || wp_pin >= SOC_GPIO_PIN_COUNT) {
+    if (!pin_valid(pin_clk) || !pin_valid(pin_q) || !pin_valid(pin_d) || !pin_valid(pin_cs) ||
+        (pin_hd != STUB_LIB_NAND_PIN_NC && !pin_valid(pin_hd)) ||
+        (wp_pin != STUB_LIB_NAND_PIN_NC && !pin_valid(wp_pin))) {
         return STUB_LIB_ERR_INVALID_ARG;
     }
 
@@ -103,26 +98,34 @@ int stub_target_nand_bus_init(const stub_lib_nand_pins_t *pins)
     REG_SET_BIT(SPI_DMA_CONF_REG(NAND_SPI_NUM), SPI_BUF_AFIFO_RST);
     REG_CLR_BIT(SPI_DMA_CONF_REG(NAND_SPI_NUM), SPI_BUF_AFIFO_RST);
 
-    route_pin(pin_clk);
-    route_pin(pin_q);
-    route_pin(pin_d);
-    route_pin(pin_cs);
-    route_pin(pin_hd);
-    route_pin(wp_pin);
+    route_pin((uint8_t)pin_clk);
+    route_pin((uint8_t)pin_q);
+    route_pin((uint8_t)pin_d);
+    route_pin((uint8_t)pin_cs);
+    if (pin_hd != STUB_LIB_NAND_PIN_NC) {
+        route_pin((uint8_t)pin_hd);
+    }
+    if (wp_pin != STUB_LIB_NAND_PIN_NC) {
+        route_pin((uint8_t)wp_pin);
+    }
 
-    esp_rom_gpio_connect_out_signal(pin_clk, SPI2_CK_PAD_OUT_IDX, false, false);
-    esp_rom_gpio_connect_out_signal(pin_d, SPI2_D_PAD_OUT_IDX, false, false);
-    esp_rom_gpio_connect_out_signal(pin_cs, SPI2_CS_PAD_OUT_IDX, false, false);
-    esp_rom_gpio_connect_in_signal(pin_q, SPI2_Q_PAD_IN_IDX, false);
-    esp_rom_gpio_connect_out_signal(pin_hd, SPI2_HOLD_PAD_OUT_IDX, false, false);
-    esp_rom_gpio_set_output_level(wp_pin, 1);
+    esp_rom_gpio_connect_out_signal((uint8_t)pin_clk, SPI2_CK_PAD_OUT_IDX, false, false);
+    esp_rom_gpio_connect_out_signal((uint8_t)pin_d, SPI2_D_PAD_OUT_IDX, false, false);
+    esp_rom_gpio_connect_out_signal((uint8_t)pin_cs, SPI2_CS_PAD_OUT_IDX, false, false);
+    esp_rom_gpio_connect_in_signal((uint8_t)pin_q, SPI2_Q_PAD_IN_IDX, false);
+    if (pin_hd != STUB_LIB_NAND_PIN_NC) {
+        esp_rom_gpio_connect_out_signal((uint8_t)pin_hd, SPI2_HOLD_PAD_OUT_IDX, false, false);
+        esp_rom_gpio_output_enable((uint8_t)pin_hd);
+    }
+    if (wp_pin != STUB_LIB_NAND_PIN_NC) {
+        esp_rom_gpio_set_output_level((uint8_t)wp_pin, 1);
+        esp_rom_gpio_output_enable((uint8_t)wp_pin);
+    }
 
-    esp_rom_gpio_output_enable(pin_clk);
-    esp_rom_gpio_output_enable(pin_d);
-    esp_rom_gpio_output_enable(pin_cs);
-    esp_rom_gpio_output_enable(pin_hd);
-    esp_rom_gpio_output_enable(wp_pin);
-    esp_rom_gpio_output_disable(pin_q);
+    esp_rom_gpio_output_enable((uint8_t)pin_clk);
+    esp_rom_gpio_output_enable((uint8_t)pin_d);
+    esp_rom_gpio_output_enable((uint8_t)pin_cs);
+    esp_rom_gpio_output_disable((uint8_t)pin_q);
 
     /* XTAL 40 MHz / 2 = 20 MHz. */
     REG_WRITE(SPI_CLOCK_REG(NAND_SPI_NUM), (1U << SPI_CLKCNT_N_S) | (1U << SPI_CLKCNT_L_S));

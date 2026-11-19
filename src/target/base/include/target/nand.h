@@ -17,7 +17,7 @@ extern "C" {
 /**
  * @brief Enable the SPI master and route the NAND pins
  *
- * @param pins Bus pins. STUB_LIB_NAND_PIN_DEFAULT selects the target's default for that pin.
+ * @param pins Explicit bus pins, or NULL for all target defaults. HD and WP may be STUB_LIB_NAND_PIN_NC.
  * @return STUB_LIB_OK on success, STUB_LIB_ERR_INVALID_ARG when a pin is out of range,
  *         STUB_LIB_ERR_NOT_SUPPORTED when the target has no NAND support.
  */

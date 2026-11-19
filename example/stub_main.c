@@ -140,20 +140,12 @@ static __attribute__((unused)) void test_sha256(void)
 
 static __attribute__((unused)) void test_nand(void)
 {
-    const stub_lib_nand_pins_t pins = {
-        .clk = STUB_LIB_NAND_PIN_DEFAULT,
-        .q = STUB_LIB_NAND_PIN_DEFAULT,
-        .d = STUB_LIB_NAND_PIN_DEFAULT,
-        .cs = STUB_LIB_NAND_PIN_DEFAULT,
-        .hd = STUB_LIB_NAND_PIN_DEFAULT,
-        .wp = STUB_LIB_NAND_PIN_DEFAULT,
-    };
     stub_lib_nand_geometry_t geometry = { 0 };
     uint8_t manufacturer_id;
     uint16_t device_id;
     uint8_t data[4] __attribute__((aligned(4)));
 
-    (void)stub_lib_nand_attach(&pins, &geometry);
+    (void)stub_lib_nand_attach(NULL, &geometry);
     (void)stub_lib_nand_get_geometry(&geometry);
     (void)stub_lib_nand_read_id(&manufacturer_id, &device_id);
     (void)stub_lib_nand_read_register(STUB_LIB_NAND_REG_STATUS, data);

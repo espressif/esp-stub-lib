@@ -38,30 +38,31 @@ extern void gpio_output_disable(uint32_t gpio_num);
 extern void gpio_pad_set_drv(uint32_t gpio_num, uint32_t drv);
 extern void gpio_pad_input_enable(uint32_t gpio_num);
 
-/* Returns the GPIO for a requested pin, or MAX_PAD_GPIO_NUM when it is out of range. */
-static uint8_t resolve_pin(int8_t pin, uint8_t default_pin)
+static bool pin_valid(int pin)
 {
-    if (pin == STUB_LIB_NAND_PIN_DEFAULT) {
-        return default_pin;
-    }
-    if (pin < 0 || pin >= MAX_PAD_GPIO_NUM) {
-        return MAX_PAD_GPIO_NUM;
-    }
-    return (uint8_t)pin;
+    return pin >= 0 && pin < MAX_PAD_GPIO_NUM;
+}
+
+static void route_matrix_pin(uint8_t pin)
+{
+    esp_rom_gpio_pad_select_gpio(pin);
+    gpio_pad_input_enable(pin);
+    gpio_pad_set_drv(pin, 2);
 }
 
 int stub_target_nand_bus_init(const stub_lib_nand_pins_t *pins)
 {
-    uint8_t pin_clk = resolve_pin(pins->clk, PIN_CLK);
-    uint8_t pin_q = resolve_pin(pins->q, PIN_MISO);
-    uint8_t pin_d = resolve_pin(pins->d, PIN_MOSI);
-    uint8_t pin_cs = resolve_pin(pins->cs, PIN_CS);
-    uint8_t pin_hd = resolve_pin(pins->hd, PIN_HD);
-    uint8_t wp_pin = resolve_pin(pins->wp, PIN_WP);
+    int pin_clk = pins == NULL ? PIN_CLK : pins->clk;
+    int pin_q = pins == NULL ? PIN_MISO : pins->q;
+    int pin_d = pins == NULL ? PIN_MOSI : pins->d;
+    int pin_cs = pins == NULL ? PIN_CS : pins->cs;
+    int pin_hd = pins == NULL ? PIN_HD : pins->hd;
+    int wp_pin = pins == NULL ? PIN_WP : pins->wp;
 
     // Validate pin numbers (ESP32-S3 GPIOs 0–47)
-    if (pin_clk >= MAX_PAD_GPIO_NUM || pin_q >= MAX_PAD_GPIO_NUM || pin_d >= MAX_PAD_GPIO_NUM ||
-        pin_cs >= MAX_PAD_GPIO_NUM || pin_hd >= MAX_PAD_GPIO_NUM || wp_pin >= MAX_PAD_GPIO_NUM) {
+    if (!pin_valid(pin_clk) || !pin_valid(pin_q) || !pin_valid(pin_d) || !pin_valid(pin_cs) ||
+        (pin_hd != STUB_LIB_NAND_PIN_NC && !pin_valid(pin_hd)) ||
+        (wp_pin != STUB_LIB_NAND_PIN_NC && !pin_valid(wp_pin))) {
         return STUB_LIB_ERR_INVALID_ARG;
     }
 
@@ -120,35 +121,42 @@ int stub_target_nand_bus_init(const stub_lib_nand_pins_t *pins)
         SET_IOMUX_FSPI(PERIPHS_IO_MUX_GPIO10_U, PIN_CS);
         SET_IOMUX_FSPI(PERIPHS_IO_MUX_GPIO14_U, PIN_WP);
         SET_IOMUX_FSPI(PERIPHS_IO_MUX_GPIO9_U, PIN_HD);
-        gpio_output_enable(pin_d);
-        gpio_output_enable(pin_clk);
-        gpio_output_enable(pin_cs);
+        gpio_output_enable(PIN_MOSI);
+        gpio_output_enable(PIN_CLK);
+        gpio_output_enable(PIN_CS);
         gpio_output_enable(PIN_WP);
-        gpio_output_enable(pin_hd);
-        gpio_output_disable(pin_q);
+        gpio_output_enable(PIN_HD);
+        gpio_output_disable(PIN_MISO);
     } else {
         // GPIO matrix path: set pins to GPIO, then route FSPI signals
-        // Include wp_pin so /WP is driven high (avoids floating write-protect)
-        uint8_t gpios[] = { pin_clk, pin_q, pin_d, pin_cs, pin_hd, wp_pin };
-        for (uint32_t i = 0; i < sizeof(gpios); i++) {
-            esp_rom_gpio_pad_select_gpio(gpios[i]);
-            gpio_pad_input_enable(gpios[i]);
-            gpio_pad_set_drv(gpios[i], 2);
+        route_matrix_pin((uint8_t)pin_clk);
+        route_matrix_pin((uint8_t)pin_q);
+        route_matrix_pin((uint8_t)pin_d);
+        route_matrix_pin((uint8_t)pin_cs);
+        if (pin_hd != STUB_LIB_NAND_PIN_NC) {
+            route_matrix_pin((uint8_t)pin_hd);
+        }
+        if (wp_pin != STUB_LIB_NAND_PIN_NC) {
+            route_matrix_pin((uint8_t)wp_pin);
         }
 
-        esp_rom_gpio_connect_out_signal(pin_clk, FSPICLK_OUT_IDX, false, false);
-        esp_rom_gpio_connect_out_signal(pin_d, FSPID_OUT_IDX, false, false);
-        esp_rom_gpio_connect_out_signal(pin_cs, FSPICS0_OUT_IDX, false, false);
-        esp_rom_gpio_connect_in_signal(pin_q, FSPIQ_IN_IDX, false);
-        esp_rom_gpio_connect_out_signal(pin_hd, FSPIHD_OUT_IDX, false, false);
-        esp_rom_gpio_connect_out_signal(wp_pin, FSPIWP_OUT_IDX, false, false);
+        esp_rom_gpio_connect_out_signal((uint8_t)pin_clk, FSPICLK_OUT_IDX, false, false);
+        esp_rom_gpio_connect_out_signal((uint8_t)pin_d, FSPID_OUT_IDX, false, false);
+        esp_rom_gpio_connect_out_signal((uint8_t)pin_cs, FSPICS0_OUT_IDX, false, false);
+        esp_rom_gpio_connect_in_signal((uint8_t)pin_q, FSPIQ_IN_IDX, false);
+        if (pin_hd != STUB_LIB_NAND_PIN_NC) {
+            esp_rom_gpio_connect_out_signal((uint8_t)pin_hd, FSPIHD_OUT_IDX, false, false);
+            gpio_output_enable((uint8_t)pin_hd);
+        }
+        if (wp_pin != STUB_LIB_NAND_PIN_NC) {
+            esp_rom_gpio_connect_out_signal((uint8_t)wp_pin, FSPIWP_OUT_IDX, false, false);
+            gpio_output_enable((uint8_t)wp_pin);
+        }
 
-        gpio_output_enable(pin_clk);
-        gpio_output_enable(pin_d);
-        gpio_output_enable(pin_cs);
-        gpio_output_enable(pin_hd);
-        gpio_output_enable(wp_pin);
-        gpio_output_disable(pin_q);
+        gpio_output_enable((uint8_t)pin_clk);
+        gpio_output_enable((uint8_t)pin_d);
+        gpio_output_enable((uint8_t)pin_cs);
+        gpio_output_disable((uint8_t)pin_q);
     }
 #undef SET_IOMUX_FSPI
 

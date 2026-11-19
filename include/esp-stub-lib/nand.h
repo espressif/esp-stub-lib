@@ -15,8 +15,8 @@
 extern "C" {
 #endif
 
-/** Pin number that selects the target's default pin. */
-#define STUB_LIB_NAND_PIN_DEFAULT (-1)
+/** Pin is not connected; valid for HD and WP when the board pulls them high. */
+#define STUB_LIB_NAND_PIN_NC      (-1)
 
 // NAND registers, for stub_lib_nand_read_register()
 #define STUB_LIB_NAND_REG_PROTECT 0xA0
@@ -26,7 +26,9 @@ extern "C" {
 /**
  * @brief GPIO numbers of the SPI NAND bus
  *
- * STUB_LIB_NAND_PIN_DEFAULT selects the target's default for that pin.
+ * Pass NULL to stub_lib_nand_attach() to use all target defaults. With an
+ * explicit configuration, CLK, Q, D and CS must be GPIO numbers; HD and WP
+ * may be STUB_LIB_NAND_PIN_NC.
  */
 typedef struct {
     int8_t clk;
@@ -53,7 +55,7 @@ typedef struct {
  *
  * Resets the chip, clears block protection and enables on-chip ECC.
  *
- * @param pins     Bus pins.
+ * @param pins     Explicit bus pins, or NULL to use all target defaults.
  * @param geometry In: geometry overrides, zero for fields to read from the chip.
  *                 Out: the geometry in use.
  * @return STUB_LIB_OK on success,
