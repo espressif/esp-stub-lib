@@ -16,6 +16,7 @@
 #include <esp-stub-lib/md5.h>
 #include <esp-stub-lib/mem_utils.h>
 #include <esp-stub-lib/miniz.h>
+#include <esp-stub-lib/nand.h>
 #include <esp-stub-lib/sdio.h>
 #include <esp-stub-lib/security.h>
 #include <esp-stub-lib/sha256.h>
@@ -137,6 +138,32 @@ static __attribute__((unused)) void test_sha256(void)
     stub_lib_sha256_finish(digest);
 }
 
+static __attribute__((unused)) void test_nand(void)
+{
+    const stub_lib_nand_pins_t pins = {
+        .clk = STUB_LIB_NAND_PIN_DEFAULT,
+        .q = STUB_LIB_NAND_PIN_DEFAULT,
+        .d = STUB_LIB_NAND_PIN_DEFAULT,
+        .cs = STUB_LIB_NAND_PIN_DEFAULT,
+        .hd = STUB_LIB_NAND_PIN_DEFAULT,
+        .wp = STUB_LIB_NAND_PIN_DEFAULT,
+    };
+    stub_lib_nand_geometry_t geometry = { 0 };
+    uint8_t manufacturer_id;
+    uint16_t device_id;
+    uint8_t data[4] __attribute__((aligned(4)));
+
+    (void)stub_lib_nand_attach(&pins, &geometry);
+    (void)stub_lib_nand_get_geometry(&geometry);
+    (void)stub_lib_nand_read_id(&manufacturer_id, &device_id);
+    (void)stub_lib_nand_read_register(STUB_LIB_NAND_REG_STATUS, data);
+    (void)stub_lib_nand_read_bbm(0, data);
+    (void)stub_lib_nand_write_bbm(0, false);
+    (void)stub_lib_nand_read_page(0, data, sizeof(data));
+    (void)stub_lib_nand_write_page(0, data, sizeof(data));
+    (void)stub_lib_nand_erase_block(0);
+}
+
 static __attribute__((unused)) void test_cache(void)
 {
     size_t cache_state_sz = stub_lib_cache_state_size();
@@ -241,6 +268,7 @@ static __attribute__((unused)) int handle_test2(va_list ap)
     test_slave_spi();
     test_miniz();
     test_clock_init();
+    test_nand();
 
     test_cache();
 

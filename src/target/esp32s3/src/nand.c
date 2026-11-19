@@ -62,7 +62,7 @@ int stub_target_nand_bus_init(const stub_lib_nand_pins_t *pins)
     // Validate pin numbers (ESP32-S3 GPIOs 0–47)
     if (pin_clk >= MAX_PAD_GPIO_NUM || pin_q >= MAX_PAD_GPIO_NUM || pin_d >= MAX_PAD_GPIO_NUM ||
         pin_cs >= MAX_PAD_GPIO_NUM || pin_hd >= MAX_PAD_GPIO_NUM || wp_pin >= MAX_PAD_GPIO_NUM) {
-        return NAND_ERR_PIN_INVALID;
+        return STUB_LIB_ERR_INVALID_ARG;
     }
 
     // Enable SPI2 peripheral clock and release reset

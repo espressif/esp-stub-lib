@@ -28,7 +28,7 @@ static int nand_spi_wait_clear(uint32_t cmd_bit)
 {
     uint64_t timeout_us = NAND_SPI_TIMEOUT_US;
     if (stub_target_wait_reg_bit_clear(SPI_CMD_REG(NAND_SPI_NUM), cmd_bit, &timeout_us) != STUB_LIB_OK) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
     return 0;
 }

@@ -31,12 +31,12 @@
 
 #define NAND_MFR_MICRON              0x2C
 
-// NAND_REG_CONFIG bits
+// STUB_LIB_NAND_REG_CONFIG bits
 #define NAND_CFG_BUF                 BIT(3) /* 1 = Buffer Mode (no auto-prefetch), 0 = Continuous Mode */
 #define NAND_CFG_ECC_EN              BIT(4)
 #define NAND_CFG_OTP_EN              BIT(6) /* Page reads address the OTP area, which holds the parameter page */
 
-// NAND_REG_STATUS bits
+// STUB_LIB_NAND_REG_STATUS bits
 #define NAND_STAT_BUSY               BIT(0)
 #define NAND_STAT_ERASE_FAILED       BIT(2)
 #define NAND_STAT_PROGRAM_FAILED     BIT(3)
@@ -69,14 +69,14 @@
  * code as a plugin that has no .rodata section. */
 typedef struct {
     uint32_t plane_select;  /* Column address bit that selects the cache of odd blocks */
-    uint8_t ecc_mask;       /* NAND_REG_STATUS bits holding the ECC result */
+    uint8_t ecc_mask;       /* STUB_LIB_NAND_REG_STATUS bits holding the ECC result */
     bool micron_ecc_status; /* ECC field uses the Micron encoding */
     bool has_buf;           /* NAND_CFG_BUF must be set to disable continuous read */
+    bool plane_above_page;  /* Plane select is the column bit above the page and spare area */
 } nand_vendor_t;
 
 static struct {
     stub_lib_nand_geometry_t geometry;
-    uint32_t block_size;
     nand_vendor_t vendor;
     uint8_t last_status;
     bool initialized;
@@ -87,17 +87,19 @@ static uint8_t s_onfi_copy[ONFI_COPY_SIZE] __attribute__((aligned(4)));
 static void nand_vendor_init(uint8_t manufacturer_id)
 {
     if (manufacturer_id == NAND_MFR_MICRON) {
-        /* Plane select sits above the 12-bit column address. ECC result in STATUS[6:4]. BUF is reserved. */
-        s_nand.vendor.plane_select = BIT(12);
+        /* Plane select depends on the page size. ECC result is in STATUS[6:4]. BUF is reserved. */
+        s_nand.vendor.plane_select = 0;
         s_nand.vendor.ecc_mask = BIT(6) | BIT(5) | BIT(4);
         s_nand.vendor.micron_ecc_status = true;
         s_nand.vendor.has_buf = false;
+        s_nand.vendor.plane_above_page = true;
     } else {
-        /* Winbond and GigaDevice: plane select at CA[15], ECC result in STATUS[5:4]. */
+        /* W25N01GV and GD5F4GM8: plane select at CA[15], ECC result in STATUS[5:4]. */
         s_nand.vendor.plane_select = BIT(15);
         s_nand.vendor.ecc_mask = BIT(5) | BIT(4);
         s_nand.vendor.micron_ecc_status = false;
         s_nand.vendor.has_buf = true;
+        s_nand.vendor.plane_above_page = false;
     }
 }
 
@@ -115,7 +117,7 @@ static uint32_t nand_row(uint32_t page_number)
 static int nand_check_page(uint32_t page_number)
 {
     if (!s_nand.initialized) {
-        return NAND_ERR_NOT_INITIALIZED;
+        return STUB_LIB_ERR_NAND_NOT_INITIALIZED;
     }
     if (page_number / s_nand.geometry.pages_per_block >= s_nand.geometry.block_count) {
         return STUB_LIB_ERR_INVALID_ARG;
@@ -157,7 +159,7 @@ static int nand_wait_ready(void)
 
     while (polls-- > 0) {
         uint8_t status;
-        int ret = stub_lib_nand_read_register(NAND_REG_STATUS, &status);
+        int ret = stub_lib_nand_read_register(STUB_LIB_NAND_REG_STATUS, &status);
         if (ret != 0) {
             return ret;
         }
@@ -170,7 +172,7 @@ static int nand_wait_ready(void)
         stub_lib_delay_us(NAND_POLL_INTERVAL_US);
     }
 
-    return NAND_ERR_TIMEOUT;
+    return STUB_LIB_ERR_TIMEOUT;
 }
 
 static int nand_wait_program_erase(void)
@@ -181,10 +183,10 @@ static int nand_wait_program_erase(void)
     }
 
     if (s_nand.last_status & NAND_STAT_ERASE_FAILED) {
-        return NAND_ERR_ERASE_FAILED;
+        return STUB_LIB_ERR_NAND_ERASE_FAILED;
     }
     if (s_nand.last_status & NAND_STAT_PROGRAM_FAILED) {
-        return NAND_ERR_PROGRAM_FAILED;
+        return STUB_LIB_ERR_NAND_PROGRAM_FAILED;
     }
     return 0;
 }
@@ -200,12 +202,12 @@ static int nand_check_ecc(void)
         if (ecc == 0 || ecc == BIT(4) || ecc == (BIT(5) | BIT(4)) || ecc == (BIT(6) | BIT(4))) {
             return 0;
         }
-        return NAND_ERR_ECC_UNCORRECTABLE;
+        return STUB_LIB_ERR_NAND_ECC_UNCORRECTABLE;
     }
 
     /* 00 is clean, 01 corrected, 10 uncorrectable. Treat reserved 11 as uncorrectable too. */
     if (ecc & BIT(5)) {
-        return NAND_ERR_ECC_UNCORRECTABLE;
+        return STUB_LIB_ERR_NAND_ECC_UNCORRECTABLE;
     }
     return 0;
 }
@@ -221,7 +223,7 @@ static int nand_load_page(uint32_t page_number)
                                                NULL,
                                                0);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
     return nand_wait_ready();
 }
@@ -240,7 +242,7 @@ static int nand_read_cache(uint32_t column, uint8_t *buf, uint32_t len)
                                                    buf + offset,
                                                    (uint16_t)(chunk * 8));
         if (ret != 0) {
-            return NAND_ERR_SPI_FAIL;
+            return STUB_LIB_ERR_NAND_SPI;
         }
     }
     return 0;
@@ -255,7 +257,7 @@ static int nand_load_cache(uint8_t first_cmd, uint32_t column, const uint8_t *bu
         int ret =
             stub_target_nand_bus_transaction(cmd, column + offset, 16, buf + offset, (uint16_t)(chunk * 8), NULL, 0);
         if (ret != 0) {
-            return NAND_ERR_SPI_FAIL;
+            return STUB_LIB_ERR_NAND_SPI;
         }
     }
     return 0;
@@ -271,7 +273,7 @@ static int nand_program_execute(uint32_t page_number)
                                                NULL,
                                                0);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
     return nand_wait_program_erase();
 }
@@ -315,13 +317,18 @@ static int nand_read_onfi_copies(stub_lib_nand_geometry_t *onfi)
             return ret;
         }
         if (onfi_copy_valid(s_onfi_copy)) {
+            uint8_t lun_count = s_onfi_copy[ONFI_LUN_COUNT_OFFSET];
+            if (lun_count != 1) {
+                STUB_LOGE("NAND has %u LUNs; die selection is not supported\n", lun_count);
+                return STUB_LIB_ERR_NOT_SUPPORTED;
+            }
             onfi->page_size = get_le32(&s_onfi_copy[ONFI_PAGE_SIZE_OFFSET]);
             onfi->pages_per_block = get_le32(&s_onfi_copy[ONFI_PAGES_PER_BLOCK_OFFSET]);
-            onfi->block_count = get_le32(&s_onfi_copy[ONFI_BLOCKS_PER_LUN_OFFSET]) * s_onfi_copy[ONFI_LUN_COUNT_OFFSET];
+            onfi->block_count = get_le32(&s_onfi_copy[ONFI_BLOCKS_PER_LUN_OFFSET]);
             return 0;
         }
     }
-    return NAND_ERR_GEOMETRY_UNKNOWN;
+    return STUB_LIB_ERR_NAND_GEOMETRY_UNKNOWN;
 }
 
 /*
@@ -331,15 +338,15 @@ static int nand_read_onfi_copies(stub_lib_nand_geometry_t *onfi)
  */
 static int nand_read_onfi(uint8_t cfg, stub_lib_nand_geometry_t *onfi)
 {
-    int ret = nand_write_register(NAND_REG_CONFIG, (uint8_t)((cfg & ~NAND_CFG_ECC_EN) | NAND_CFG_OTP_EN));
+    int ret = nand_write_register(STUB_LIB_NAND_REG_CONFIG, (uint8_t)((cfg & ~NAND_CFG_ECC_EN) | NAND_CFG_OTP_EN));
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
 
     ret = nand_read_onfi_copies(onfi);
 
-    if (nand_write_register(NAND_REG_CONFIG, cfg) != 0) {
-        return NAND_ERR_SPI_FAIL;
+    if (nand_write_register(STUB_LIB_NAND_REG_CONFIG, cfg) != 0) {
+        return STUB_LIB_ERR_NAND_SPI;
     }
     return ret;
 }
@@ -348,7 +355,7 @@ static int nand_check_geometry(const stub_lib_nand_geometry_t *geometry)
 {
     if (geometry->page_size == 0 || geometry->pages_per_block == 0 || geometry->block_count == 0) {
         STUB_LOGE("NAND geometry unknown; the chip has no parameter page\n");
-        return NAND_ERR_GEOMETRY_UNKNOWN;
+        return STUB_LIB_ERR_NAND_GEOMETRY_UNKNOWN;
     }
     /* The column address and the vendor plane select bit fit in 16 bits. */
     if (geometry->page_size != 2048 && geometry->page_size != 4096) {
@@ -406,7 +413,7 @@ int stub_lib_nand_attach(const stub_lib_nand_pins_t *pins, stub_lib_nand_geometr
 
     ret = stub_target_nand_bus_transaction(NAND_CMD_RESET, 0, 0, NULL, 0, NULL, 0);
     if (ret != 0) {
-        return NAND_ERR_RESET_FAILED;
+        return STUB_LIB_ERR_NAND_RESET_FAILED;
     }
 
     /* W25N01GV tRST is up to 500 us for power-on reset; wait 10 ms */
@@ -420,22 +427,22 @@ int stub_lib_nand_attach(const stub_lib_nand_pins_t *pins, stub_lib_nand_geometr
     uint8_t manufacturer_id = 0;
     ret = stub_lib_nand_read_id(&manufacturer_id, NULL);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
     nand_vendor_init(manufacturer_id);
 
-    ret = nand_write_register(NAND_REG_PROTECT, 0x00);
+    ret = nand_write_register(STUB_LIB_NAND_REG_PROTECT, 0x00);
     if (ret != 0) {
         return ret;
     }
 
     uint8_t prot = 0xFF;
-    ret = stub_lib_nand_read_register(NAND_REG_PROTECT, &prot);
+    ret = stub_lib_nand_read_register(STUB_LIB_NAND_REG_PROTECT, &prot);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
     if (prot != 0x00) {
-        return NAND_ERR_PROTECTION;
+        return STUB_LIB_ERR_NAND_PROTECTION;
     }
 
     /*
@@ -445,9 +452,9 @@ int stub_lib_nand_attach(const stub_lib_nand_pins_t *pins, stub_lib_nand_geometr
      * of odd blocks then return all zeros. Micron reserves this bit.
      */
     uint8_t cfg = 0;
-    ret = stub_lib_nand_read_register(NAND_REG_CONFIG, &cfg);
+    ret = stub_lib_nand_read_register(STUB_LIB_NAND_REG_CONFIG, &cfg);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
     cfg = (uint8_t)(cfg & ~(NAND_CFG_OTP_EN | NAND_CFG_ECC_EN));
     if (s_nand.vendor.has_buf) {
@@ -457,7 +464,7 @@ int stub_lib_nand_attach(const stub_lib_nand_pins_t *pins, stub_lib_nand_geometr
     if (geometry->page_size == 0 || geometry->pages_per_block == 0 || geometry->block_count == 0) {
         stub_lib_nand_geometry_t onfi = { 0 };
         ret = nand_read_onfi(cfg, &onfi);
-        if (ret != 0 && ret != NAND_ERR_GEOMETRY_UNKNOWN) {
+        if (ret != 0 && ret != STUB_LIB_ERR_NAND_GEOMETRY_UNKNOWN) {
             return ret;
         }
         if (geometry->page_size == 0) {
@@ -475,6 +482,9 @@ int stub_lib_nand_attach(const stub_lib_nand_pins_t *pins, stub_lib_nand_geometr
     if (ret != 0) {
         return ret;
     }
+    if (s_nand.vendor.plane_above_page) {
+        s_nand.vendor.plane_select = geometry->page_size << 1;
+    }
 
     /*
      * On-chip ECC covers the main area. In the spare area, bytes 0–3 hold the user
@@ -483,22 +493,21 @@ int stub_lib_nand_attach(const stub_lib_nand_pins_t *pins, stub_lib_nand_geometr
      * reports the ECC result.
      */
     cfg = (uint8_t)(cfg | NAND_CFG_ECC_EN);
-    ret = nand_write_register(NAND_REG_CONFIG, cfg);
+    ret = nand_write_register(STUB_LIB_NAND_REG_CONFIG, cfg);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
 
     uint8_t cfg_after = 0;
-    ret = stub_lib_nand_read_register(NAND_REG_CONFIG, &cfg_after);
+    ret = stub_lib_nand_read_register(STUB_LIB_NAND_REG_CONFIG, &cfg_after);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
     if ((cfg_after & (NAND_CFG_ECC_EN | NAND_CFG_BUF)) != (cfg & (NAND_CFG_ECC_EN | NAND_CFG_BUF))) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
 
     s_nand.geometry = *geometry;
-    s_nand.block_size = geometry->page_size * geometry->pages_per_block;
     s_nand.initialized = true;
     return 0;
 }
@@ -629,28 +638,20 @@ int stub_lib_nand_erase_block(uint32_t page_number)
                                            NULL,
                                            0);
     if (ret != 0) {
-        return NAND_ERR_SPI_FAIL;
+        return STUB_LIB_ERR_NAND_SPI;
     }
 
     return nand_wait_program_erase();
 }
 
-uint32_t stub_lib_nand_get_page_size(void)
+int stub_lib_nand_get_geometry(stub_lib_nand_geometry_t *geometry)
 {
-    return s_nand.initialized ? s_nand.geometry.page_size : 0;
-}
-
-uint32_t stub_lib_nand_get_pages_per_block(void)
-{
-    return s_nand.initialized ? s_nand.geometry.pages_per_block : 0;
-}
-
-uint32_t stub_lib_nand_get_block_size(void)
-{
-    return s_nand.initialized ? s_nand.block_size : 0;
-}
-
-uint32_t stub_lib_nand_get_block_count(void)
-{
-    return s_nand.initialized ? s_nand.geometry.block_count : 0;
+    if (!s_nand.initialized) {
+        return STUB_LIB_ERR_NAND_NOT_INITIALIZED;
+    }
+    if (geometry == NULL) {
+        return STUB_LIB_ERR_INVALID_ARG;
+    }
+    *geometry = s_nand.geometry;
+    return 0;
 }
