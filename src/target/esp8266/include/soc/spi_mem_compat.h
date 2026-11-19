@@ -32,3 +32,5 @@
 #define SPI_MEM_FLASH_SE          SPI_FLASH_SE
 #define SPI_MEM_FLASH_BE          SPI_FLASH_BE
 #define SPI_MEM_FLASH_RDSR        SPI_FLASH_RDSR
+/* ESP8266 has no FLASH_PE; keep the bit 0 so common erase_cmd can OR it unconditionally. */
+#define SPI_MEM_FLASH_PE          0

@@ -205,6 +205,25 @@ void stub_target_flash_attach(uint32_t ishspi, bool legacy);
  */
 bool stub_target_flash_is_busy(void);
 
+/**
+ * @brief Prepare SPI1 for a hardware RDSR / status poll
+ *
+ * Clears USR_DUMMY so a leftover QIO/cache-user dummy phase cannot corrupt
+ * RDSR. Does not change the address length; hardware SE/BE prep does that
+ * once per erase. Called immediately before each hardware RDSR.
+ */
+void stub_target_flash_status_prep(void);
+
+/**
+ * @brief Address bit length for a hardware sector or block erase
+ *
+ * Default reads rom_spiflash_legacy_funcs se/be_addr_bit_len. Chips whose ROM
+ * table lacks those fields, or has no table, override this.
+ *
+ * @param block true for 64KB block erase, false for 4KB sector erase
+ */
+uint8_t stub_target_flash_erase_addr_bits(bool block);
+
 void stub_target_spi_wait_ready(void);
 
 /**

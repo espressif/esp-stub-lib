@@ -31,6 +31,8 @@ extern int esp_rom_spiflash_write_enable(esp_rom_spiflash_chip_t *flash_chip);
 extern void esp_rom_spiflash_write_encrypted_enable(void);
 extern void esp_rom_spiflash_write_encrypted_disable(void);
 extern int esp_rom_spiflash_unlock(void);
+/* Present in most chip ROMs; absent on classic ESP32 / S2 / C3. */
+extern void esp_rom_spi_set_address_bit_len(int spi, int addr_bits) __attribute__((weak));
 
 extern void esp_rom_gpio_pad_select_gpio(uint32_t gpio_num);
 
@@ -177,9 +179,54 @@ int __attribute__((weak)) stub_target_flash_erase_chip(void)
     return STUB_LIB_FAIL;
 }
 
+/*
+ * Match ROM esp_rom_spiflash_read_status prep when dummy_len_plus[1] == 0:
+ * clear USR_DUMMY only. RDSR has no address phase.
+ */
+void __attribute__((weak)) stub_target_flash_status_prep(void)
+{
+#if defined(SPI_MEM_USR_DUMMY) && defined(SPI_MEM_USER_REG)
+    REG_CLR_BIT(SPI_MEM_USER_REG(FLASH_SPI_NUM), SPI_MEM_USR_DUMMY);
+#endif
+}
+
+/*
+ * ROM se/be_addr_bit_len. Chips without those fields (C3) or without the
+ * table (ESP32, S2) override this.
+ */
+uint8_t __attribute__((weak)) stub_target_flash_erase_addr_bits(bool block)
+{
+    return block ? rom_spiflash_legacy_funcs->be_addr_bit_len : rom_spiflash_legacy_funcs->se_addr_bit_len;
+}
+
+/*
+ * Match ROM _esp_rom_spiflash_erase_sector / _erase_block prep: clear USR_DUMMY
+ * and program the erase address bit length. Prefer the ROM helper when linked;
+ * otherwise program USR_ADDR_BITLEN only. Built-in SE/BE always send an address,
+ * so USR_ADDR enable is unnecessary.
+ */
+static void stub_flash_hw_erase_prep(uint8_t addr_bits)
+{
+    stub_target_flash_status_prep();
+    if (esp_rom_spi_set_address_bit_len) {
+        esp_rom_spi_set_address_bit_len(FLASH_SPI_NUM, addr_bits);
+    } else {
+#if defined(SPI_MEM_USER1_REG) && defined(SPI_MEM_USR_ADDR_BITLEN)
+        REG_SET_FIELD(SPI_MEM_USER1_REG(FLASH_SPI_NUM), SPI_MEM_USR_ADDR_BITLEN, addr_bits - 1);
+#endif
+    }
+}
+
+static uint32_t stub_flash_hw_erase_cmd(uint32_t erase_bit)
+{
+    return erase_bit | SPI_MEM_FLASH_PE;
+}
+
 bool __attribute__((weak)) stub_target_flash_is_busy(void)
 {
     stub_target_spi_wait_ready();
+    /* DUMMY only, immediately before RDSR. Address length stays in erase prep. */
+    stub_target_flash_status_prep();
 
     REG_WRITE(SPI_MEM_RD_STATUS_REG(FLASH_SPI_NUM), 0);
     REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_RDSR);
@@ -193,11 +240,12 @@ bool __attribute__((weak)) stub_target_flash_is_busy(void)
 
 void __attribute__((weak)) stub_target_flash_erase_sector_start(uint32_t addr)
 {
+    stub_flash_hw_erase_prep(stub_target_flash_erase_addr_bits(false));
     stub_target_flash_write_enable();
     stub_target_spi_wait_ready();
 
     REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_SE);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), stub_flash_hw_erase_cmd(SPI_MEM_FLASH_SE));
     while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
         /* busy wait */
     }
@@ -207,11 +255,12 @@ void __attribute__((weak)) stub_target_flash_erase_sector_start(uint32_t addr)
 
 void __attribute__((weak)) stub_target_flash_erase_block_start(uint32_t addr)
 {
+    stub_flash_hw_erase_prep(stub_target_flash_erase_addr_bits(true));
     stub_target_flash_write_enable();
     stub_target_spi_wait_ready();
 
     REG_WRITE(SPI_MEM_ADDR_REG(FLASH_SPI_NUM), addr & 0xffffff);
-    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), SPI_MEM_FLASH_BE);
+    REG_WRITE(SPI_MEM_CMD_REG(FLASH_SPI_NUM), stub_flash_hw_erase_cmd(SPI_MEM_FLASH_BE));
     while (REG_READ(SPI_MEM_CMD_REG(FLASH_SPI_NUM)) != 0) {
         /* busy wait */
     }
