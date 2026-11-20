@@ -18,6 +18,7 @@ PROVIDE ( esp_rom_usb_dw_isr_handler = usb_dw_isr_handler );
 PROVIDE ( esp_rom_usb_dc_check_poll_for_interrupts = usb_dc_check_poll_for_interrupts );
 PROVIDE ( esp_rom_usb_dc_prepare_persist = usb_dc_prepare_persist );
 PROVIDE ( esp_rom_chip_usb_set_persist_flags = chip_usb_set_persist_flags );
+PROVIDE ( esp_rom_usb_osglue = rom_usb_osglue );
 
 PROVIDE ( esp_rom_gpio_pad_select_gpio    = gpio_pad_select_gpio );
 PROVIDE ( esp_rom_gpio_pad_pullup_only    = gpio_pad_pullup );
