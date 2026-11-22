@@ -80,6 +80,19 @@ void stub_lib_cache_stop(void);
 void stub_lib_cache_start(void);
 
 /**
+ * @brief Freeze the cache
+ *
+ * Pairs with stub_lib_cache_unfreeze(). Targets without a dedicated
+ * freeze fall back to stub_lib_cache_stop().
+ */
+void stub_lib_cache_freeze(void);
+
+/**
+ * @brief Unfreeze the cache after a previous stub_lib_cache_freeze().
+ */
+void stub_lib_cache_unfreeze(void);
+
+/**
  * @brief Return the size in bytes of the target-specific cache state buffer.
  *
  * The caller must allocate at least this many bytes (aligned to uint32_t) and

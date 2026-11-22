@@ -42,6 +42,16 @@ void __attribute__((weak)) stub_target_cache_start(void)
 {
 }
 
+void __attribute__((weak)) stub_target_cache_freeze(void)
+{
+    stub_target_cache_stop();
+}
+
+void __attribute__((weak)) stub_target_cache_unfreeze(void)
+{
+    stub_target_cache_start();
+}
+
 size_t __attribute__((weak)) stub_target_cache_state_size(void)
 {
     return 0;
