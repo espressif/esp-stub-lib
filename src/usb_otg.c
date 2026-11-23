@@ -46,6 +46,7 @@ static uint8_t s_cdcacm_txbuf[ACM_BYTES_PER_TX];
 static int s_cdcacm_txpos = 0;
 static uint32_t s_cdcacm_old_rts = 0;
 static volatile bool s_reset_requested = false;
+static volatile bool s_usb_int_enabled = false;
 
 // USB-OTG specific CDC ACM device type and functions
 typedef void cdc_acm_device;
@@ -56,6 +57,31 @@ extern int esp_rom_cdc_acm_rx_fifo_cnt(cdc_acm_device *dev);
 extern int esp_rom_cdc_acm_line_ctrl_get(cdc_acm_device *dev, uint32_t ctrl, uint32_t *val);
 extern void esp_rom_cdc_acm_irq_rx_enable(cdc_acm_device *dev);
 extern void esp_rom_cdc_acm_irq_rx_disable(cdc_acm_device *dev);
+
+// Same layout as usb_osglue_data_t in the ROM
+typedef struct {
+    void (*int_dis_proc)(void);
+    void (*int_ena_proc)(void);
+    int (*wait_proc)(int delay_us);
+} usb_osglue_data_t;
+extern usb_osglue_data_t esp_rom_usb_osglue;
+
+/*
+ * The ROM USB driver calls these hooks around its endpoint register and FIFO accesses. The USB ISR must not
+ * run in between, because the controller does not allow register accesses in the middle of a FIFO access.
+ */
+static void usb_osglue_int_dis(void)
+{
+    esp_rom_isr_mask(1 << s_usb_int_num);
+}
+
+static void usb_osglue_int_ena(void)
+{
+    // Keep the interrupt masked while the stub has disabled it, e.g. when the ISR is polled before a reset
+    if (s_usb_int_enabled) {
+        esp_rom_isr_unmask(1 << s_usb_int_num);
+    }
+}
 
 bool stub_lib_usb_otg_is_active(void)
 {
@@ -98,6 +124,10 @@ void stub_lib_usb_otg_rominit_intr_attach(int intr_num, void (*rx_callback)(uint
     // Get initial RTS state
     esp_rom_cdc_acm_line_ctrl_get(uart_acm_dev, LINE_CTRL_RTS, &s_cdcacm_old_rts);
 
+    esp_rom_usb_osglue.int_dis_proc = usb_osglue_int_dis;
+    esp_rom_usb_osglue.int_ena_proc = usb_osglue_int_ena;
+    s_usb_int_enabled = true;
+
     // Attach interrupt handler
     stub_target_usb_otg_rominit_intr_attach(intr_num, &stub_lib_usb_otg_cdcacm_callback);
 }
@@ -120,9 +150,11 @@ void stub_lib_usb_otg_tx_flush(void)
 void stub_lib_usb_otg_rx_async_enable(bool enable)
 {
     if (enable) {
+        s_usb_int_enabled = true;
         esp_rom_cdc_acm_irq_rx_enable(uart_acm_dev);
         esp_rom_isr_unmask(1 << s_usb_int_num);
     } else {
+        s_usb_int_enabled = false;
         esp_rom_isr_mask(1 << s_usb_int_num);
         esp_rom_cdc_acm_irq_rx_disable(uart_acm_dev);
     }
@@ -136,6 +168,7 @@ bool stub_lib_usb_otg_is_reset_requested(void)
 void stub_lib_usb_otg_handle_reset(void)
 {
     s_reset_requested = false;
+    s_usb_int_enabled = false;
     esp_rom_isr_mask(1 << s_usb_int_num);
 
     // Wait a bit for USB to settle
