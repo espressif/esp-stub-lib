@@ -132,3 +132,10 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
 
     REG_SET_BIT(SPI_MEM_USER_REG(FLASH_SPI_NUM), SPI_MEM_USR_COMMAND);
 }
+
+/* S2 ROM has no rom_spiflash_legacy_funcs. Hardware SE/BE use 24-bit addresses. */
+uint8_t stub_target_flash_erase_addr_bits(bool block)
+{
+    (void)block;
+    return 24;
+}
