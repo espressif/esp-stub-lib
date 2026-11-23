@@ -14,8 +14,6 @@
 #include <target/cache.h>
 #include <target/flash.h>
 
-#include <private/rom_flash.h>
-
 #include <soc/pcr_reg.h>
 #include <soc/spi_mem_compat.h>
 
@@ -55,21 +53,4 @@ uint32_t stub_target_get_max_supported_flash_size(void)
 {
     /* ESP32-H4 supports up to 32MB with 4-byte addressing */
     return MIB(32);
-}
-
-void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
-{
-    rom_spi_usr_cmd_legacy_funcs->exec_flash_cmd(params->spi_num,
-                                                 params->mode,
-                                                 params->cmd,
-                                                 params->cmd_bit_len,
-                                                 params->addr,
-                                                 params->addr_bit_len,
-                                                 params->dummy_bits,
-                                                 params->mosi_data,
-                                                 params->mosi_bit_len,
-                                                 params->miso_data,
-                                                 params->miso_bit_len,
-                                                 params->cs_mask,
-                                                 params->is_write_erase_operation);
 }

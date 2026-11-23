@@ -130,6 +130,37 @@ int esp_rom_opiflash_erase_sector(uint32_t sector_num);
 int esp_rom_opiflash_erase_block_64k(uint32_t block_num);
 
 /**
+ * @brief SPI user command, mirrors the ROM's esp_rom_spi_cmd_t
+ */
+typedef struct {
+    uint16_t cmd;
+    uint16_t cmd_bit_len;
+    uint32_t *addr;
+    uint32_t addr_bit_len;
+    uint32_t *tx_data; /**< Loaded into the SPI data buffer unless NULL */
+    uint32_t tx_data_bit_len;
+    uint32_t *rx_data; /**< Unused by esp_rom_spi_cmd_config() */
+    uint32_t rx_data_bit_len;
+    uint32_t dummy_bit_len;
+} esp_rom_spi_cmd_t;
+
+/**
+ * @brief Set the read and write mode of the SPI controller for user commands
+ *
+ * @param spi_num SPI peripheral number
+ * @param mode Mode
+ */
+void esp_rom_spi_set_op_mode(int spi_num, spi_flash_mode_t mode);
+
+/**
+ * @brief Configure the SPI controller for a user command without starting it
+ *
+ * @param spi_num SPI peripheral number
+ * @param cmd Command
+ */
+void esp_rom_spi_cmd_config(int spi_num, esp_rom_spi_cmd_t *cmd);
+
+/**
  * @brief Dispatch table of the ROM SPI user-command primitives
  *
  * The functions themselves live in revision specific ROM sections and move

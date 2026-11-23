@@ -113,23 +113,6 @@ static void stub_target_flash_init_funcs(void)
     rom_spiflash_legacy_funcs = &funcs;
 }
 
-void stub_target_opiflash_exec_cmd(const opiflash_cmd_params_t *params)
-{
-    esp_rom_opiflash_exec_cmd(params->spi_num,
-                              params->mode,
-                              params->cmd,
-                              params->cmd_bit_len,
-                              params->addr,
-                              params->addr_bit_len,
-                              params->dummy_bits,
-                              params->mosi_data,
-                              params->mosi_bit_len,
-                              params->miso_data,
-                              params->miso_bit_len,
-                              params->cs_mask,
-                              params->is_write_erase_operation);
-}
-
 void stub_target_spi_wait_ready(void)
 {
     while (REG_GET_FIELD(SPI_MEM_FSM_REG(FLASH_SPI_NUM), SPI_MEM_ST)) {
