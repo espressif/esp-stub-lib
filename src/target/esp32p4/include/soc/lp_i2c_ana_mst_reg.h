@@ -1,0 +1,37 @@
+/*
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0 OR MIT
+ *
+ * Minimal LP_I2C_ANA_MST defs for CPLL regi2c writes.
+ */
+
+#pragma once
+
+#include <esp-stub-lib/bit_utils.h>
+#include "reg_base.h"
+
+/** LP_I2C_ANA_MST_I2C0_CTRL_REG register */
+#define LP_I2C_ANA_MST_I2C0_CTRL_REG (DR_REG_LP_I2C_ANA_MST_BASE + 0x0)
+
+/** LP_I2C_ANA_MST_ANA_CONF1_REG register */
+#define LP_I2C_ANA_MST_ANA_CONF1_REG (DR_REG_LP_I2C_ANA_MST_BASE + 0x1c)
+#define LP_I2C_ANA_MST_ANA_CONF1    0x00FFFFFFU
+#define LP_I2C_ANA_MST_ANA_CONF1_M  (LP_I2C_ANA_MST_ANA_CONF1_V << LP_I2C_ANA_MST_ANA_CONF1_S)
+#define LP_I2C_ANA_MST_ANA_CONF1_V  0x00FFFFFFU
+#define LP_I2C_ANA_MST_ANA_CONF1_S  0
+
+/** LP_I2C_ANA_MST_ANA_CONF2_REG register */
+#define LP_I2C_ANA_MST_ANA_CONF2_REG (DR_REG_LP_I2C_ANA_MST_BASE + 0x20)
+#define LP_I2C_ANA_MST_ANA_CONF2    0x00FFFFFFU
+#define LP_I2C_ANA_MST_ANA_CONF2_M  (LP_I2C_ANA_MST_ANA_CONF2_V << LP_I2C_ANA_MST_ANA_CONF2_S)
+#define LP_I2C_ANA_MST_ANA_CONF2_V  0x00FFFFFFU
+#define LP_I2C_ANA_MST_ANA_CONF2_S  0
+
+/** LP_I2C_ANA_MST_CLK160M_REG register */
+#define LP_I2C_ANA_MST_CLK160M_REG (DR_REG_LP_I2C_ANA_MST_BASE + 0x34)
+#define LP_I2C_ANA_MST_CLK_I2C_MST_SEL_160M    (BIT(0))
+#define LP_I2C_ANA_MST_CLK_I2C_MST_SEL_160M_M                                                                    \
+    (LP_I2C_ANA_MST_CLK_I2C_MST_SEL_160M_V << LP_I2C_ANA_MST_CLK_I2C_MST_SEL_160M_S)
+#define LP_I2C_ANA_MST_CLK_I2C_MST_SEL_160M_V  0x00000001U
+#define LP_I2C_ANA_MST_CLK_I2C_MST_SEL_160M_S  0
