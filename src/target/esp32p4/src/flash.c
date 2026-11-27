@@ -266,11 +266,10 @@ static void enable_4byte_cache_mode(void)
 {
     /* Bootloader / IDF may already have 4-byte cache addressing (QIO/DIO +
      * timing). Leave that alone; reprogramming FASTRD here would desync
-     * memory-mapped fetches until a full chip reset. Prefer the dedicated
-     * CACHE_USR_ADDR_4BYTE bit; also accept USR_ADDR_BITLEN >= 31 for setups
-     * that only programmed the address phase (incl. addr+mode-bit lengths). */
-    if (REG_GET_BIT(SPI_MEM_C_CACHE_FCTRL_REG, SPI_MEM_C_CACHE_USR_ADDR_4BYTE) ||
-        REG_GET_FIELD(SPI_MEM_C_USER1_REG, SPI_MEM_C_USR_ADDR_BITLEN) >= ADDR32_CACHE_ADDR_BITLEN - 1) {
+     * memory-mapped fetches until a full chip reset. USR_ADDR_BITLEN can't
+     * tell: 24-bit QIO folds the 8 mode bits into the address phase, which
+     * makes it 32 bits long too. */
+    if (REG_GET_BIT(SPI_MEM_C_CACHE_FCTRL_REG, SPI_MEM_C_CACHE_USR_ADDR_4BYTE)) {
         return;
     }
 
@@ -297,7 +296,6 @@ static void enable_4byte_cache_mode(void)
      * bit-shifted through SPI0 cache at typical flash clocks. */
     esp_rom_spi_set_op_mode(FLASH_SPI_NUM_INT, SPI_FLASH_FASTRD_MODE);
     esp_rom_spi_set_address_bit_len(FLASH_SPI_NUM_INT, ADDR32_CACHE_ADDR_BITLEN);
-    REG_SET_BIT(SPI_MEM_C_CACHE_FCTRL_REG, SPI_MEM_C_CACHE_USR_ADDR_4BYTE);
     REG_SET_BIT(SPI_MEM_C_USER_REG, SPI_MEM_C_USR_DUMMY);
     REG_SET_FIELD(SPI_MEM_C_USER1_REG, SPI_MEM_C_USR_DUMMY_CYCLELEN, ADDR32_CACHE_DUMMY_BITLEN - 1);
     REG_SET_FIELD(SPI_MEM_C_USER2_REG, SPI_MEM_C_USR_COMMAND_VALUE, ADDR32_CACHE_CMD);
