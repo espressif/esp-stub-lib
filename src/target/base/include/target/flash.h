@@ -52,6 +52,18 @@ size_t stub_target_flash_state_size(void) __attribute__((const));
 void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_policy);
 
 /**
+ * @brief Set how many bytes the ROM flash functions read and program per SPI command.
+ *
+ * The default weak implementation sets the read and write lengths in the ROM
+ * rom_spiflash_legacy_funcs. Targets whose ROM has no such struct override it
+ * to do nothing, and targets with a different struct layout override it to
+ * write their own fields.
+ *
+ * @param bytes Bytes per SPI command, at most the size of the SPI data buffer.
+ */
+void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes);
+
+/**
  * @brief Check whether flash attach is needed for the current hardware state.
  *
  * The default weak implementation returns true. Targets with live cache/MMU/XIP
@@ -61,6 +73,49 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
  * @return true if ROM flash attach should run, false otherwise.
  */
 bool stub_target_flash_needs_attach(void);
+
+/**
+ * @brief Check whether the attached flash can be read in dual output (DOUT) mode.
+ *
+ * The default weak implementation returns true. Targets supporting flash chips
+ * without DOUT (e.g. octal flash) override this.
+ *
+ * @return true if DOUT reads can be used, false otherwise.
+ */
+bool stub_target_flash_dout_supported(void);
+
+/**
+ * @brief Get the frequency of the MSPI core clock that the SPI1 clock divider divides.
+ *
+ * The default weak implementation returns 80. Targets override this to read
+ * the selected clock source, as ESP-IDF spimem_flash_ll_get_source_freq_mhz() does.
+ *
+ * @return Source clock frequency in MHz.
+ */
+uint32_t stub_target_flash_get_src_freq_mhz(void);
+
+/**
+ * @brief Set the SPI1 clock divider of the MSPI core clock.
+ *
+ * The default weak implementation calls the ROM esp_rom_spiflash_config_clk().
+ * Targets that keep the ROM clock override this and return false.
+ *
+ * @param div SPI1 clock divider, 1 for the source clock frequency.
+ *
+ * @return true if the clock is set, false if the ROM clock is kept.
+ */
+bool stub_target_flash_set_clk_div(uint8_t div);
+
+/**
+ * @brief Switch SPI1 flash reads between fast read and the slow read set by the ROM attach.
+ *
+ * Called around each read, because the ROM status reads and the raw SPI commands
+ * of the host (e.g. RDID) run through the same registers and expect single line data.
+ *
+ * @param enable true for fast reads, false for slow reads.
+ * @param dual true for dual output (DOUT) fast reads, ignored when enable is false.
+ */
+void stub_target_flash_set_fast_read(bool enable, bool dual);
 
 /**
  * @brief Restore SPI Flash hardware state.

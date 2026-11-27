@@ -10,6 +10,7 @@
 #include <esp-stub-lib/log.h>
 #include <esp-stub-lib/soc_utils.h>
 
+#include <target/clock.h>
 #include <target/flash.h>
 
 #include <private/rom_flash.h>
@@ -20,6 +21,7 @@
 extern esp_rom_spiflash_chip_t g_rom_flashchip;
 extern uint32_t esp_rom_efuse_get_flash_gpio_info(void);
 extern uint8_t g_rom_spiflash_dummy_len_plus[];
+extern uint8_t sig_matrix;
 
 #define GPIO_STRAP_REG             (DR_REG_GPIO_BASE + 0x38)
 
@@ -191,4 +193,25 @@ void stub_target_flash_init(void *state, stub_lib_flash_attach_policy_t attach_p
      * So we need to set it here before sending any command.
      */
     REG_SET_BIT(SPI_USER_REG(FLASH_SPI_NUM), SPI_USR_COMMAND);
+}
+
+void stub_target_flash_set_rom_bytes_per_cmd(uint32_t bytes)
+{
+    // The ROM has no rom_spiflash_legacy_funcs, so its read and program lengths are fixed
+    (void)bytes;
+}
+
+uint32_t stub_target_flash_get_src_freq_mhz(void)
+{
+    return stub_target_get_apb_freq() / MHZ;
+}
+
+bool stub_target_flash_set_clk_div(uint8_t div)
+{
+    // The GPIO matrix delays the flash data by one clock at 40 MHz, the stub status reads add no dummy for it
+    if (sig_matrix) {
+        return false;
+    }
+    esp_rom_spiflash_config_clk(div, FLASH_SPI_NUM);
+    return true;
 }

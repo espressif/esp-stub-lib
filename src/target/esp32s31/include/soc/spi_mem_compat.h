@@ -14,6 +14,8 @@
 #define SPI_MEM_FLASH_SE                    SPI1_MEM_C_FLASH_SE
 #define SPI_MEM_FLASH_BE                    SPI1_MEM_C_FLASH_BE
 #define SPI_MEM_FLASH_RDSR                  SPI1_MEM_C_FLASH_RDSR
+#define SPI_MEM_FLASH_WAITI_CTRL_REG(i)     SPI1_MEM_C_FLASH_WAITI_CTRL_REG
+#define SPI_MEM_WAITI_EN                    SPI1_MEM_C_WAITI_EN
 
 #define SPI_MEM_MST_ST                      SPI1_MEM_C_MST_ST
 #define SPI_MEM_MST_ST_S                    SPI1_MEM_C_MST_ST_S
@@ -25,6 +27,8 @@
 
 /* SPI1 registers used by stub_target_flash_init */
 #define SPI_MEM_CTRL_REG(i)     SPI1_MEM_C_CTRL_REG
+#define SPI_MEM_FREAD_DUAL      SPI1_MEM_C_FREAD_DUAL
+#define SPI_MEM_FASTRD_MODE     SPI1_MEM_C_FASTRD_MODE
 #define SPI_MEM_CTRL2_REG(i)    SPI1_MEM_C_CTRL2_REG
 #define SPI_MEM_USER_REG(i)     SPI1_MEM_C_USER_REG
 #define SPI_MEM_SUS_STATUS_REG(i) SPI1_MEM_C_SUS_STATUS_REG

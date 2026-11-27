@@ -9,6 +9,9 @@
 
 #define SPI_MEM_ADDR_REG(i)       SPI_ADDR_REG(i)
 #define SPI_MEM_CMD_REG(i)        SPI_CMD_REG(i)
+#define SPI_MEM_CTRL_REG(i)       SPI_CTRL_REG(i)
+#define SPI_MEM_FASTRD_MODE       SPI_FASTRD_MODE
+#define SPI_MEM_FREAD_DUAL        SPI_FREAD_DUAL
 #define SPI_MEM_RD_STATUS_REG(i)  SPI_RD_STATUS_REG(i)
 #define SPI_MEM_FLASH_SE          SPI_FLASH_SE
 #define SPI_MEM_FLASH_BE          SPI_FLASH_BE

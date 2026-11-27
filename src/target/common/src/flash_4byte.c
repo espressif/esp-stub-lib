@@ -32,13 +32,9 @@
 #define AES_XTS_DOUBLE_BLOCK_SIZE 32
 #define AES_XTS_QUAD_BLOCK_SIZE   64
 
-// Flash write chunk size for unencrypted operations
-// Taken from ROM SPI_BUFF_BYTE_WRITE_NUM
-#define FLASH_WRITE_CHUNK_SIZE    32
-
-// Flash read chunk size for 4-byte address mode operations
-// Taken from ROM SPI_BUFF_BYTE_READ_NUM
-#define FLASH_READ_CHUNK_SIZE     16
+// Flash write and read chunk sizes, the size of the SPI data buffer
+#define FLASH_WRITE_CHUNK_SIZE    64
+#define FLASH_READ_CHUNK_SIZE     64
 
 static void exec_write_cmd_4b(int spi_num, uint32_t flash_addr, const uint8_t *data, int bit_len)
 {
