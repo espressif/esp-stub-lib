@@ -24,6 +24,7 @@
 #include <private/spi_slave_protocol.h>
 
 #include <soc/axi_dma_reg.h>
+#include <soc/cache_reg.h>
 #include <soc/interrupt_core0_reg.h>
 #include <soc/spi_reg.h>
 
@@ -61,15 +62,31 @@ static uint32_t s_rx_len;
 
 /* P4 AXI-DMA is coherent with L2 but not L1 D-cache, so DMA buffers/descriptors
  * only need L1 D-cache maintenance (the shared stub_target_cache_* helpers also
- * touch L2). */
-extern int Cache_WriteBack_Addr(uint32_t map, uint32_t addr, uint32_t size);
+ * touch L2). Use the same double-sync writeback as IDF
+ * (ESP_ROM_CACHE_WRITEBACK_NEEDS_SYNC_TWICE_MAP) instead of the ROM helper. */
 extern int Cache_Invalidate_Addr(uint32_t map, uint32_t addr, uint32_t size);
 
-#define CACHE_MAP_L1_DCACHE BIT(4)
+#define CACHE_MAP_L1_DCACHE  BIT(4)
+#define MIN_DCACHE_LINE_SIZE 64
 
 static inline void dcache_writeback(const void *addr, uint32_t size)
 {
-    Cache_WriteBack_Addr(CACHE_MAP_L1_DCACHE, (uint32_t)(uintptr_t)addr, size);
+    uint32_t vaddr = (uint32_t)(uintptr_t)addr;
+    uint32_t end = ALIGN_UP(vaddr + size, MIN_DCACHE_LINE_SIZE);
+
+    vaddr = ALIGN_DOWN(vaddr, MIN_DCACHE_LINE_SIZE);
+    size = end - vaddr;
+
+    REG_WRITE(CACHE_SYNC_MAP_REG, CACHE_MAP_L1_DCACHE);
+    REG_WRITE(CACHE_SYNC_ADDR_REG, vaddr);
+    REG_WRITE(CACHE_SYNC_SIZE_REG, size);
+    REG_WRITE(CACHE_SYNC_CTRL_REG, CACHE_WRITEBACK_ENA);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
+
+    REG_WRITE(CACHE_SYNC_CTRL_REG, CACHE_WRITEBACK_ENA);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
 }
 
 static inline void dcache_invalidate(const void *addr, uint32_t size)

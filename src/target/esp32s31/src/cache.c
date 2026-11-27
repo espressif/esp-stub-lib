@@ -22,11 +22,38 @@
 #define CACHE_MAP_L1_DCACHE   BIT(4)
 #define CACHE_MAP_L1_ICACHE   (CACHE_MAP_L1_ICACHE_0 | CACHE_MAP_L1_ICACHE_1)
 #define CACHE_MAP_ALL         (CACHE_MAP_L1_ICACHE | CACHE_MAP_L1_DCACHE)
+#define MIN_DCACHE_LINE_SIZE  64
 
 extern int Cache_Invalidate_All(uint32_t map);
 extern int Cache_Invalidate_Addr(uint32_t map, uint32_t addr, uint32_t size);
-extern void Cache_WriteBack_All(uint32_t map);
-extern int Cache_WriteBack_Addr(uint32_t map, uint32_t addr, uint32_t size);
+
+/*
+ * ROM Cache_WriteBack_* on S31 (and P4) starts the sync only once; that start
+ * can be lost, so ESP-IDF replaces those entry points with a double SYNC_CTRL
+ * pulse (ESP_ROM_CACHE_WRITEBACK_NEEDS_SYNC_TWICE_MAP). Drive the same
+ * sequence here. Writeback is valid for L1 DCache only (not L1 ICache).
+ */
+static void cache_sync_op(uint32_t map, uint32_t addr, uint32_t size, uint32_t op_bit)
+{
+    REG_WRITE(CACHE_SYNC_MAP_REG, map);
+    REG_WRITE(CACHE_SYNC_ADDR_REG, addr);
+    REG_WRITE(CACHE_SYNC_SIZE_REG, size);
+    REG_WRITE(CACHE_SYNC_CTRL_REG, op_bit);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
+
+    REG_WRITE(CACHE_SYNC_CTRL_REG, op_bit);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
+}
+
+static void align_to_cache_line(uint32_t *vaddr, uint32_t *size)
+{
+    uint32_t end = ALIGN_UP(*vaddr + *size, MIN_DCACHE_LINE_SIZE);
+
+    *vaddr = ALIGN_DOWN(*vaddr, MIN_DCACHE_LINE_SIZE);
+    *size = end - *vaddr;
+}
 
 extern void ROM_Boot_Cache_Init(void);
 extern uint32_t Cache_Disable_L1_DCache(void);
@@ -73,12 +100,13 @@ uint32_t stub_target_cache_get_caps(void)
 
 void stub_target_cache_writeback_addr(uint32_t vaddr, uint32_t size)
 {
-    Cache_WriteBack_Addr(CACHE_MAP_L1_DCACHE, vaddr, size);
+    align_to_cache_line(&vaddr, &size);
+    cache_sync_op(CACHE_MAP_L1_DCACHE, vaddr, size, CACHE_WRITEBACK_ENA);
 }
 
 void stub_target_cache_writeback_all(void)
 {
-    Cache_WriteBack_All(CACHE_MAP_ALL);
+    cache_sync_op(CACHE_MAP_L1_DCACHE, 0, 0, CACHE_WRITEBACK_ENA);
 }
 
 void stub_target_cache_invalidate_all(void)

@@ -16,3 +16,11 @@
 #define CACHE_L1_DCACHE_CTRL_REG       (DR_REG_CACHE_BASE + 0x4)
 #define CACHE_L1_DCACHE_SHUT_DBUS0     BIT(0)
 #define CACHE_L1_DCACHE_SHUT_DBUS1     BIT(1)
+
+#define CACHE_SYNC_CTRL_REG            (DR_REG_CACHE_BASE + 0x9c)
+#define CACHE_WRITEBACK_ENA            BIT(2)
+#define CACHE_SYNC_DONE                BIT(4)
+
+#define CACHE_SYNC_MAP_REG             (DR_REG_CACHE_BASE + 0xa0)
+#define CACHE_SYNC_ADDR_REG            (DR_REG_CACHE_BASE + 0xa4)
+#define CACHE_SYNC_SIZE_REG            (DR_REG_CACHE_BASE + 0xa8)

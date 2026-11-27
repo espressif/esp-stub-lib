@@ -22,8 +22,6 @@ extern void Cache_Freeze_Enable(uint32_t map, int mode);
 extern void Cache_Freeze_Disable(uint32_t map);
 extern void Cache_Invalidate_All(uint32_t map);
 extern int Cache_Invalidate_Addr(uint32_t map, uint32_t addr, uint32_t size);
-extern void Cache_WriteBack_All(void);
-extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
 extern void ROM_Boot_Cache_Init(void);
 
 #define CACHE_MAP_ICACHE0     BIT(0)
@@ -31,6 +29,35 @@ extern void ROM_Boot_Cache_Init(void);
 #define CACHE_MAP_DCACHE      BIT(4)
 #define CACHE_MAP_ALL         (CACHE_MAP_ICACHE0 | CACHE_MAP_ICACHE1 | CACHE_MAP_DCACHE)
 #define CACHE_FREEZE_ACK_BUSY 0
+#define MIN_CACHE_LINE_SIZE   32
+
+/*
+ * ROM Cache_WriteBack_* on H4 (and C5/C61) starts the sync only once; that
+ * start can be lost, so ESP-IDF replaces those entry points with a double
+ * SYNC_CTRL pulse (ESP_ROM_CACHE_WRITEBACK_NEEDS_SYNC_TWICE_NO_MAP). Drive
+ * the same sequence here instead of calling the ROM helpers.
+ */
+static void cache_sync_op(uint32_t addr, uint32_t size, uint32_t op_bit)
+{
+    REG_WRITE(CACHE_SYNC_MAP_REG, CACHE_MAP_FLASH_CACHE);
+    REG_WRITE(CACHE_SYNC_ADDR_REG, addr);
+    REG_WRITE(CACHE_SYNC_SIZE_REG, size);
+    REG_WRITE(CACHE_SYNC_CTRL_REG, op_bit);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
+
+    REG_WRITE(CACHE_SYNC_CTRL_REG, op_bit);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
+}
+
+static void align_to_cache_line(uint32_t *vaddr, uint32_t *size)
+{
+    uint32_t end = ALIGN_UP(*vaddr + *size, MIN_CACHE_LINE_SIZE);
+
+    *vaddr = ALIGN_DOWN(*vaddr, MIN_CACHE_LINE_SIZE);
+    *size = end - *vaddr;
+}
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -39,12 +66,13 @@ uint32_t stub_target_cache_get_caps(void)
 
 void stub_target_cache_writeback_all(void)
 {
-    Cache_WriteBack_All();
+    cache_sync_op(0, 0, CACHE_WRITEBACK_ENA);
 }
 
 void stub_target_cache_writeback_addr(uint32_t vaddr, uint32_t size)
 {
-    Cache_WriteBack_Addr(vaddr, size);
+    align_to_cache_line(&vaddr, &size);
+    cache_sync_op(vaddr, size, CACHE_WRITEBACK_ENA);
 }
 
 void stub_target_cache_invalidate_all(void)
@@ -70,12 +98,14 @@ void stub_target_cache_start(void)
 int stub_target_cache_is_enabled(void)
 {
     uint32_t icache_ctrl = REG_READ(CACHE_L1_ICACHE_CTRL_REG);
-    if (icache_ctrl & (CACHE_L1_ICACHE_SHUT_IBUS0 | CACHE_L1_ICACHE_SHUT_IBUS1))
+    if (icache_ctrl & (CACHE_L1_ICACHE_SHUT_IBUS0 | CACHE_L1_ICACHE_SHUT_IBUS1)) {
         return 0;
+    }
 
     uint32_t dcache_ctrl = REG_READ(CACHE_L1_DCACHE_CTRL_REG);
-    if (dcache_ctrl & (CACHE_L1_DCACHE_SHUT_DBUS0 | CACHE_L1_DCACHE_SHUT_DBUS1))
+    if (dcache_ctrl & (CACHE_L1_DCACHE_SHUT_DBUS0 | CACHE_L1_DCACHE_SHUT_DBUS1)) {
         return 0;
+    }
 
     return stub_target_mmu_has_valid_entry();
 }

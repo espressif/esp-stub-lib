@@ -20,15 +20,42 @@
 #include <soc/spi_mem_compat.h>
 
 extern void ROM_Boot_Cache_Init(void);
-extern void Cache_Disable_Cache(void);
-extern void Cache_Invalidate_All(void);
 extern int Cache_Invalidate_Addr(uint32_t addr, uint32_t size);
-extern void Cache_WriteBack_All(void);
 extern void Cache_Freeze_Enable(int mode);
 extern void Cache_Freeze_Disable(void);
+extern uint32_t Cache_Get_Line_Size(void);
 
 #define CACHE_BUS_MASK        (CACHE_L1_CACHE_SHUT_BUS0 | CACHE_L1_CACHE_SHUT_BUS1)
 #define CACHE_FREEZE_ACK_BUSY 0
+
+/*
+ * ROM Cache_WriteBack_* on C61 (and C5/H4) starts the sync only once; that
+ * start can be lost, so ESP-IDF replaces those entry points with a double
+ * SYNC_CTRL pulse (ESP_ROM_CACHE_WRITEBACK_NEEDS_SYNC_TWICE_NO_MAP). Drive
+ * the same sequence here instead of calling the ROM helpers.
+ */
+static void cache_sync_op(uint32_t addr, uint32_t size, uint32_t op_bit)
+{
+    REG_WRITE(CACHE_SYNC_MAP_REG, CACHE_MAP_FLASH_CACHE);
+    REG_WRITE(CACHE_SYNC_ADDR_REG, addr);
+    REG_WRITE(CACHE_SYNC_SIZE_REG, size);
+    REG_WRITE(CACHE_SYNC_CTRL_REG, op_bit);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
+
+    REG_WRITE(CACHE_SYNC_CTRL_REG, op_bit);
+    while (!REG_GET_BIT(CACHE_SYNC_CTRL_REG, CACHE_SYNC_DONE)) {
+    }
+}
+
+static void align_to_cache_line(uint32_t *vaddr, uint32_t *size)
+{
+    uint32_t line_size = Cache_Get_Line_Size();
+    uint32_t end = ALIGN_UP(*vaddr + *size, line_size);
+
+    *vaddr = ALIGN_DOWN(*vaddr, line_size);
+    *size = end - *vaddr;
+}
 
 uint32_t stub_target_cache_get_caps(void)
 {
@@ -37,17 +64,29 @@ uint32_t stub_target_cache_get_caps(void)
 
 void stub_target_cache_writeback_all(void)
 {
-    Cache_WriteBack_All();
+    cache_sync_op(0, 0, CACHE_WRITEBACK_ENA);
+}
+
+void stub_target_cache_writeback_addr(uint32_t vaddr, uint32_t size)
+{
+    align_to_cache_line(&vaddr, &size);
+    cache_sync_op(vaddr, size, CACHE_WRITEBACK_ENA);
 }
 
 void stub_target_cache_invalidate_all(void)
 {
-    Cache_Invalidate_All();
+    /* Plain invalidate would discard dirty PSRAM lines in the shared I/D cache.
+     * Use writeback-invalidate, with the same double-sync workaround as IDF. */
+    cache_sync_op(0, 0, CACHE_WRITEBACK_INVALIDATE_ENA);
 }
 
 void stub_target_cache_invalidate_addr(uint32_t vaddr, uint32_t size)
 {
-    Cache_Invalidate_Addr(vaddr, size);
+    align_to_cache_line(&vaddr, &size);
+    if (Cache_Invalidate_Addr(vaddr, size) != 0) {
+        STUB_LOGW("Cache_Invalidate_Addr(0x%x, 0x%x) failed, invalidating all\n", vaddr, size);
+        stub_target_cache_invalidate_all();
+    }
 }
 
 void stub_target_cache_stop(void)
