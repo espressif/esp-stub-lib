@@ -11,14 +11,10 @@
 #include <esp-stub-lib/bit_utils.h>
 #include <esp-stub-lib/soc_utils.h>
 #include <soc/reg_base.h>
+#include <soc/soc.h>
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-/* P4 soc.h lacks the indexed REG_SPI_BASE() helper; only i == 2 (GP-SPI2) used. */
-#ifndef REG_SPI_BASE
-#define REG_SPI_BASE(i) (DR_REG_SPI2_BASE + ((i) - 2) * 0x1000)
 #endif
 
 /** SPI_CMD_REG register

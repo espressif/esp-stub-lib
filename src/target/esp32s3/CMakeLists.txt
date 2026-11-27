@@ -2,6 +2,8 @@ set(srcs
     src/cache.c
     src/flash.c
     src/mmu.c
+    src/nand.c
+    ../common/src/nand_gpspi.c
     src/slave_spi.c
     src/trax.c
     src/uart.c
@@ -9,7 +11,6 @@ set(srcs
     src/usb_otg.c
     src/clock.c
     src/aes_xts.c
-    src/nand.c
 )
 
 add_library(${ESP_TARGET_LIB} STATIC ${srcs})

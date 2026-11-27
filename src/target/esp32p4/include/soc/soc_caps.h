@@ -17,5 +17,8 @@
 
 #define SOC_SPI_FLASH_4B_ADDR_SUPPORTED 1
 
+// GPIO Caps
+#define SOC_GPIO_PIN_COUNT (55)
+
 // DMA Caps
 #define SOC_DMA_BUF_ALIGN          (64)  /*!< DMA buffer alignment (L1 dcache line size) */
